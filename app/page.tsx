@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { classes } from "@/lib/content/index";
+import { modules } from "@/lib/content/index";
 import LessonDetail from "@/components/LessonDetail";
 import DrillScreen from "@/components/DrillScreen";
 import NameSetup from "@/components/NameSetup";
@@ -13,7 +13,70 @@ import { useAuth } from "@/components/AuthProvider";
 import { useProgress } from "@/lib/hooks/useProgress";
 import { useStreak } from "@/lib/hooks/useStreak";
 
-import type { Lesson } from "@/lib/content/index";
+import type { Lesson, Class, Module } from "@/lib/content/index";
+
+type UserProfile = {
+  job?: "nail-salon" | "permanent-makeup" | "other";
+  level?: "beginner" | "intermediate";
+  need?: "customers" | "money" | "healthcare" | "daily";
+};
+
+function getModulePriority(mod: Module, profile: UserProfile): number {
+  const { job, need } = profile;
+
+  // Job-based primary sort
+  if (job === "nail-salon" && mod.id === "nail-salon") return 0;
+  if (job === "permanent-makeup" && mod.id === "permanent-makeup") return 0;
+  if (job === "other" && ["shopping-errands", "healthcare", "community"].includes(mod.id)) return 0;
+
+  // Need-based secondary sort
+  if (need === "healthcare" && mod.id === "healthcare") return 1;
+  if (need === "daily" && ["shopping-errands", "community"].includes(mod.id)) return 1;
+  if (need === "money" && mod.id === "nail-salon") return 1; // money/tips classes inside nail salon
+  if (need === "customers" && mod.id === "nail-salon") return 1;
+
+  return 5;
+}
+
+function getClassPriority(cls: Class, profile: UserProfile): number {
+  const { need } = profile;
+  const id = cls.id.toLowerCase();
+
+  if (need === "customers" && (id.includes("communication") || id.includes("relationship"))) return 0;
+  if (need === "money" && (id.includes("money") || id.includes("tip") || id.includes("pricing"))) return 0;
+
+  return 5;
+}
+
+function sortLessonsByLevel(lessons: Lesson[], profile: UserProfile): Lesson[] {
+  if (!profile.level) return lessons;
+  const beginnerFirst = profile.level === "beginner";
+
+  return [...lessons].sort((a, b) => {
+    const levelOrder: Record<string, number> = beginnerFirst
+      ? { A1: 0, A2: 1, B1: 2, B2: 3 }
+      : { B1: 0, B2: 1, A1: 2, A2: 3 };
+    const aPri = levelOrder[a.level ?? "A1"] ?? 4;
+    const bPri = levelOrder[b.level ?? "A1"] ?? 4;
+    return aPri - bPri;
+  });
+}
+
+function getSortedClasses(profile: UserProfile): Class[] {
+  const sorted = [...modules].sort(
+    (a, b) => getModulePriority(a, profile) - getModulePriority(b, profile)
+  );
+
+  return sorted.flatMap((mod) => {
+    const sortedClasses = [...mod.classes].sort(
+      (a, b) => getClassPriority(a, profile) - getClassPriority(b, profile)
+    );
+    return sortedClasses.map((cls) => ({
+      ...cls,
+      lessons: sortLessonsByLevel(cls.lessons, profile),
+    }));
+  });
+}
 
 export default function Home() {
   const router = useRouter();
@@ -26,17 +89,38 @@ export default function Home() {
   const [mounted, setMounted] = useState(false);
   const [studentName, setStudentName] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [profile, setProfile] = useState<UserProfile>({});
 
   useEffect(() => {
     setMounted(true);
-    if (classes.length > 0) setExpandedClass(classes[0].id);
     try {
       const saved = localStorage.getItem("easybee_name");
       if (saved) setStudentName(saved);
     } catch {
       // Private browsing or storage unavailable
     }
+    try {
+      const savedProfile = localStorage.getItem("easybee_profile");
+      if (savedProfile) setProfile(JSON.parse(savedProfile));
+    } catch {
+      // ignore
+    }
   }, []);
+
+  // Read profile from user metadata when available
+  useEffect(() => {
+    if (user?.user_metadata) {
+      const meta = user.user_metadata;
+      if (meta.job || meta.level || meta.need) {
+        const p: UserProfile = {
+          job: meta.job,
+          level: meta.level,
+          need: meta.need,
+        };
+        setProfile(p);
+      }
+    }
+  }, [user]);
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -44,6 +128,20 @@ export default function Home() {
       router.push("/login");
     }
   }, [authLoading, user, router]);
+
+  // Redirect to onboarding if not onboarded
+  useEffect(() => {
+    if (!authLoading && user && !user.user_metadata?.onboarded) {
+      router.push("/onboarding");
+    }
+  }, [authLoading, user, router]);
+
+  // Compute sorted classes from profile
+  const sortedClasses = useMemo(() => {
+    const cls = getSortedClasses(profile);
+    if (cls.length > 0 && !expandedClass) setExpandedClass(cls[0].id);
+    return cls;
+  }, [profile]);
 
   const handleSearch = useCallback((q: string) => {
     setSearchQuery(q);
@@ -53,7 +151,7 @@ export default function Home() {
   const query = searchQuery.trim().toLowerCase();
   const visibleClasses = useMemo(() =>
     query
-      ? classes
+      ? sortedClasses
           .map((cls) => ({
             ...cls,
             lessons: cls.lessons.filter(
@@ -66,8 +164,8 @@ export default function Home() {
             ),
           }))
           .filter((cls) => cls.lessons.length > 0)
-      : classes,
-    [query]
+      : sortedClasses,
+    [query, sortedClasses]
   );
 
   // When searching, auto-expand all matching classes
