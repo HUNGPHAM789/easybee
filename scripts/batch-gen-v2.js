@@ -26,7 +26,8 @@ if (fs.existsSync(envPath)) {
   });
 }
 
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "AIzaSyBmXE-zjAV66tQQQecr23nnJ6yosDBjWGc";
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+if (!GEMINI_API_KEY) { console.error("❌ GEMINI_API_KEY not set"); process.exit(1); }
 const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
 const DRY_RUN = process.argv.includes("--dry-run");
 const PLAN_ARG = process.argv.indexOf("--plan");
