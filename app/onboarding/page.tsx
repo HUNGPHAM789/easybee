@@ -36,7 +36,6 @@ export default function OnboardingPage() {
   const [transcript, setTranscript] = useState<TranscriptEntry[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  const [authTimeout, setAuthTimeout] = useState(false);
 
   const liveClientRef = useRef<GeminiLiveClient | null>(null);
   const micStopRef = useRef<{ stop: () => void } | null>(null);
@@ -44,17 +43,12 @@ export default function OnboardingPage() {
   const isPlayingRef = useRef(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
+  // Only redirect if auth is fully loaded and user is already onboarded
   useEffect(() => {
-    if (!authLoading && !user) {
-      router.push("/login");
-    }
-  }, [authLoading, user, router]);
-
-  useEffect(() => {
-    if (user?.user_metadata?.onboarded) {
+    if (!authLoading && user?.user_metadata?.onboarded) {
       router.replace("/");
     }
-  }, [user, router]);
+  }, [authLoading, user, router]);
 
   // Auto-scroll transcript
   useEffect(() => {
@@ -212,25 +206,8 @@ export default function OnboardingPage() {
     router.replace("/");
   };
 
-  // If auth is still loading after 3s, stop waiting (guest users may not resolve quickly)
-  useEffect(() => {
-    const timer = setTimeout(() => setAuthTimeout(true), 3000);
-    return () => clearTimeout(timer);
-  }, []);
-
-  if (authLoading && !authTimeout) {
-    return (
-      <main className="px-5 pt-12 pb-10 flex items-center justify-center min-h-screen">
-        <div className="w-6 h-6 border-2 border-neutral-200 border-t-neutral-600 rounded-full animate-spin" />
-      </main>
-    );
-  }
-
-  // Not logged in and auth resolved — redirect to login
-  if (!authLoading && !user) {
-    router.push("/login");
-    return null;
-  }
+  // No loading gate — show onboarding immediately
+  // Guest users may not have auth resolved yet, that's fine
 
   // Done state — saving recommendations
   if (state === "done" || saving) {
