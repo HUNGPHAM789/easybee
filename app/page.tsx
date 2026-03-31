@@ -16,8 +16,6 @@ import FloatingHelper from "@/components/FloatingHelper";
 
 import type { Lesson } from "@/lib/content/index";
 
-type Tab = "lessons" | "teacher";
-
 export default function Home() {
   const router = useRouter();
   const { user, loading: authLoading, signOut } = useAuth();
@@ -30,7 +28,6 @@ export default function Home() {
   const [mounted, setMounted] = useState(false);
   const [studentName, setStudentName] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeTab, setActiveTab] = useState<Tab>("lessons");
   const [recommendedIds, setRecommendedIds] = useState<string[]>([]);
 
   useEffect(() => {
@@ -75,12 +72,13 @@ export default function Home() {
     [recommendedIds, allLessonsFlat]
   );
 
-  // Auto-expand first module
+  // Auto-expand first module on mount only
   useEffect(() => {
-    if (modules.length > 0 && !expandedModule) {
+    if (modules.length > 0) {
       setExpandedModule(modules[0].id);
     }
-  }, [expandedModule]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -160,13 +158,11 @@ export default function Home() {
     <div className="flex flex-col min-h-screen">
       {/* Main content area */}
       <motion.main
-        className="px-5 pt-12 pb-24 flex-1"
+        className="px-5 pt-12 pb-10 flex-1"
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
       >
-        {activeTab === "lessons" ? (
-          <>
             {/* Header */}
             <div className="mb-4">
               <div className="flex items-start justify-between">
@@ -470,48 +466,18 @@ export default function Home() {
                 );
               })}
             </div>
-          </>
-        ) : (
-          /* Voice Teacher tab */
-          <VoiceTeacher />
-        )}
+
+            {/* Voice Teacher section */}
+            <div className="mt-8">
+              <h2 className="text-lg font-semibold text-neutral-900 font-title mb-4">
+                Giáo Viên EasyBee
+              </h2>
+              <VoiceTeacher />
+            </div>
       </motion.main>
 
       {/* Floating Helper */}
-      {activeTab === "lessons" && <FloatingHelper />}
-
-      {/* Bottom tab bar */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-neutral-100 z-40">
-        <div className="max-w-[390px] mx-auto flex">
-          <button
-            type="button"
-            onClick={() => setActiveTab("lessons")}
-            className={`flex-1 flex flex-col items-center gap-1 py-3 touch-manipulation transition-colors ${
-              activeTab === "lessons" ? "text-neutral-900" : "text-neutral-400"
-            }`}
-          >
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
-              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
-            </svg>
-            <span className="text-xs font-medium">Bài Học</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab("teacher")}
-            className={`flex-1 flex flex-col items-center gap-1 py-3 touch-manipulation transition-colors ${
-              activeTab === "teacher" ? "text-neutral-900" : "text-neutral-400"
-            }`}
-          >
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="9" y="2" width="6" height="11" rx="3" />
-              <path d="M5 10a7 7 0 0 0 14 0" />
-              <line x1="12" y1="19" x2="12" y2="22" />
-            </svg>
-            <span className="text-xs font-medium">Thầy giáo EasyBee</span>
-          </button>
-        </div>
-      </div>
+      <FloatingHelper />
     </div>
   );
 }
