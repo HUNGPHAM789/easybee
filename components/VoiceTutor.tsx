@@ -3,11 +3,14 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import ActionButton from "./ActionButton";
+import { connectGeminiLive, type GeminiLiveClient } from "@/lib/gemini-live";
+import { startMicStream, playPcmAudio } from "@/lib/audio-utils";
 
 type Message = { role: "user" | "model"; text: string };
 type TutorState = "connecting" | "idle" | "listening" | "thinking" | "speaking" | "error";
+type TutorMode = "text" | "live";
 
-// ── Speech helpers ───────────────────────────────────────────────────────────
+// ── Speech helpers (text mode) ──────────────────────────────────────────────
 
 function isSpeechRecognitionSupported(): boolean {
   if (typeof window === "undefined") return false;
@@ -36,14 +39,12 @@ function speak(text: string): Promise<void> {
       resolve();
       return;
     }
-    // Cancel any ongoing speech
     window.speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(text);
     u.rate = 0.85;
     u.onend = () => resolve();
     u.onerror = () => resolve();
 
-    // Pick a good voice
     const voices = window.speechSynthesis.getVoices();
     const preferred = ["Samantha", "Google US English", "Karen", "Daniel"];
     for (const name of preferred) {
@@ -68,12 +69,19 @@ export default function VoiceTutor({
   lessonContext: string;
   onClose: () => void;
 }) {
+  const [mode, setMode] = useState<TutorMode | null>(null); // null = choosing
   const [state, setState] = useState<TutorState>("connecting");
   const [messages, setMessages] = useState<Message[]>([]);
   const [error, setError] = useState<string | null>(null);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const historyRef = useRef<Message[]>([]);
+
+  // Live mode refs
+  const liveClientRef = useRef<GeminiLiveClient | null>(null);
+  const micStopRef = useRef<{ stop: () => void } | null>(null);
+  const audioQueueRef = useRef<string[]>([]);
+  const isPlayingRef = useRef(false);
 
   // Keep historyRef in sync
   useEffect(() => {
@@ -85,7 +93,8 @@ export default function VoiceTutor({
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages]);
 
-  // Send message to API and speak response
+  // ── TEXT MODE ─────────────────────────────────────────────────────────────
+
   const sendToTutor = useCallback(
     async (userText: string) => {
       const userMsg: Message = { role: "user", text: userText };
@@ -111,7 +120,6 @@ export default function VoiceTutor({
         const aiMsg: Message = { role: "model", text: aiText };
         setMessages((prev) => [...prev, aiMsg]);
 
-        // Speak the response
         setState("speaking");
         await speak(aiText);
         setState("idle");
@@ -123,23 +131,15 @@ export default function VoiceTutor({
     [lessonContext],
   );
 
-  // Initial greeting
-  useEffect(() => {
-    const init = async () => {
-      if (!isSpeechRecognitionSupported()) {
-        setState("error");
-        setError("Trình duyệt không hỗ trợ nhận diện giọng nói. Vui lòng dùng Chrome.");
-        return;
-      }
+  const initTextMode = useCallback(async () => {
+    if (!isSpeechRecognitionSupported()) {
+      setState("error");
+      setError("Trình duyệt không hỗ trợ nhận diện giọng nói. Vui lòng dùng Chrome.");
+      return;
+    }
+    await sendToTutor("Xin chào, tôi muốn luyện tập.");
+  }, [sendToTutor]);
 
-      // Send a start signal to get the tutor's greeting
-      await sendToTutor("Xin chào, tôi muốn luyện tập.");
-    };
-    init();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // Start listening
   const startListening = useCallback(() => {
     if (state !== "idle") return;
 
@@ -174,44 +174,223 @@ export default function VoiceTutor({
     };
 
     recognition.onend = () => {
-      // Only reset to idle if we're still in listening state (not already processing)
       setState((s) => (s === "listening" ? "idle" : s));
     };
 
     recognition.start();
   }, [state, sendToTutor]);
 
-  // Stop listening
   const stopListening = useCallback(() => {
     recognitionRef.current?.stop();
     recognitionRef.current = null;
   }, []);
 
-  // Mic button handler
-  const handleMicPress = useCallback(() => {
-    if (state === "listening") {
-      stopListening();
-    } else if (state === "idle") {
-      startListening();
-    }
-  }, [state, startListening, stopListening]);
+  // ── LIVE MODE ─────────────────────────────────────────────────────────────
 
-  // Retry on error
-  const handleRetry = useCallback(() => {
-    setError(null);
-    setState("idle");
+  const playAudioQueue = useCallback(async () => {
+    if (isPlayingRef.current) return;
+    isPlayingRef.current = true;
+
+    while (audioQueueRef.current.length > 0) {
+      const chunk = audioQueueRef.current.shift()!;
+      try {
+        await playPcmAudio(chunk, 24000);
+      } catch {
+        // skip unplayable chunks
+      }
+    }
+
+    isPlayingRef.current = false;
   }, []);
 
-  // ── Render ─────────────────────────────────────────────────────────────────
+  const initLiveMode = useCallback(async () => {
+    setState("connecting");
+
+    try {
+      // Get WebSocket config from server
+      const res = await fetch("/api/voice-tutor/token", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ lessonContext }),
+      });
+
+      if (!res.ok) throw new Error("Token API error");
+      const { wsUrl, model, systemInstruction } = await res.json();
+
+      // Connect WebSocket
+      const client = await connectGeminiLive(wsUrl, model, systemInstruction, {
+        onAudioChunk: (base64Pcm) => {
+          setState("speaking");
+          audioQueueRef.current.push(base64Pcm);
+          playAudioQueue();
+        },
+        onTurnEnd: () => {
+          setState("listening");
+        },
+        onError: (msg) => {
+          setState("error");
+          setError(msg);
+        },
+        onClose: () => {
+          // Clean up mic
+          micStopRef.current?.stop();
+          micStopRef.current = null;
+        },
+      });
+
+      liveClientRef.current = client;
+
+      // Start mic stream
+      const mic = await startMicStream(
+        (base64Pcm) => {
+          client.sendAudio(base64Pcm);
+        },
+        (errMsg) => {
+          setState("error");
+          setError(errMsg);
+        },
+      );
+      micStopRef.current = mic;
+
+      setState("listening");
+      setMessages([
+        {
+          role: "model",
+          text: "🎙️ Đang nghe... Hãy nói tiếng Anh để bắt đầu luyện tập!",
+        },
+      ]);
+    } catch {
+      setState("error");
+      setError("Không thể kết nối Live API. Vui lòng thử lại.");
+    }
+  }, [lessonContext, playAudioQueue]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      liveClientRef.current?.close();
+      micStopRef.current?.stop();
+      window.speechSynthesis?.cancel();
+    };
+  }, []);
+
+  // ── MODE SELECTION ────────────────────────────────────────────────────────
+
+  const selectMode = useCallback(
+    (selected: TutorMode) => {
+      setMode(selected);
+      if (selected === "text") {
+        initTextMode();
+      } else {
+        initLiveMode();
+      }
+    },
+    [initTextMode, initLiveMode],
+  );
+
+  // ── Handlers ──────────────────────────────────────────────────────────────
+
+  const handleMicPress = useCallback(() => {
+    if (mode === "text") {
+      if (state === "listening") {
+        stopListening();
+      } else if (state === "idle") {
+        startListening();
+      }
+    }
+    // Live mode: mic is always streaming, no toggle needed
+  }, [mode, state, startListening, stopListening]);
+
+  const handleRetry = useCallback(() => {
+    setError(null);
+    if (mode === "live") {
+      initLiveMode();
+    } else {
+      setState("idle");
+    }
+  }, [mode, initLiveMode]);
+
+  const handleClose = useCallback(() => {
+    liveClientRef.current?.close();
+    micStopRef.current?.stop();
+    window.speechSynthesis?.cancel();
+    onClose();
+  }, [onClose]);
+
+  // ── Render ────────────────────────────────────────────────────────────────
 
   const stateLabel: Record<TutorState, string> = {
     connecting: "Đang kết nối...",
     idle: "Nhấn để nói",
-    listening: "Đang nghe...",
+    listening: mode === "live" ? "Đang nghe... hãy nói tiếng Anh" : "Đang nghe...",
     thinking: "Đang suy nghĩ...",
     speaking: "Đang nói...",
     error: "",
   };
+
+  // ── Mode selection screen ─────────────────────────────────────────────────
+
+  if (mode === null) {
+    return (
+      <div className="fixed inset-0 bg-white z-50 flex flex-col">
+        <div className="px-5 pt-12 pb-4 flex items-center justify-between border-b border-neutral-100">
+          <div>
+            <h2 className="text-lg font-semibold text-neutral-900 font-title">
+              {lessonTitle}
+            </h2>
+            <p className="text-xs text-neutral-400">Luyện phát âm</p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="text-sm text-neutral-400 font-medium active:opacity-60 touch-manipulation"
+          >
+            Đóng
+          </button>
+        </div>
+
+        <div className="flex-1 flex flex-col items-center justify-center px-8 gap-5">
+          <p className="text-base text-neutral-600 font-title text-center mb-2">
+            Chọn chế độ luyện tập
+          </p>
+
+          <button
+            type="button"
+            onClick={() => selectMode("text")}
+            className="w-full max-w-xs bg-neutral-50 rounded-2xl px-6 py-5 text-left active:bg-neutral-100 touch-manipulation transition-colors"
+          >
+            <div className="flex items-center gap-3 mb-1.5">
+              <span className="text-xl">💬</span>
+              <span className="text-base font-semibold text-neutral-900 font-title">
+                Trò chuyện thường
+              </span>
+            </div>
+            <p className="text-xs text-neutral-400 pl-9">
+              Nói → nhận phản hồi bằng chữ và giọng đọc
+            </p>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => selectMode("live")}
+            className="w-full max-w-xs bg-neutral-50 rounded-2xl px-6 py-5 text-left active:bg-neutral-100 touch-manipulation transition-colors"
+          >
+            <div className="flex items-center gap-3 mb-1.5">
+              <span className="text-xl">⚡</span>
+              <span className="text-base font-semibold text-neutral-900 font-title">
+                Trò chuyện trực tiếp
+              </span>
+            </div>
+            <p className="text-xs text-neutral-400 pl-9">
+              Hội thoại thời gian thực — tự nhiên hơn, nhanh hơn
+            </p>
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Main tutor screen ─────────────────────────────────────────────────────
 
   return (
     <div className="fixed inset-0 bg-white z-50 flex flex-col">
@@ -219,41 +398,93 @@ export default function VoiceTutor({
       <div className="px-5 pt-12 pb-4 flex items-center justify-between border-b border-neutral-100">
         <div>
           <h2 className="text-lg font-semibold text-neutral-900 font-title">{lessonTitle}</h2>
-          <p className="text-xs text-neutral-400">Luyện phát âm</p>
+          <p className="text-xs text-neutral-400">
+            {mode === "live" ? "Trò chuyện trực tiếp ⚡" : "Luyện phát âm"}
+          </p>
         </div>
         <button
           type="button"
-          onClick={onClose}
+          onClick={handleClose}
           className="text-sm text-neutral-400 font-medium active:opacity-60 touch-manipulation"
         >
           Kết thúc
         </button>
       </div>
 
-      {/* Conversation transcript */}
-      <div ref={scrollRef} className="flex-1 overflow-y-auto px-5 py-4 space-y-3">
-        <AnimatePresence initial={false}>
-          {messages.map((msg, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.2 }}
-              className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
-            >
-              <div
-                className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
-                  msg.role === "user"
-                    ? "bg-blue-50 text-neutral-900"
-                    : "bg-neutral-50 text-neutral-900"
-                }`}
+      {/* Conversation transcript (text mode) / Status (live mode) */}
+      {mode === "text" ? (
+        <div ref={scrollRef} className="flex-1 overflow-y-auto px-5 py-4 space-y-3">
+          <AnimatePresence initial={false}>
+            {messages.map((msg, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.2 }}
+                className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
               >
-                {msg.text}
+                <div
+                  className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
+                    msg.role === "user"
+                      ? "bg-blue-50 text-neutral-900"
+                      : "bg-neutral-50 text-neutral-900"
+                  }`}
+                >
+                  {msg.text}
+                </div>
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        </div>
+      ) : (
+        <div className="flex-1 flex flex-col items-center justify-center px-8">
+          {/* Live mode visual feedback */}
+          <div className="relative w-32 h-32 flex items-center justify-center mb-6">
+            {state === "speaking" ? (
+              // Pulse animation when AI is speaking
+              <div className="relative w-28 h-28">
+                <div
+                  className="absolute inset-0 rounded-full bg-blue-100"
+                  style={{ animation: "livePulse 1.2s ease-in-out infinite" }}
+                />
+                <div
+                  className="absolute inset-2 rounded-full bg-blue-200"
+                  style={{ animation: "livePulse 1.2s ease-in-out infinite 0.2s" }}
+                />
+                <div className="absolute inset-4 rounded-full bg-blue-300 flex items-center justify-center">
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+                    <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
+                    <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                  </svg>
+                </div>
               </div>
-            </motion.div>
-          ))}
-        </AnimatePresence>
-      </div>
+            ) : state === "listening" ? (
+              // Subtle glow when listening
+              <div className="relative w-28 h-28">
+                <div
+                  className="absolute inset-0 rounded-full bg-green-50"
+                  style={{ animation: "listenGlow 2s ease-in-out infinite" }}
+                />
+                <div className="absolute inset-4 rounded-full bg-green-100 flex items-center justify-center">
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2">
+                    <rect x="9" y="2" width="6" height="11" rx="3" />
+                    <path d="M5 10a7 7 0 0 0 14 0" />
+                    <line x1="12" y1="19" x2="12" y2="22" />
+                  </svg>
+                </div>
+              </div>
+            ) : (
+              <div className="w-28 h-28 rounded-full bg-neutral-100 flex items-center justify-center">
+                <span className="w-6 h-6 border-2 border-neutral-300 border-t-neutral-600 rounded-full animate-spin" />
+              </div>
+            )}
+          </div>
+
+          <p className="text-sm text-neutral-500 text-center">
+            {messages[messages.length - 1]?.text || stateLabel[state]}
+          </p>
+        </div>
+      )}
 
       {/* Bottom controls */}
       <div className="px-5 pb-10 pt-4 flex flex-col items-center gap-3 border-t border-neutral-100">
@@ -264,9 +495,9 @@ export default function VoiceTutor({
               Thử lại
             </ActionButton>
           </div>
-        ) : (
+        ) : mode === "text" ? (
           <>
-            {/* Mic button */}
+            {/* Text mode: Mic button */}
             <button
               type="button"
               onClick={handleMicPress}
@@ -281,12 +512,10 @@ export default function VoiceTutor({
               style={state === "listening" ? { animation: "micPulse 1.5s ease-in-out infinite" } : undefined}
             >
               {state === "listening" ? (
-                // Stop icon
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
                   <rect x="6" y="6" width="12" height="12" rx="2" />
                 </svg>
               ) : (
-                // Mic icon
                 <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <rect x="9" y="2" width="6" height="11" rx="3" />
                   <path d="M5 10a7 7 0 0 0 14 0" />
@@ -294,26 +523,36 @@ export default function VoiceTutor({
                 </svg>
               )}
             </button>
-
-            {/* State label */}
             <p className="text-xs text-neutral-400">
-              {state === "connecting" && (
+              {state === "connecting" ? (
                 <span className="inline-flex items-center gap-1.5">
                   <span className="w-3 h-3 border-2 border-neutral-300 border-t-neutral-600 rounded-full animate-spin" />
                   {stateLabel[state]}
                 </span>
+              ) : (
+                stateLabel[state]
               )}
-              {state !== "connecting" && stateLabel[state]}
             </p>
           </>
+        ) : (
+          /* Live mode: just show status */
+          <p className="text-xs text-neutral-400">{stateLabel[state]}</p>
         )}
       </div>
 
-      {/* Pulse animation */}
+      {/* Animations */}
       <style jsx>{`
         @keyframes micPulse {
           0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
           50% { box-shadow: 0 0 0 12px rgba(239, 68, 68, 0); }
+        }
+        @keyframes livePulse {
+          0%, 100% { transform: scale(1); opacity: 0.6; }
+          50% { transform: scale(1.08); opacity: 1; }
+        }
+        @keyframes listenGlow {
+          0%, 100% { opacity: 0.5; transform: scale(1); }
+          50% { opacity: 1; transform: scale(1.04); }
         }
       `}</style>
     </div>
