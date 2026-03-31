@@ -9,7 +9,6 @@ export type DrillCard = {
   answer: string;
   answerHint?: string;  // optional: full sentence for fill cards
   pronunciation?: string;
-  [key: string]: any;   // allow Gemini-generated extra fields
 };
 
 export interface Phrase {

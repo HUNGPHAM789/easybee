@@ -142,13 +142,13 @@ export default function VoiceTeacher() {
           </svg>
         </div>
         <h2 className="text-xl font-semibold text-neutral-900 font-title mb-2 text-center">
-          Th&#7847;y gi&#225;o EasyBee
+          Thầy giáo EasyBee
         </h2>
         <p className="text-sm text-neutral-400 text-center mb-8 max-w-xs">
-          Nói chuy&#7879;n v&#7899;i th&#7847;y gi&#225;o AI &#273;&#7875; luy&#7879;n ti&#7871;ng Anh. Th&#7847;y nói ch&#7853;m, d&#7877; hi&#7875;u, và s&#7917;a l&#7895;i nh&#7865; nhàng.
+          Nói chuyện với thầy giáo AI để luyện tiếng Anh. Thầy nói chậm, dễ hiểu, và sửa lỗi nhẹ nhàng.
         </p>
         <ActionButton onClick={startSession} className="px-8 py-4 text-base">
-          B&#7855;t &#273;&#7847;u nói chuy&#7879;n
+          Bắt đầu nói chuyện
         </ActionButton>
       </div>
     );
@@ -232,7 +232,7 @@ export default function VoiceTeacher() {
           <div className="text-center">
             <p className="text-sm text-red-500 mb-2">{error}</p>
             <ActionButton onClick={startSession} className="px-6 text-sm">
-              Th&#7917; lại
+              Thử lại
             </ActionButton>
           </div>
         ) : (
@@ -241,7 +241,7 @@ export default function VoiceTeacher() {
             onClick={endSession}
             className="text-sm text-neutral-400 active:opacity-60 touch-manipulation"
           >
-            K&#7871;t thúc
+            Kết thúc
           </button>
         )}
       </div>

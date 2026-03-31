@@ -3,7 +3,6 @@ import { readFileSync } from "fs";
 import { join } from "path";
 import { modules } from "@/lib/content/index";
 
-const GEMINI_API_KEY = "AIzaSyCLlEOAAKPC052t6U0kjTQ2l0lC3-mUPAw";
 const EMBED_URL =
   "https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:embedContent";
 
@@ -52,8 +51,13 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "text is required" }, { status: 400 });
     }
 
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      return NextResponse.json({ error: "GEMINI_API_KEY not configured" }, { status: 500 });
+    }
+
     // Embed user text via Gemini
-    const embedRes = await fetch(`${EMBED_URL}?key=${GEMINI_API_KEY}`, {
+    const embedRes = await fetch(`${EMBED_URL}?key=${apiKey}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({

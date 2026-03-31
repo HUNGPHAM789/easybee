@@ -1,10 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import ActionButton from "@/components/ActionButton";
 
 export default function LoginPage() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -31,8 +33,7 @@ export default function LoginPage() {
         return;
       }
       // Auth state change will trigger redirect via AuthProvider
-      // Force navigation to ensure page picks up new state
-      window.location.href = '/';
+      router.push('/');
     } catch {
       setError("Không thể đăng nhập. Thử lại sau.");
       setGuestLoading(false);
@@ -119,6 +120,7 @@ export default function LoginPage() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <input
               type="email"
+              aria-label="Email"
               placeholder="Email của bạn"
               value={email}
               onChange={(e) => setEmail(e.target.value)}

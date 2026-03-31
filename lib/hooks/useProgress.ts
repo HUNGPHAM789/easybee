@@ -26,6 +26,9 @@ export function useProgress() {
           setCompletedLessons(new Set(data.map((r) => r.lesson_id)));
         }
         setLoading(false);
+      })
+      .catch(() => {
+        setLoading(false);
       });
   }, [user]);
 
@@ -52,7 +55,7 @@ export function useProgress() {
         .from("user_streaks")
         .select("*")
         .eq("user_id", user.id)
-        .single();
+        .maybeSingle();
 
       let currentStreak = 1;
       let longestStreak = 1;

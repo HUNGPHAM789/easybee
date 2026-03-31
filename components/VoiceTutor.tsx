@@ -268,6 +268,8 @@ export default function VoiceTutor({
   // Cleanup on unmount
   useEffect(() => {
     return () => {
+      recognitionRef.current?.stop();
+      recognitionRef.current = null;
       liveClientRef.current?.close();
       micStopRef.current?.stop();
       window.speechSynthesis?.cancel();
@@ -502,6 +504,7 @@ export default function VoiceTutor({
               type="button"
               onClick={handleMicPress}
               disabled={state !== "idle" && state !== "listening"}
+              aria-label={state === "listening" ? "Dừng ghi âm" : "Bắt đầu ghi âm"}
               className={`w-20 h-20 rounded-full flex items-center justify-center transition-all touch-manipulation ${
                 state === "listening"
                   ? "bg-red-500 shadow-lg shadow-red-200"

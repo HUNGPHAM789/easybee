@@ -80,16 +80,12 @@ export default function Home() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Redirect to login if not authenticated
+  // Redirect based on auth state — single effect to avoid race conditions
   useEffect(() => {
-    if (!authLoading && !user) {
+    if (authLoading) return;
+    if (!user) {
       router.push("/login");
-    }
-  }, [authLoading, user, router]);
-
-  // Redirect to onboarding if not onboarded
-  useEffect(() => {
-    if (!authLoading && user && !user.user_metadata?.onboarded) {
+    } else if (!user.user_metadata?.onboarded) {
       router.push("/onboarding");
     }
   }, [authLoading, user, router]);
@@ -211,6 +207,7 @@ export default function Home() {
                     <button
                       type="button"
                       onClick={clearSearch}
+                      aria-label="Xoá tìm kiếm"
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 active:opacity-60 touch-manipulation"
                     >
                       <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">

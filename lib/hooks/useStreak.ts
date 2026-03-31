@@ -23,27 +23,34 @@ export function useStreak() {
       .from("user_streaks")
       .select("current_streak, longest_streak")
       .eq("user_id", user.id)
-      .single()
+      .maybeSingle()
       .then(({ data }) => {
         if (data) {
           setCurrentStreak(data.current_streak);
           setLongestStreak(data.longest_streak);
         }
         setLoading(false);
+      })
+      .catch(() => {
+        setLoading(false);
       });
   }, [user]);
 
   const refresh = async () => {
     if (!user) return;
-    const supabase = createClient();
-    const { data } = await supabase
-      .from("user_streaks")
-      .select("current_streak, longest_streak")
-      .eq("user_id", user.id)
-      .single();
-    if (data) {
-      setCurrentStreak(data.current_streak);
-      setLongestStreak(data.longest_streak);
+    try {
+      const supabase = createClient();
+      const { data } = await supabase
+        .from("user_streaks")
+        .select("current_streak, longest_streak")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (data) {
+        setCurrentStreak(data.current_streak);
+        setLongestStreak(data.longest_streak);
+      }
+    } catch {
+      // Supabase unavailable
     }
   };
 

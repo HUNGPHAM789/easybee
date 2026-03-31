@@ -128,6 +128,7 @@ export default function FloatingHelper() {
       <button
         type="button"
         onClick={() => setOpen(true)}
+        aria-label="Mở EasyBee Helper"
         className="fixed z-50 w-14 h-14 rounded-full flex items-center justify-center shadow-lg active:scale-95 transition-transform touch-manipulation"
         style={{
           bottom: 80,

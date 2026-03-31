@@ -64,20 +64,26 @@ export async function playPcmAudio(
   }
 
   const audioCtx = new AudioContext({ sampleRate });
-  const buffer = audioCtx.createBuffer(1, float32.length, sampleRate);
-  buffer.getChannelData(0).set(float32);
 
-  const source = audioCtx.createBufferSource();
-  source.buffer = buffer;
-  source.connect(audioCtx.destination);
+  try {
+    const buffer = audioCtx.createBuffer(1, float32.length, sampleRate);
+    buffer.getChannelData(0).set(float32);
 
-  return new Promise((resolve) => {
-    source.onended = () => {
-      audioCtx.close();
-      resolve();
-    };
-    source.start();
-  });
+    const source = audioCtx.createBufferSource();
+    source.buffer = buffer;
+    source.connect(audioCtx.destination);
+
+    return new Promise((resolve) => {
+      source.onended = () => {
+        audioCtx.close();
+        resolve();
+      };
+      source.start();
+    });
+  } catch {
+    audioCtx.close();
+    throw new Error("Audio playback failed");
+  }
 }
 
 // ── Conversion helpers ──────────────────────────────────────────────────────
