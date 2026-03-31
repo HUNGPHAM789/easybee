@@ -25,9 +25,18 @@ export function connectGeminiLive(
     let ws: WebSocket;
     let setupComplete = false;
 
+    // Timeout — reject if setup doesn't complete within 15 seconds
+    const setupTimeout = setTimeout(() => {
+      if (!setupComplete) {
+        try { ws.close(); } catch { /* ignore */ }
+        reject(new Error("Kết nối quá lâu. Vui lòng thử lại."));
+      }
+    }, 15000);
+
     try {
       ws = new WebSocket(wsUrl);
     } catch (err) {
+      clearTimeout(setupTimeout);
       reject(new Error("Không thể kết nối WebSocket"));
       return;
     }
@@ -64,6 +73,7 @@ export function connectGeminiLive(
       // Setup complete acknowledgment
       if ("setupComplete" in data) {
         setupComplete = true;
+        clearTimeout(setupTimeout);
         resolve({
           sendAudio: (base64Pcm: string) => {
             if (ws.readyState !== WebSocket.OPEN) return;
@@ -112,6 +122,7 @@ export function connectGeminiLive(
     };
 
     ws.onerror = () => {
+      clearTimeout(setupTimeout);
       if (!setupComplete) {
         reject(new Error("WebSocket connection failed"));
       }

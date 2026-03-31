@@ -27,19 +27,35 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
   useEffect(() => {
     const supabase = createClient();
 
-    supabase.auth.getUser().then(({ data: { user: u } }) => {
-      setUser(u);
+    // Timeout fallback — if auth takes too long, stop blocking the UI
+    const timeout = setTimeout(() => {
       setLoading(false);
-    });
+    }, 5000);
+
+    supabase.auth.getUser()
+      .then(({ data: { user: u } }) => {
+        setUser(u);
+        setLoading(false);
+        clearTimeout(timeout);
+      })
+      .catch(() => {
+        // Supabase unavailable — proceed as guest
+        setLoading(false);
+        clearTimeout(timeout);
+      });
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
       setLoading(false);
+      clearTimeout(timeout);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      subscription.unsubscribe();
+      clearTimeout(timeout);
+    };
   }, []);
 
   const signOut = async () => {
