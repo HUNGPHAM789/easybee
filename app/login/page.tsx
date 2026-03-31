@@ -15,15 +15,24 @@ export default function LoginPage() {
     setGuestLoading(true);
     setError(null);
     try {
-      // Clear all localStorage for fresh experience
-      localStorage.clear();
+      // Sign out any existing session first
       const supabase = createClient();
+      await supabase.auth.signOut();
+      
+      // Clear app-specific localStorage (NOT Supabase auth keys)
+      const appKeys = ['easybee_name', 'easybee_profile', 'easybee_recommended', 'easybee_admin_edits'];
+      appKeys.forEach(k => localStorage.removeItem(k));
+      
+      // Sign in anonymously (fresh user, no onboarded flag)
       const { error: anonError } = await supabase.auth.signInAnonymously();
       if (anonError) {
         setError(anonError.message);
         setGuestLoading(false);
+        return;
       }
       // Auth state change will trigger redirect via AuthProvider
+      // Force navigation to ensure page picks up new state
+      window.location.href = '/';
     } catch {
       setError("Không thể đăng nhập. Thử lại sau.");
       setGuestLoading(false);
