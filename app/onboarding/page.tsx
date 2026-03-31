@@ -223,7 +223,7 @@ export default function OnboardingPage() {
   if (state === "done" || saving) {
     return (
       <main className="px-5 pt-12 pb-10 flex flex-col items-center justify-center min-h-screen">
-        <span className="text-5xl mb-6">{"\uD83D\uDC1D"}</span>
+        <span className="text-5xl mb-6">{"🐝"}</span>
         <p className="text-lg font-semibold text-neutral-900 font-title mb-3">
           {saving ? "Đang chọn bài học cho bạn..." : "Xong rồi!"}
         </p>
@@ -242,15 +242,15 @@ export default function OnboardingPage() {
   if (state === "idle") {
     return (
       <main className="px-5 pt-14 pb-10 min-h-screen flex flex-col items-center justify-center">
-        <span className="text-6xl mb-6">{"\uD83D\uDC1D"}</span>
+        <span className="text-6xl mb-6">{"🐝"}</span>
         <h1 className="text-2xl font-semibold text-neutral-900 font-title mb-3 text-center">
-          Ch&agrave;o b&#7841;n!
+          Chào bạn!
         </h1>
         <p className="text-sm text-neutral-500 text-center mb-8 max-w-xs">
-          N&oacute;i chuy&#7879;n v&#7899;i EasyBee &#273;&#7875; m&igrave;nh ch&#7885;n b&agrave;i h&#7885;c ph&ugrave; h&#7907;p nh&eacute;!
+          Nói chuy&#7879;n v&#7899;i EasyBee &#273;&#7875; mình chọn bài học phù hợp nhé!
         </p>
         <ActionButton onClick={startSession} className="px-8 py-4 text-base mb-4">
-          B&#7855;t &#273;&#7847;u n&oacute;i chuy&#7879;n
+          B&#7855;t &#273;&#7847;u nói chuy&#7879;n
         </ActionButton>
         <button
           type="button"
@@ -265,9 +265,9 @@ export default function OnboardingPage() {
 
   // Active voice session
   const stateLabel: Record<string, string> = {
-    connecting: "\u0110ang k\u1EBFt n\u1ED1i...",
-    listening: "\u0110ang nghe... h\u00E3y n\u00F3i",
-    speaking: "EasyBee \u0111ang n\u00F3i...",
+    connecting: "Đang kết nối...",
+    listening: "Đang nghe... hãy nói",
+    speaking: "EasyBee đang nói...",
     error: "",
   };
 
@@ -276,7 +276,7 @@ export default function OnboardingPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-2">
-          <span className="text-2xl">{"\uD83D\uDC1D"}</span>
+          <span className="text-2xl">{"🐝"}</span>
           <h1 className="text-xl font-semibold text-neutral-900 font-title">
             EasyBee
           </h1>
@@ -286,7 +286,7 @@ export default function OnboardingPage() {
           onClick={endSession}
           className="text-sm text-neutral-400 active:opacity-60 touch-manipulation"
         >
-          K&#7871;t th&uacute;c
+          K&#7871;t thúc
         </button>
       </div>
 
@@ -300,7 +300,7 @@ export default function OnboardingPage() {
                 style={{ animation: "onbPulse 1.2s ease-in-out infinite" }}
               />
               <div className="absolute inset-3 rounded-full bg-amber-200 flex items-center justify-center">
-                <span className="text-3xl">{"\uD83D\uDC1D"}</span>
+                <span className="text-3xl">{"🐝"}</span>
               </div>
             </div>
           ) : state === "listening" ? (
@@ -347,7 +347,7 @@ export default function OnboardingPage() {
                 }`}
               >
                 {entry.role === "bee" && (
-                  <span className="mr-1">{"\uD83D\uDC1D"}</span>
+                  <span className="mr-1">{"🐝"}</span>
                 )}
                 {entry.text}
               </div>
@@ -360,7 +360,7 @@ export default function OnboardingPage() {
       <div className="flex justify-center gap-4 py-3">
         {state === "error" && (
           <ActionButton onClick={startSession} className="px-6 text-sm">
-            Th&#7917; l&#7841;i
+            Th&#7917; lại
           </ActionButton>
         )}
         <button

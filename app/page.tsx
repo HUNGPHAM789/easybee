@@ -171,7 +171,7 @@ export default function Home() {
             <div className="mb-4">
               <div className="flex items-start justify-between">
                 <h1 className="text-3xl font-semibold text-neutral-900 tracking-tight">
-                  <TextReveal word={`L\u1EDBp h\u1ECDc c\u1EE7a ${studentName}`} />
+                  <TextReveal word={`Lớp học của ${studentName}`} />
                 </h1>
                 <div className="flex items-center gap-3 mt-2">
                   {isAdmin && (
@@ -184,13 +184,13 @@ export default function Home() {
                     onClick={signOut}
                     className="text-xs text-neutral-300 active:opacity-60 touch-manipulation"
                   >
-                    \u0110\u0103ng xu\u1EA5t
+                    Đăng xuất
                   </button>
                 </div>
               </div>
               {currentStreak > 0 && (
                 <p className="text-sm text-neutral-500 mt-1">
-                  \uD83D\uDD25 {currentStreak} ng\u00E0y li\u00EAn t\u1EE5c
+                  🔥 {currentStreak} ngày liên tục
                 </p>
               )}
 
@@ -208,7 +208,7 @@ export default function Home() {
                     type="text"
                     value={searchQuery}
                     onChange={handleSearch}
-                    placeholder="T\u00ECm b\u00E0i h\u1ECDc..."
+                    placeholder="Tìm bài học..."
                     className="w-full h-11 pl-10 pr-8 text-base text-neutral-900 bg-neutral-50 border border-neutral-100 rounded-2xl outline-none focus:border-neutral-300 transition-colors"
                   />
                   {searchQuery && (
@@ -237,14 +237,14 @@ export default function Home() {
                   className="mb-4 flex items-center gap-2"
                 >
                   <p className="text-sm text-neutral-400">
-                    K\u1EBFt qu\u1EA3 cho &ldquo;{searchQuery}&rdquo;
+                    Kết quả cho &ldquo;{searchQuery}&rdquo;
                   </p>
                   <button
                     type="button"
                     className="text-xs text-neutral-400 underline underline-offset-2 active:opacity-60 touch-manipulation"
                     onClick={clearSearch}
                   >
-                    Xo\u00E1
+                    Xoá
                   </button>
                 </motion.div>
               )}
@@ -254,7 +254,7 @@ export default function Home() {
             {recommendedLessons.length > 0 && !query && (
               <div className="mb-6">
                 <h2 className="text-base font-semibold text-neutral-900 font-title mb-3">
-                  B&agrave;i h&#7885;c g&#7907;i &yacute; cho b&#7841;n
+                  Bài học gợi ý cho bạn
                 </h2>
                 <div className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1" style={{ scrollbarWidth: "none" }}>
                   {recommendedLessons.map((lesson) => (
@@ -283,7 +283,7 @@ export default function Home() {
             {/* Module → Class → Lesson tree */}
             <div className="space-y-1">
               {visibleModules.length === 0 && (
-                <p className="text-sm text-neutral-400 py-6 text-center">Kh\u00F4ng t\u00ECm th\u1EA5y b\u00E0i h\u1ECDc n\u00E0o.</p>
+                <p className="text-sm text-neutral-400 py-6 text-center">Không tìm thấy bài học nào.</p>
               )}
               {visibleModules.map((mod) => {
                 const isModExpanded = query ? true : expandedModule === mod.id;
@@ -409,7 +409,7 @@ export default function Home() {
                                                     <div className="flex items-center gap-2">
                                                       <span className="text-xs text-neutral-400 shrink-0">{lesson.id}</span>
                                                       {isCompleted(lesson.id) && (
-                                                        <span className="text-xs text-green-500">\u2705</span>
+                                                        <span className="text-xs text-green-500">✅</span>
                                                       )}
                                                       <p className="text-base font-medium text-neutral-800">
                                                         {lesson.titleVi}
@@ -421,8 +421,8 @@ export default function Home() {
                                                       )}
                                                     </div>
                                                     <p className="text-sm text-neutral-400 mt-0.5">
-                                                      {lesson.phrases.length} c\u00E2u &bull;{" "}
-                                                      {lesson.drill.length} b\u00E0i t\u1EADp
+                                                      {lesson.phrases.length} câu &bull;{" "}
+                                                      {lesson.drill.length} bài tập
                                                     </p>
                                                   </div>
                                                   <motion.span
@@ -494,7 +494,7 @@ export default function Home() {
               <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
               <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
             </svg>
-            <span className="text-xs font-medium">B\u00E0i H\u1ECDc</span>
+            <span className="text-xs font-medium">Bài Học</span>
           </button>
           <button
             type="button"
@@ -508,7 +508,7 @@ export default function Home() {
               <path d="M5 10a7 7 0 0 0 14 0" />
               <line x1="12" y1="19" x2="12" y2="22" />
             </svg>
-            <span className="text-xs font-medium">Th\u1EA7y gi\u00E1o EasyBee</span>
+            <span className="text-xs font-medium">Thầy giáo EasyBee</span>
           </button>
         </div>
       </div>

@@ -136,7 +136,7 @@ export default function FloatingHelper() {
         }}
       >
         <span className="text-2xl" style={{ lineHeight: 1 }}>
-          \uD83D\uDC1D
+          🐝
         </span>
       </button>
 
@@ -170,7 +170,7 @@ export default function FloatingHelper() {
               {/* Header */}
               <div className="flex items-center justify-between px-5 pb-3">
                 <div className="flex items-center gap-2">
-                  <span className="text-lg">\uD83D\uDC1D</span>
+                  <span className="text-lg">🐝</span>
                   <span className="text-base font-semibold text-neutral-900 font-title">
                     EasyBee Helper
                   </span>
@@ -207,7 +207,7 @@ export default function FloatingHelper() {
                         }}
                       />
                       <div className="absolute inset-3 rounded-full bg-amber-200 flex items-center justify-center">
-                        <span className="text-2xl">\uD83D\uDC1D</span>
+                        <span className="text-2xl">🐝</span>
                       </div>
                     </div>
                   ) : state === "listening" ? (
@@ -246,7 +246,7 @@ export default function FloatingHelper() {
                     </div>
                   ) : (
                     <div className="w-20 h-20 rounded-full bg-neutral-50 flex items-center justify-center">
-                      <span className="text-3xl">\uD83D\uDC1D</span>
+                      <span className="text-3xl">🐝</span>
                     </div>
                   )}
                 </div>

@@ -95,11 +95,11 @@ export default function VoiceTeacher() {
 
       setState("listening");
       setTranscript([
-        { role: "model", text: "\uD83C\uDF1F \u0110ang nghe... H\u00E3y n\u00F3i ti\u1EBFng Anh \u0111\u1EC3 b\u1EAFt \u0111\u1EA7u!" },
+        { role: "model", text: "🌟 Đang nghe... Hãy nói tiếng Anh để bắt đầu!" },
       ]);
     } catch {
       setState("error");
-      setError("Kh\u00F4ng th\u1EC3 k\u1EBFt n\u1ED1i. Vui l\u00F2ng th\u1EED l\u1EA1i.");
+      setError("Không thể kết nối. Vui lòng thử lại.");
     }
   }, [playAudioQueue]);
 
@@ -124,9 +124,9 @@ export default function VoiceTeacher() {
 
   const stateLabel: Record<TeacherState, string> = {
     idle: "",
-    connecting: "\u0110ang k\u1EBFt n\u1ED1i...",
-    listening: "\u0110ang nghe... h\u00E3y n\u00F3i ti\u1EBFng Anh",
-    speaking: "Th\u1EA7y \u0111ang n\u00F3i...",
+    connecting: "Đang kết nối...",
+    listening: "Đang nghe... hãy nói tiếng Anh",
+    speaking: "Thầy đang nói...",
     error: "",
   };
 
@@ -145,10 +145,10 @@ export default function VoiceTeacher() {
           Th&#7847;y gi&#225;o EasyBee
         </h2>
         <p className="text-sm text-neutral-400 text-center mb-8 max-w-xs">
-          N&oacute;i chuy&#7879;n v&#7899;i th&#7847;y gi&#225;o AI &#273;&#7875; luy&#7879;n ti&#7871;ng Anh. Th&#7847;y n&oacute;i ch&#7853;m, d&#7877; hi&#7875;u, v&agrave; s&#7917;a l&#7895;i nh&#7865; nh&agrave;ng.
+          Nói chuy&#7879;n v&#7899;i th&#7847;y gi&#225;o AI &#273;&#7875; luy&#7879;n ti&#7871;ng Anh. Th&#7847;y nói ch&#7853;m, d&#7877; hi&#7875;u, và s&#7917;a l&#7895;i nh&#7865; nhàng.
         </p>
         <ActionButton onClick={startSession} className="px-8 py-4 text-base">
-          B&#7855;t &#273;&#7847;u n&oacute;i chuy&#7879;n
+          B&#7855;t &#273;&#7847;u nói chuy&#7879;n
         </ActionButton>
       </div>
     );
@@ -232,7 +232,7 @@ export default function VoiceTeacher() {
           <div className="text-center">
             <p className="text-sm text-red-500 mb-2">{error}</p>
             <ActionButton onClick={startSession} className="px-6 text-sm">
-              Th&#7917; l&#7841;i
+              Th&#7917; lại
             </ActionButton>
           </div>
         ) : (
@@ -241,7 +241,7 @@ export default function VoiceTeacher() {
             onClick={endSession}
             className="text-sm text-neutral-400 active:opacity-60 touch-manipulation"
           >
-            K&#7871;t th&uacute;c
+            K&#7871;t thúc
           </button>
         )}
       </div>
