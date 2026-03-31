@@ -19,21 +19,23 @@ export function useStreak() {
     }
 
     const supabase = createClient();
-    supabase
-      .from("user_streaks")
-      .select("current_streak, longest_streak")
-      .eq("user_id", user.id)
-      .maybeSingle()
-      .then(({ data }) => {
+    const fetchStreak = async () => {
+      try {
+        const { data } = await supabase
+          .from("user_streaks")
+          .select("current_streak, longest_streak")
+          .eq("user_id", user.id)
+          .maybeSingle();
         if (data) {
           setCurrentStreak(data.current_streak);
           setLongestStreak(data.longest_streak);
         }
-        setLoading(false);
-      })
-      .catch(() => {
-        setLoading(false);
-      });
+      } catch {
+        // Supabase unavailable
+      }
+      setLoading(false);
+    };
+    fetchStreak();
   }, [user]);
 
   const refresh = async () => {

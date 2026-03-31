@@ -17,19 +17,21 @@ export function useProgress() {
     }
 
     const supabase = createClient();
-    supabase
-      .from("user_progress")
-      .select("lesson_id")
-      .eq("user_id", user.id)
-      .then(({ data }) => {
+    const fetchProgress = async () => {
+      try {
+        const { data } = await supabase
+          .from("user_progress")
+          .select("lesson_id")
+          .eq("user_id", user.id);
         if (data) {
           setCompletedLessons(new Set(data.map((r) => r.lesson_id)));
         }
-        setLoading(false);
-      })
-      .catch(() => {
-        setLoading(false);
-      });
+      } catch {
+        // Supabase unavailable
+      }
+      setLoading(false);
+    };
+    fetchProgress();
   }, [user]);
 
   const completeLesson = useCallback(
