@@ -36,6 +36,7 @@ export default function OnboardingPage() {
   const [transcript, setTranscript] = useState<TranscriptEntry[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [authTimeout, setAuthTimeout] = useState(false);
 
   const liveClientRef = useRef<GeminiLiveClient | null>(null);
   const micStopRef = useRef<{ stop: () => void } | null>(null);
@@ -211,12 +212,24 @@ export default function OnboardingPage() {
     router.replace("/");
   };
 
-  if (authLoading || !user) {
+  // If auth is still loading after 3s, stop waiting (guest users may not resolve quickly)
+  useEffect(() => {
+    const timer = setTimeout(() => setAuthTimeout(true), 3000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (authLoading && !authTimeout) {
     return (
       <main className="px-5 pt-12 pb-10 flex items-center justify-center min-h-screen">
         <div className="w-6 h-6 border-2 border-neutral-200 border-t-neutral-600 rounded-full animate-spin" />
       </main>
     );
+  }
+
+  // Not logged in and auth resolved — redirect to login
+  if (!authLoading && !user) {
+    router.push("/login");
+    return null;
   }
 
   // Done state — saving recommendations
@@ -247,17 +260,17 @@ export default function OnboardingPage() {
           Chào bạn!
         </h1>
         <p className="text-sm text-neutral-500 text-center mb-8 max-w-xs">
-          Nói chuy&#7879;n v&#7899;i EasyBee &#273;&#7875; mình chọn bài học phù hợp nhé!
+          Nói chuyện với EasyBee để mình chọn bài học phù hợp nhé!
         </p>
         <ActionButton onClick={startSession} className="px-8 py-4 text-base mb-4">
-          B&#7855;t &#273;&#7847;u nói chuy&#7879;n
+          Bắt đầu nói chuyện
         </ActionButton>
         <button
           type="button"
           onClick={handleSkip}
           className="text-sm text-neutral-400 active:opacity-60 touch-manipulation"
         >
-          B&#7887; qua &rarr;
+          Bỏ qua →
         </button>
       </main>
     );
@@ -286,7 +299,7 @@ export default function OnboardingPage() {
           onClick={endSession}
           className="text-sm text-neutral-400 active:opacity-60 touch-manipulation"
         >
-          K&#7871;t thúc
+          Kết thúc
         </button>
       </div>
 
@@ -360,7 +373,7 @@ export default function OnboardingPage() {
       <div className="flex justify-center gap-4 py-3">
         {state === "error" && (
           <ActionButton onClick={startSession} className="px-6 text-sm">
-            Th&#7917; lại
+            Thử lại
           </ActionButton>
         )}
         <button
@@ -368,7 +381,7 @@ export default function OnboardingPage() {
           onClick={handleSkip}
           className="text-sm text-neutral-400 active:opacity-60 touch-manipulation"
         >
-          B&#7887; qua &rarr;
+          Bỏ qua →
         </button>
       </div>
 
