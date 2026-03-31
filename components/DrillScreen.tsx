@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { Lesson, DrillCard } from "@/lib/content/index";
 import ActionButton from "./ActionButton";
@@ -279,14 +279,29 @@ function DrillCardContent({
 export default function DrillScreen({
   lesson,
   onExit,
+  onComplete,
 }: {
   lesson: Lesson;
   onExit: () => void;
+  onComplete?: (lessonId: string, speechScore?: number) => Promise<{ currentStreak: number; longestStreak: number } | undefined>;
 }) {
   const [index, setIndex] = useState(0);
   const [revealedMap, setRevealedMap] = useState<Record<number, boolean>>({});
+  const [streakResult, setStreakResult] = useState<number | null>(null);
   const cards = lesson.drill;
   const done = index >= cards.length;
+
+  // Call onComplete when all drills are done
+  useEffect(() => {
+    if (done && onComplete) {
+      onComplete(lesson.id).then((result) => {
+        if (result && result.currentStreak > 0) {
+          setStreakResult(result.currentStreak);
+        }
+      });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [done]);
 
   const getPronunciation = (text: string) =>
     lesson.phrases.find((p) => p.english === text)?.pronunciation ?? null;
@@ -320,8 +335,12 @@ export default function DrillScreen({
         >
           <span className="text-2xl text-neutral-700">✓</span>
         </motion.div>
-        <TextReveal word="Hoàn thành!" className="text-2xl font-semibold text-neutral-900 mb-2 block" />
-        <p className="text-sm text-neutral-400 mb-8">Bạn đã luyện {cards.length} bài tập.</p>
+        <TextReveal word="Bài học hoàn thành! ✅" className="text-2xl font-semibold text-neutral-900 mb-2 block" />
+        <p className="text-sm text-neutral-400 mb-2">Bạn đã luyện {cards.length} bài tập.</p>
+        {streakResult !== null && streakResult > 0 && (
+          <p className="text-sm text-neutral-500 mb-6">🔥 Chuỗi: {streakResult} ngày</p>
+        )}
+        {streakResult === null && <div className="mb-6" />}
 
         <div className="w-full max-w-xs space-y-2 mb-10">
           {lesson.phrases.map((phrase, i) => (

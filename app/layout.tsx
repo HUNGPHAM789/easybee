@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, Comfortaa } from "next/font/google";
+import AuthProvider from "@/components/AuthProvider";
 import "./globals.css";
 
 const inter = Inter({
@@ -26,9 +27,11 @@ export default function RootLayout({
   return (
     <html lang="vi" className={`${inter.variable} ${comfortaa.variable}`}>
       <body style={{ background: "#ffffff", fontFamily: "var(--font-body)" }}>
-        <div className="min-h-screen w-full max-w-[390px] mx-auto bg-white relative">
-          {children}
-        </div>
+        <AuthProvider>
+          <div className="min-h-screen w-full max-w-[390px] mx-auto bg-white relative">
+            {children}
+          </div>
+        </AuthProvider>
       </body>
     </html>
   );

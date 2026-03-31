@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { classes } from "@/lib/content/index";
 import LessonDetail from "@/components/LessonDetail";
@@ -8,10 +9,17 @@ import DrillScreen from "@/components/DrillScreen";
 import NameSetup from "@/components/NameSetup";
 import SearchBar from "@/components/ui/search-bar";
 import { TextReveal } from "@/components/ui/text-reveal-animation";
+import { useAuth } from "@/components/AuthProvider";
+import { useProgress } from "@/lib/hooks/useProgress";
+import { useStreak } from "@/lib/hooks/useStreak";
 
 import type { Lesson } from "@/lib/content/index";
 
 export default function Home() {
+  const router = useRouter();
+  const { user, loading: authLoading, signOut } = useAuth();
+  const { completedLessons, completeLesson, isCompleted } = useProgress();
+  const { currentStreak, refresh: refreshStreak } = useStreak();
   const [expandedClass, setExpandedClass] = useState<string | null>(null);
   const [expandedLesson, setExpandedLesson] = useState<string | null>(null);
   const [drillLesson, setDrillLesson] = useState<Lesson | null>(null);
@@ -29,6 +37,13 @@ export default function Home() {
       // Private browsing or storage unavailable
     }
   }, []);
+
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.push("/login");
+    }
+  }, [authLoading, user, router]);
 
   const handleSearch = useCallback((q: string) => {
     setSearchQuery(q);
@@ -64,16 +79,22 @@ export default function Home() {
     return (
       <DrillScreen
         lesson={drillLesson}
-        onExit={() => setDrillLesson(null)}
+        onExit={() => {
+          setDrillLesson(null);
+          refreshStreak();
+        }}
+        onComplete={completeLesson}
       />
     );
   }
 
-  if (!mounted) return (
+  if (!mounted || authLoading) return (
     <main className="px-5 pt-12 pb-10 flex items-center justify-center min-h-screen">
       <div className="w-6 h-6 border-2 border-neutral-200 border-t-neutral-600 rounded-full animate-spin" />
     </main>
   );
+
+  if (!user) return null;
 
   if (!studentName) return <NameSetup onSave={setStudentName} />;
 
@@ -86,9 +107,23 @@ export default function Home() {
     >
       {/* Header */}
       <div className="mb-4">
-        <h1 className="text-3xl font-semibold text-neutral-900 tracking-tight">
-          <TextReveal word={`Lớp học của ${studentName}`} />
-        </h1>
+        <div className="flex items-start justify-between">
+          <h1 className="text-3xl font-semibold text-neutral-900 tracking-tight">
+            <TextReveal word={`Lớp học của ${studentName}`} />
+          </h1>
+          <button
+            type="button"
+            onClick={signOut}
+            className="text-xs text-neutral-300 mt-2 active:opacity-60 touch-manipulation"
+          >
+            Đăng xuất
+          </button>
+        </div>
+        {currentStreak > 0 && (
+          <p className="text-sm text-neutral-500 mt-1">
+            🔥 {currentStreak} ngày liên tục
+          </p>
+        )}
         <div className="mt-4" style={{ position: "relative", zIndex: 30 }}>
           <SearchBar onSearch={handleSearch} />
         </div>
@@ -140,7 +175,12 @@ export default function Home() {
               >
                 <div className="flex items-center justify-between py-4 border-b border-neutral-100">
                   <div>
-                    <p className="text-lg font-medium text-neutral-900">{cls.titleVi}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-lg font-medium text-neutral-900">{cls.titleVi}</p>
+                      <span className="text-xs text-neutral-400">
+                        {cls.lessons.filter((l) => completedLessons.has(l.id)).length}/{cls.lessons.length}
+                      </span>
+                    </div>
                     <p className="text-base text-neutral-400 mt-0.5">{cls.title}</p>
                   </div>
                   {!query && (
@@ -188,6 +228,9 @@ export default function Home() {
                               <div>
                                 <div className="flex items-center gap-2">
                                   <span className="text-xs text-neutral-400 shrink-0">{lesson.id}</span>
+                                  {isCompleted(lesson.id) && (
+                                    <span className="text-xs text-green-500">✅</span>
+                                  )}
                                   <p className="text-lg font-medium text-neutral-800">
                                     {lesson.titleVi}
                                   </p>
