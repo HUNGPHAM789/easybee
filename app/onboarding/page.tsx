@@ -2,51 +2,20 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { AnimatePresence, motion } from "framer-motion";
 import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/components/AuthProvider";
+import ActionButton from "@/components/ActionButton";
 
-type Job = "nail-salon" | "permanent-makeup" | "other";
-type Level = "beginner" | "intermediate";
-type Need = "customers" | "money" | "healthcare" | "daily";
-
-const STEPS = [
-  {
-    title: "Ban lam nghe gi?",
-    titleDisplay: "B\u1ea1n l\u00e0m ngh\u1ec1 g\u00ec?",
-    options: [
-      { emoji: "\ud83d\udc85", label: "Ti\u1ec7m Nail", value: "nail-salon" },
-      { emoji: "\ud83d\udc84", label: "Phun X\u0103m", value: "permanent-makeup" },
-      { emoji: "\ud83c\udfe2", label: "Ngh\u1ec1 kh\u00e1c", value: "other" },
-    ],
-  },
-  {
-    title: "Trinh do tieng Anh cua ban?",
-    titleDisplay: "Tr\u00ecnh \u0111\u1ed9 ti\u1ebfng Anh c\u1ee7a b\u1ea1n?",
-    options: [
-      { emoji: "\ud83d\ude30", label: "M\u1edbi b\u1eaft \u0111\u1ea7u", value: "beginner" },
-      { emoji: "\ud83d\ude42", label: "Bi\u1ebft ch\u00fat ch\u00fat r\u1ed3i", value: "intermediate" },
-    ],
-  },
-  {
-    title: "Ban can gi nhat?",
-    titleDisplay: "B\u1ea1n c\u1ea7n g\u00ec nh\u1ea5t?",
-    options: [
-      { emoji: "\ud83d\udde3\ufe0f", label: "N\u00f3i chuy\u1ec7n v\u1edbi kh\u00e1ch", value: "customers" },
-      { emoji: "\ud83d\udcb0", label: "Ti\u1ec1n, tip, thanh to\u00e1n", value: "money" },
-      { emoji: "\ud83c\udfe5", label: "\u0110i b\u00e1c s\u0129, hi\u1ec7u thu\u1ed1c", value: "healthcare" },
-      { emoji: "\ud83c\udfe0", label: "Cu\u1ed9c s\u1ed1ng h\u00e0ng ng\u00e0y", value: "daily" },
-    ],
-  },
-] as const;
+const AGE_RANGES = ["20-30", "30-40", "40-50", "50+"] as const;
 
 export default function OnboardingPage() {
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
-  const [step, setStep] = useState(0);
-  const [answers, setAnswers] = useState<{ job?: Job; level?: Level; need?: Need }>({});
+  const [gender, setGender] = useState<"male" | "female" | null>(null);
+  const [age, setAge] = useState<string>("");
+  const [job, setJob] = useState("");
+  const [goal, setGoal] = useState("");
   const [saving, setSaving] = useState(false);
-  const [direction, setDirection] = useState(1); // 1 = forward, -1 = back
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -60,41 +29,28 @@ export default function OnboardingPage() {
     }
   }, [user, router]);
 
-  const handleSelect = async (value: string) => {
-    if (step === 0) {
-      setAnswers((prev) => ({ ...prev, job: value as Job }));
-      setDirection(1);
-      setStep(1);
-    } else if (step === 1) {
-      setAnswers((prev) => ({ ...prev, level: value as Level }));
-      setDirection(1);
-      setStep(2);
-    } else if (step === 2) {
-      const profile = { ...answers, need: value as Need };
-      setSaving(true);
+  const canSubmit = gender && age && job.trim();
 
-      try {
-        const supabase = createClient();
-        await supabase.auth.updateUser({
-          data: { job: profile.job, level: profile.level, need: profile.need, onboarded: true },
-        });
-      } catch {
-        // Supabase update failed — localStorage fallback still works
-      }
+  const handleSubmit = async () => {
+    if (!canSubmit) return;
+    setSaving(true);
 
-      try {
-        localStorage.setItem("easybee_profile", JSON.stringify(profile));
-      } catch {
-        // Storage unavailable
-      }
+    const metadata = { gender, age, job: job.trim(), goal: goal.trim(), onboarded: true };
 
-      router.replace("/");
+    try {
+      const supabase = createClient();
+      await supabase.auth.updateUser({ data: metadata });
+    } catch {
+      // Supabase update failed — localStorage fallback still works
     }
-  };
 
-  const handleBack = () => {
-    setDirection(-1);
-    setStep((s) => s - 1);
+    try {
+      localStorage.setItem("easybee_profile", JSON.stringify(metadata));
+    } catch {
+      // Storage unavailable
+    }
+
+    router.replace("/");
   };
 
   if (authLoading || !user) {
@@ -105,73 +61,109 @@ export default function OnboardingPage() {
     );
   }
 
-  const currentStep = STEPS[step];
-
   return (
     <main className="px-5 pt-14 pb-10 min-h-screen flex flex-col">
-      {/* Progress dots */}
-      <div className="flex items-center justify-center gap-2 mb-2">
-        {STEPS.map((_, i) => (
-          <div
-            key={i}
-            className={`w-2.5 h-2.5 rounded-full transition-colors duration-300 ${
-              i <= step ? "bg-neutral-800" : "bg-neutral-200"
-            }`}
-          />
-        ))}
-      </div>
+      <h1 className="text-2xl font-semibold text-neutral-900 font-title mb-8">
+        Cho EasyBee bi&#7871;t v&#7873; b&#7841;n
+      </h1>
 
-      {/* Back button */}
-      <div className="h-10 flex items-center">
-        {step > 0 && (
+      {/* Gender */}
+      <div className="mb-6">
+        <label className="text-sm font-medium text-neutral-600 mb-2 block">
+          Gi&#7899;i t&iacute;nh
+        </label>
+        <div className="flex gap-3">
           <button
             type="button"
-            onClick={handleBack}
-            className="text-sm text-neutral-400 active:opacity-60 touch-manipulation"
+            onClick={() => setGender("male")}
+            className={`flex-1 py-3 rounded-2xl border text-base font-medium transition-colors touch-manipulation ${
+              gender === "male"
+                ? "bg-neutral-900 text-white border-neutral-900"
+                : "bg-neutral-50 text-neutral-700 border-neutral-100 active:bg-neutral-100"
+            }`}
           >
-            &larr; Quay l\u1ea1i
+            Nam
           </button>
-        )}
-      </div>
-
-      {/* Step content */}
-      <div className="flex-1 flex flex-col justify-center">
-        <AnimatePresence mode="wait" custom={direction}>
-          <motion.div
-            key={step}
-            custom={direction}
-            initial={{ opacity: 0, x: direction * 60 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: direction * -60 }}
-            transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+          <button
+            type="button"
+            onClick={() => setGender("female")}
+            className={`flex-1 py-3 rounded-2xl border text-base font-medium transition-colors touch-manipulation ${
+              gender === "female"
+                ? "bg-neutral-900 text-white border-neutral-900"
+                : "bg-neutral-50 text-neutral-700 border-neutral-100 active:bg-neutral-100"
+            }`}
           >
-            <h1 className="text-2xl font-semibold text-neutral-900 text-center mb-8 font-title">
-              {currentStep.titleDisplay}
-            </h1>
-
-            <div className="space-y-3">
-              {currentStep.options.map((opt) => (
-                <button
-                  key={opt.value}
-                  type="button"
-                  disabled={saving}
-                  onClick={() => handleSelect(opt.value)}
-                  className="w-full flex items-center gap-4 px-5 py-5 rounded-2xl bg-neutral-50 border border-neutral-100 active:bg-neutral-100 transition-colors touch-manipulation min-h-[64px] disabled:opacity-50"
-                >
-                  <span className="text-3xl">{opt.emoji}</span>
-                  <span className="text-lg font-medium text-neutral-800">{opt.label}</span>
-                </button>
-              ))}
-            </div>
-          </motion.div>
-        </AnimatePresence>
+            N&#7919;
+          </button>
+        </div>
       </div>
 
-      {saving && (
-        <div className="flex justify-center py-4">
-          <div className="w-5 h-5 border-2 border-neutral-200 border-t-neutral-600 rounded-full animate-spin" />
+      {/* Age */}
+      <div className="mb-6">
+        <label className="text-sm font-medium text-neutral-600 mb-2 block">
+          Tu&#7893;i
+        </label>
+        <div className="flex gap-2">
+          {AGE_RANGES.map((range) => (
+            <button
+              key={range}
+              type="button"
+              onClick={() => setAge(range)}
+              className={`flex-1 py-3 rounded-2xl border text-sm font-medium transition-colors touch-manipulation ${
+                age === range
+                  ? "bg-neutral-900 text-white border-neutral-900"
+                  : "bg-neutral-50 text-neutral-700 border-neutral-100 active:bg-neutral-100"
+              }`}
+            >
+              {range}
+            </button>
+          ))}
         </div>
-      )}
+      </div>
+
+      {/* Job */}
+      <div className="mb-6">
+        <label className="text-sm font-medium text-neutral-600 mb-2 block">
+          Ngh&#7873; nghi&#7879;p
+        </label>
+        <input
+          type="text"
+          value={job}
+          onChange={(e) => setJob(e.target.value)}
+          placeholder="VD: th&#7907; nail, phun x&#259;m, n&#7897;i tr&#7907;..."
+          className="w-full px-4 py-3 rounded-2xl bg-neutral-50 border border-neutral-100 text-base text-neutral-900 placeholder:text-neutral-300 outline-none focus:border-neutral-300 transition-colors"
+        />
+      </div>
+
+      {/* Goal */}
+      <div className="mb-8">
+        <label className="text-sm font-medium text-neutral-600 mb-2 block">
+          B&#7841;n mu&#7889;n n&oacute;i ti&#7871;ng Anh t&#7889;t h&#417;n v&#7873; g&igrave;?
+        </label>
+        <input
+          type="text"
+          value={goal}
+          onChange={(e) => setGoal(e.target.value)}
+          placeholder="VD: n&oacute;i chuy&#7879;n v&#7899;i kh&aacute;ch, &#273;i b&aacute;c s&#297;, mua s&#7855;m..."
+          className="w-full px-4 py-3 rounded-2xl bg-neutral-50 border border-neutral-100 text-base text-neutral-900 placeholder:text-neutral-300 outline-none focus:border-neutral-300 transition-colors"
+        />
+      </div>
+
+      {/* Submit */}
+      <ActionButton
+        onClick={handleSubmit}
+        disabled={!canSubmit || saving}
+        className="w-full text-base min-h-[52px] py-4"
+      >
+        {saving ? (
+          <span className="inline-flex items-center gap-2">
+            <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            &#272;ang l&#432;u...
+          </span>
+        ) : (
+          "B\u1eaft \u0111\u1ea7u h\u1ecdc"
+        )}
+      </ActionButton>
     </main>
   );
 }
