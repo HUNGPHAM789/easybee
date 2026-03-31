@@ -1,0 +1,13 @@
+{
+  "lessonId": "L57",
+  "classId": "building-relationships",
+  "title": "Complimenting Customers",
+  "titleVi": "Khen Ngợi Khách Hàng",
+  "level": "A2",
+  "context": "Một lời khen chân thành giúp khách cảm thấy thoải mái và muốn quay lại. Dùng những câu này tự nhiên trong cuộc trò chuyện.",
+  "phrases": [
+    { "english": "I love your outfit!", "vietnamese": "Tôi thích bộ đồ của bạn!", "pronunciation": "ai lʌv yor aut-fit" },
+    { "english": "That color looks great on you.", "vietnamese": "Màu đó rất hợp với bạn.", "pronunciation": "dhæt kʌl-er luks greit on yu" },
+    { "english": "You have such beautiful hands.", "vietnamese": "Tay bạn thật đẹp.", "pronunciation": "yu hæv sʌtʃ byu-tə-fəl hændz" }
+  ]
+}

@@ -1,65 +1,245 @@
-import Image from "next/image";
+"use client";
+
+import { useState, useEffect, useCallback, useMemo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { classes } from "@/lib/content/index";
+import LessonDetail from "@/components/LessonDetail";
+import DrillScreen from "@/components/DrillScreen";
+import NameSetup from "@/components/NameSetup";
+import SearchBar from "@/components/ui/search-bar";
+import { TextReveal } from "@/components/ui/text-reveal-animation";
+
+import type { Lesson } from "@/lib/content/index";
 
 export default function Home() {
+  const [expandedClass, setExpandedClass] = useState<string | null>(null);
+  const [expandedLesson, setExpandedLesson] = useState<string | null>(null);
+  const [drillLesson, setDrillLesson] = useState<Lesson | null>(null);
+  const [mounted, setMounted] = useState(false);
+  const [studentName, setStudentName] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  useEffect(() => {
+    setMounted(true);
+    if (classes.length > 0) setExpandedClass(classes[0].id);
+    try {
+      const saved = localStorage.getItem("easybee_name");
+      if (saved) setStudentName(saved);
+    } catch {
+      // Private browsing or storage unavailable
+    }
+  }, []);
+
+  const handleSearch = useCallback((q: string) => {
+    setSearchQuery(q);
+  }, []);
+
+  // Filter classes/lessons by query
+  const query = searchQuery.trim().toLowerCase();
+  const visibleClasses = useMemo(() =>
+    query
+      ? classes
+          .map((cls) => ({
+            ...cls,
+            lessons: cls.lessons.filter(
+              (l) =>
+                l.id.toLowerCase().includes(query) ||
+                l.title.toLowerCase().includes(query) ||
+                l.titleVi.toLowerCase().includes(query) ||
+                cls.title.toLowerCase().includes(query) ||
+                cls.titleVi.toLowerCase().includes(query)
+            ),
+          }))
+          .filter((cls) => cls.lessons.length > 0)
+      : classes,
+    [query]
+  );
+
+  // When searching, auto-expand all matching classes
+  const effectiveExpandedClass = query
+    ? visibleClasses[0]?.id ?? null
+    : expandedClass;
+
+  if (drillLesson) {
+    return (
+      <DrillScreen
+        lesson={drillLesson}
+        onExit={() => setDrillLesson(null)}
+      />
+    );
+  }
+
+  if (!mounted) return (
+    <main className="px-5 pt-12 pb-10 flex items-center justify-center min-h-screen">
+      <div className="w-6 h-6 border-2 border-neutral-200 border-t-neutral-600 rounded-full animate-spin" />
+    </main>
+  );
+
+  if (!studentName) return <NameSetup onSave={setStudentName} />;
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <motion.main
+      className="px-5 pt-12 pb-10"
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+    >
+      {/* Header */}
+      <div className="mb-4">
+        <h1 className="text-3xl font-semibold text-neutral-900 tracking-tight">
+          <TextReveal word={`Lớp học của ${studentName}`} />
+        </h1>
+        <div className="mt-4" style={{ position: "relative", zIndex: 30 }}>
+          <SearchBar onSearch={handleSearch} />
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+      </div>
+
+      {/* Search active — clear hint */}
+      <AnimatePresence>
+        {query && (
+          <motion.div
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            transition={{ duration: 0.18 }}
+            className="mb-4 flex items-center gap-2"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+            <p className="text-sm text-neutral-400">
+              Kết quả cho &ldquo;{searchQuery}&rdquo;
+            </p>
+            <button
+              type="button"
+              className="text-xs text-neutral-400 underline underline-offset-2 active:opacity-60 touch-manipulation"
+              onClick={() => setSearchQuery("")}
+            >
+              Xoá
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Classes */}
+      <div className="space-y-1">
+        {visibleClasses.length === 0 && (
+          <p className="text-sm text-neutral-400 py-6 text-center">Không tìm thấy bài học nào.</p>
+        )}
+        {visibleClasses.map((cls) => {
+          const isExpanded = query
+            ? true
+            : expandedClass === cls.id;
+
+          return (
+            <div key={cls.id}>
+              {/* Class row */}
+              <button
+                type="button"
+                className="w-full text-left min-h-[52px] active:opacity-60 transition-opacity"
+                onClick={() =>
+                  !query && setExpandedClass((prev) => (prev === cls.id ? null : cls.id))
+                }
+              >
+                <div className="flex items-center justify-between py-4 border-b border-neutral-100">
+                  <div>
+                    <p className="text-lg font-medium text-neutral-900">{cls.titleVi}</p>
+                    <p className="text-base text-neutral-400 mt-0.5">{cls.title}</p>
+                  </div>
+                  {!query && (
+                    <motion.span
+                      className="text-neutral-300 text-lg inline-block"
+                      animate={{ rotate: expandedClass === cls.id ? 90 : 0 }}
+                      transition={{ duration: 0.2, ease: "easeInOut" }}
+                    >
+                      ›
+                    </motion.span>
+                  )}
+                </div>
+              </button>
+
+              {/* Lessons */}
+              <AnimatePresence initial={false}>
+                {isExpanded && (
+                  <motion.div
+                    key="lessons"
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+                    style={{ overflow: "hidden" }}
+                  >
+                    <div className="mt-1 mb-2">
+                      {cls.lessons.map((lesson, i) => (
+                        <motion.div
+                          key={lesson.id}
+                          className="ml-4"
+                          initial={{ opacity: 0, x: -8 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: i * 0.05, duration: 0.22, ease: "easeOut" }}
+                        >
+                          <button
+                            type="button"
+                            className="w-full text-left min-h-[52px] active:opacity-60 transition-opacity"
+                            onClick={() =>
+                              setExpandedLesson((prev) =>
+                                prev === lesson.id ? null : lesson.id
+                              )
+                            }
+                          >
+                            <div className="flex items-center justify-between py-4 border-b border-neutral-100">
+                              <div>
+                                <div className="flex items-center gap-2">
+                                  <span className="text-xs text-neutral-400 shrink-0">{lesson.id}</span>
+                                  <p className="text-lg font-medium text-neutral-800">
+                                    {lesson.titleVi}
+                                  </p>
+                                  {lesson.level && (
+                                    <span className="text-xs font-semibold px-1.5 py-0.5 rounded-md bg-neutral-100 text-neutral-500 font-title">
+                                      {lesson.level}
+                                    </span>
+                                  )}
+                                </div>
+                                <p className="text-base text-neutral-400 mt-0.5">
+                                  {lesson.phrases.length} câu &bull;{" "}
+                                  {lesson.drill.length} bài tập
+                                </p>
+                              </div>
+                              <motion.span
+                                className="text-neutral-300 text-base inline-block"
+                                animate={{ rotate: expandedLesson === lesson.id ? 90 : 0 }}
+                                transition={{ duration: 0.2, ease: "easeInOut" }}
+                              >
+                                ›
+                              </motion.span>
+                            </div>
+                          </button>
+
+                          <AnimatePresence initial={false}>
+                            {expandedLesson === lesson.id && (
+                              <motion.div
+                                key="detail"
+                                initial={{ height: 0, opacity: 0 }}
+                                animate={{ height: "auto", opacity: 1 }}
+                                exit={{ height: 0, opacity: 0 }}
+                                transition={{ duration: 0.42, ease: [0.22, 1, 0.36, 1] }}
+                                style={{ overflow: "hidden" }}
+                              >
+                                <LessonDetail
+                                  lesson={lesson}
+                                  onStartDrill={() => setDrillLesson(lesson)}
+                                />
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
+                        </motion.div>
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          );
+        })}
+      </div>
+    </motion.main>
   );
 }
+

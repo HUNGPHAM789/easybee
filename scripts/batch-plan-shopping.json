@@ -1,0 +1,66 @@
+[
+  {
+    "class": "Grocery Store",
+    "file": "grocery-store.ts",
+    "module": "shopping-errands",
+    "lessons": [
+      { "topic": "Finding items in the grocery store - where is the rice aisle, do you have fish sauce", "level": "A1" },
+      { "topic": "Asking for help at the deli counter - half a pound of ham, sliced thin please", "level": "A1" },
+      { "topic": "Reading sale signs and coupons - buy one get one free, 20 percent off", "level": "A2" },
+      { "topic": "Checking out at the register - paper or plastic, do you have a rewards card", "level": "A1" },
+      { "topic": "Returning spoiled or wrong items - this milk is expired, I bought the wrong one", "level": "A2" },
+      { "topic": "Asking about ingredients and allergies - does this contain peanuts, is this gluten free", "level": "A2" },
+      { "topic": "Comparing prices and sizes - which one is cheaper, is the bigger one a better deal", "level": "B1" },
+      { "topic": "Using self checkout machines - scan the barcode, select payment method, unexpected item", "level": "A2" },
+      { "topic": "Talking to other shoppers in line - is this the express lane, are you in line", "level": "B1" }
+    ]
+  },
+  {
+    "class": "Pharmacy",
+    "file": "pharmacy.ts",
+    "module": "shopping-errands",
+    "lessons": [
+      { "topic": "Picking up a prescription - I'm here to pick up my medication, last name Nguyen", "level": "A1" },
+      { "topic": "Asking the pharmacist about medicine - how many times a day, take with food", "level": "A1" },
+      { "topic": "Describing symptoms to buy over the counter medicine - headache, cold, sore throat, cough", "level": "A2" },
+      { "topic": "Understanding medicine labels - take twice daily, do not exceed 4 tablets, keep refrigerated", "level": "A2" },
+      { "topic": "Insurance and copay at the pharmacy - how much is my copay, is this covered by insurance", "level": "A2" },
+      { "topic": "Asking about generic vs brand name medicine - is there a cheaper version, same ingredient", "level": "B1" },
+      { "topic": "Refilling prescriptions - I need a refill, can you call my doctor for authorization", "level": "A2" },
+      { "topic": "Side effects and drug interactions - will this make me drowsy, can I take this with my other medicine", "level": "B1" },
+      { "topic": "Getting a flu shot or vaccine at the pharmacy - do I need an appointment, which arm", "level": "B1" }
+    ]
+  },
+  {
+    "class": "Clothing & Shopping",
+    "file": "clothing-shopping.ts",
+    "module": "shopping-errands",
+    "lessons": [
+      { "topic": "Asking for sizes - do you have this in medium, do you have a smaller size", "level": "A1" },
+      { "topic": "Where is the fitting room and trying on clothes - can I try this on, it doesn't fit", "level": "A1" },
+      { "topic": "Asking about colors and styles - do you have this in black, something more casual", "level": "A2" },
+      { "topic": "Returning and exchanging items - I want to return this, do you have the receipt", "level": "A2" },
+      { "topic": "Asking about sales and discounts - when is the next sale, is there a student discount", "level": "A2" },
+      { "topic": "Asking for recommendations - what goes with this, what do you recommend for a wedding", "level": "B1" },
+      { "topic": "Complaining about defective items - this zipper is broken, it has a hole, I just bought it", "level": "B1" },
+      { "topic": "Online order pickup and issues - I ordered online, my order is wrong, can I get a refund", "level": "A2" },
+      { "topic": "Negotiating at flea markets and yard sales - can you do 5 dollars, what's your best price", "level": "B1" }
+    ]
+  },
+  {
+    "class": "Bank & Post Office",
+    "file": "bank-post-office.ts",
+    "module": "shopping-errands",
+    "lessons": [
+      { "topic": "Opening a bank account - I want to open a checking account, what do I need", "level": "A2" },
+      { "topic": "Depositing and withdrawing money - I want to deposit this check, I need to withdraw 200", "level": "A1" },
+      { "topic": "Asking about fees and interest rates - is there a monthly fee, what is the interest rate", "level": "A2" },
+      { "topic": "Reporting a lost or stolen card - my card was stolen, I need to cancel it", "level": "A2" },
+      { "topic": "Sending money internationally - I want to wire money to Vietnam, what are the fees", "level": "B1" },
+      { "topic": "Mailing a package at the post office - I want to send this to Vietnam, how much for priority", "level": "A1" },
+      { "topic": "Buying stamps and mailing letters - I need 10 stamps, where is the mailbox", "level": "A1" },
+      { "topic": "Tracking a package - where is my package, it says delivered but I didn't get it", "level": "A2" },
+      { "topic": "Understanding bank statements and suspicious charges - what is this charge, I didn't authorize this", "level": "B1" }
+    ]
+  }
+]

@@ -1,0 +1,99 @@
+{
+  "id": "L50",
+  "title": "Brow Shapes",
+  "titleVi": "Các Dáng Lông Mày",
+  "level": "A1",
+  "context": "Sử dụng những mẫu câu này khi bạn tư vấn cho khách hàng về dáng lông mày.",
+  "phrases": [
+    {
+      "english": "Natural arch.",
+      "vietnamese": "Dáng vòng cung tự nhiên.",
+      "pronunciation": "Na-chơ-rồ arch."
+    },
+    {
+      "english": "Straight brows.",
+      "vietnamese": "Dáng lông mày ngang.",
+      "pronunciation": "Straight brauz."
+    },
+    {
+      "english": "Soft and fluffy.",
+      "vietnamese": "Mềm mại và tự nhiên.",
+      "pronunciation": "Soft and fla-fee."
+    }
+  ],
+  "drill": [
+    {
+      "id": "L50C01",
+      "type": "read",
+      "prompt": "Natural arch.",
+      "hint": "Dáng vòng cung tự nhiên.",
+      "answer": "Natural arch."
+    },
+    {
+      "id": "L50C02",
+      "type": "recall",
+      "prompt": "Dáng vòng cung tự nhiên.",
+      "hint": "Nhớ lại câu tiếng Anh...",
+      "answer": "Natural arch."
+    },
+    {
+      "id": "L50C03",
+      "type": "read",
+      "prompt": "Straight brows.",
+      "hint": "Dáng lông mày ngang.",
+      "answer": "Straight brows."
+    },
+    {
+      "id": "L50C04",
+      "type": "recall",
+      "prompt": "Dáng lông mày ngang.",
+      "hint": "Nhớ lại câu tiếng Anh...",
+      "answer": "Straight brows."
+    },
+    {
+      "id": "L50C05",
+      "type": "read",
+      "prompt": "Soft and fluffy.",
+      "hint": "Mềm mại và tự nhiên.",
+      "answer": "Soft and fluffy."
+    },
+    {
+      "id": "L50C06",
+      "type": "recall",
+      "prompt": "Mềm mại và tự nhiên.",
+      "hint": "Nhớ lại câu tiếng Anh...",
+      "answer": "Soft and fluffy."
+    },
+    {
+      "id": "L50C07",
+      "type": "fill",
+      "prompt": "I like a ___ arch.",
+      "hint": "Tôi thích dáng vòng cung tự nhiên.",
+      "answer": "natural",
+      "answerHint": "I like a natural arch."
+    },
+    {
+      "id": "L50C08",
+      "type": "fill",
+      "prompt": "Do you want ___ brows?",
+      "hint": "Bạn có muốn dáng lông mày ngang không?",
+      "answer": "straight",
+      "answerHint": "Do you want straight brows?"
+    },
+    {
+      "id": "L50C09",
+      "type": "fill",
+      "prompt": "Make them ___ and fluffy.",
+      "hint": "Làm cho chúng mềm mại và tự nhiên.",
+      "answer": "soft",
+      "answerHint": "Make them soft and fluffy."
+    },
+    {
+      "id": "L50C10",
+      "type": "dialogue",
+      "prompt": "Worker: What brow shape do you like?\nCustomer: I want a natural arch.\nWorker: Okay, and very soft and fluffy?",
+      "hint": "Thợ: Bạn thích dáng lông mày nào?\nKhách: Tôi muốn dáng vòng cung tự nhiên.\nThợ: Được rồi, và rất mềm mại và tự nhiên phải không?",
+      "answer": "Worker: What brow shape do you like?\nCustomer: I want a natural arch.\nWorker: Okay, and very soft and fluffy?"
+    }
+  ]
+}

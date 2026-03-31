@@ -1,0 +1,13 @@
+{
+  "lessonId": "L56",
+  "classId": "building-relationships",
+  "title": "Weather Small Talk",
+  "titleVi": "Trò Chuyện Về Thời Tiết",
+  "level": "A2",
+  "context": "Nói về thời tiết là cách dễ nhất để bắt đầu trò chuyện với khách. Dùng những câu này tự nhiên trong khi làm móng.",
+  "phrases": [
+    { "english": "Can you believe this weather?", "vietnamese": "Bạn có tin được thời tiết này không?", "pronunciation": "kan yu buh-liv dhis weth-er" },
+    { "english": "It's been so hot lately.", "vietnamese": "Gần đây trời nóng quá.", "pronunciation": "its bin so hot leit-lee" },
+    { "english": "I hope it cools down soon.", "vietnamese": "Tôi hy vọng trời sẽ mát hơn sớm.", "pronunciation": "ai hop it kulz daun sun" }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "lessonId": "L38",
+  "classId": "nail-care-techniques",
+  "title": "Applying Nail Polish",
+  "titleVi": "Thoa Sơn Móng",
+  "level": "A1",
+  "context": "Dùng những câu này khi bạn thoa sơn và hoàn thiện móng cho khách.",
+  "phrases": [
+    { "english": "I'll apply two coats.", "vietnamese": "Tôi sẽ sơn hai lớp.", "pronunciation": "ai-l uh-plai tu kots" },
+    { "english": "This needs to dry first.", "vietnamese": "Cần để khô trước đã nhé.", "pronunciation": "dhis needz tu drai ferst" },
+    { "english": "Do you want top coat?", "vietnamese": "Bạn có muốn sơn bóng không?", "pronunciation": "du yu wont top kot" }
+  ]
+}

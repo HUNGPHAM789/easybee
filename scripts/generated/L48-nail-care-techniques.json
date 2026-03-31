@@ -1,0 +1,99 @@
+{
+  "id": "L48",
+  "title": "Recommend Cuticle Oil and Hand Cream",
+  "titleVi": "Gợi ý Dầu biểu bì và Kem dưỡng da tay",
+  "level": "A2",
+  "context": "Sử dụng những mẫu câu này để gợi ý khách hàng dùng dầu biểu bì và kem dưỡng da tay tại nhà để giữ cho móng tay khỏe mạnh.",
+  "phrases": [
+    {
+      "english": "Use cuticle oil every night.",
+      "vietnamese": "Sử dụng dầu biểu bì mỗi tối.",
+      "pronunciation": "yoo kyoo-ti-kl oil ev-ree nait"
+    },
+    {
+      "english": "Hand cream keeps hands soft.",
+      "vietnamese": "Kem dưỡng da tay giữ cho tay mềm mại.",
+      "pronunciation": "hand kreem keeps hands soft"
+    },
+    {
+      "english": "Healthy nails need daily care.",
+      "vietnamese": "Móng tay khỏe mạnh cần được chăm sóc hàng ngày.",
+      "pronunciation": "hel-thee nails need dei-lee care"
+    }
+  ],
+  "drill": [
+    {
+      "id": "L48C01",
+      "type": "read",
+      "prompt": "Use cuticle oil every night.",
+      "hint": "Sử dụng dầu biểu bì mỗi tối.",
+      "answer": "Use cuticle oil every night."
+    },
+    {
+      "id": "L48C02",
+      "type": "recall",
+      "prompt": "Sử dụng dầu biểu bì mỗi tối.",
+      "hint": "Nhớ lại câu tiếng Anh...",
+      "answer": "Use cuticle oil every night."
+    },
+    {
+      "id": "L48C03",
+      "type": "read",
+      "prompt": "Hand cream keeps hands soft.",
+      "hint": "Kem dưỡng da tay giữ cho tay mềm mại.",
+      "answer": "Hand cream keeps hands soft."
+    },
+    {
+      "id": "L48C04",
+      "type": "recall",
+      "prompt": "Kem dưỡng da tay giữ cho tay mềm mại.",
+      "hint": "Nhớ lại câu tiếng Anh...",
+      "answer": "Hand cream keeps hands soft."
+    },
+    {
+      "id": "L48C05",
+      "type": "read",
+      "prompt": "Healthy nails need daily care.",
+      "hint": "Móng tay khỏe mạnh cần được chăm sóc hàng ngày.",
+      "answer": "Healthy nails need daily care."
+    },
+    {
+      "id": "L48C06",
+      "type": "recall",
+      "prompt": "Móng tay khỏe mạnh cần được chăm sóc hàng ngày.",
+      "hint": "Nhớ lại câu tiếng Anh...",
+      "answer": "Healthy nails need daily care."
+    },
+    {
+      "id": "L48C07",
+      "type": "fill",
+      "prompt": "Use cuticle oil ___ night.",
+      "hint": "Sử dụng dầu biểu bì mỗi tối.",
+      "answer": "every",
+      "answerHint": "Use cuticle oil every night."
+    },
+    {
+      "id": "L48C08",
+      "type": "fill",
+      "prompt": "Hand cream keeps hands ___.",
+      "hint": "Kem dưỡng da tay giữ cho tay mềm mại.",
+      "answer": "soft",
+      "answerHint": "Hand cream keeps hands soft."
+    },
+    {
+      "id": "L48C09",
+      "type": "fill",
+      "prompt": "Healthy nails need ___ care.",
+      "hint": "Móng tay khỏe mạnh cần được chăm sóc hàng ngày.",
+      "answer": "daily",
+      "answerHint": "Healthy nails need daily care."
+    },
+    {
+      "id": "L48C10",
+      "type": "dialogue",
+      "prompt": "Worker: Your nails look great! \nCustomer: Thank you!\nWorker: Remember, use cuticle oil every night. Healthy nails need daily care.",
+      "hint": "Thợ: Móng tay của chị rất đẹp! \nKhách: Cảm ơn!\nThợ: Chị nhớ sử dụng dầu biểu bì mỗi tối nhé. Móng tay khỏe mạnh cần được chăm sóc hàng ngày.",
+      "answer": "Worker: Your nails look great! \nCustomer: Thank you!\nWorker: Remember, use cuticle oil every night. Healthy nails need daily care."
+    }
+  ]
+}

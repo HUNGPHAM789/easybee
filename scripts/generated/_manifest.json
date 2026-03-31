@@ -1,0 +1,42 @@
+[
+  {
+    "lessonId": "L49",
+    "file": "L49-permanent-makeup-consultation.json",
+    "targetClass": "consultation.ts",
+    "targetModule": "permanent-makeup",
+    "title": "Greeting PMU Client",
+    "level": "A1"
+  },
+  {
+    "lessonId": "L50",
+    "file": "L50-permanent-makeup-consultation.json",
+    "targetClass": "consultation.ts",
+    "targetModule": "permanent-makeup",
+    "title": "Brow Shapes",
+    "level": "A1"
+  },
+  {
+    "lessonId": "L51",
+    "file": "L51-permanent-makeup-consultation.json",
+    "targetClass": "consultation.ts",
+    "targetModule": "permanent-makeup",
+    "title": "Lip Colors",
+    "level": "A1"
+  },
+  {
+    "lessonId": "L52",
+    "file": "L52-permanent-makeup-consultation.json",
+    "targetClass": "consultation.ts",
+    "targetModule": "permanent-makeup",
+    "title": "Allergies and Medical History",
+    "level": "A2"
+  },
+  {
+    "lessonId": "L53",
+    "file": "L53-permanent-makeup-consultation.json",
+    "targetClass": "consultation.ts",
+    "targetModule": "permanent-makeup",
+    "title": "Permanent Makeup: Setting Expectations",
+    "level": "A2"
+  }
+]

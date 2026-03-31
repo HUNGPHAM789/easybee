@@ -1,0 +1,13 @@
+{
+  "lessonId": "L40",
+  "classId": "nail-care-techniques",
+  "title": "Detailed Aftercare Advice",
+  "titleVi": "Lời Khuyên Chăm Sóc Sau Khi Làm",
+  "level": "B1",
+  "context": "Dùng những câu này khi bạn tư vấn cho khách về cách chăm sóc móng sau khi làm.",
+  "phrases": [
+    { "english": "Apply cuticle oil every night.", "vietnamese": "Thoa dầu cuticle mỗi tối nhé.", "pronunciation": "æp-plai kyu-ti-kəl oil ev-ri nait" },
+    { "english": "Avoid soaking your hands in water.", "vietnamese": "Tránh ngâm tay trong nước.", "pronunciation": "uh-void so-king yor handz in wa-ter" },
+    { "english": "Your manicure will last much longer.", "vietnamese": "Móng của bạn sẽ bền hơn nhiều.", "pronunciation": "yor mæn-i-kyoor wil last mutʃ long-er" }
+  ]
+}

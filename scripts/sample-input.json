@@ -1,0 +1,13 @@
+{
+  "lessonId": "L37",
+  "classId": "basic-communication",
+  "title": "Asking About Preferences",
+  "titleVi": "Hỏi Về Sở Thích",
+  "level": "A1",
+  "context": "Sử dụng những câu này khi bạn muốn hỏi khách hàng về sở thích của họ.",
+  "phrases": [
+    { "english": "What color do you like?", "vietnamese": "Bạn thích màu gì?", "pronunciation": "wot kuh-ler du yu laik" },
+    { "english": "Short or long nails?", "vietnamese": "Móng ngắn hay dài?", "pronunciation": "short or long nailz" },
+    { "english": "Same as last time?", "vietnamese": "Giống lần trước không?", "pronunciation": "saim az last taim" }
+  ]
+}

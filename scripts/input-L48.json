@@ -1,0 +1,13 @@
+{
+  "lessonId": "L48",
+  "classId": "money-tips",
+  "title": "Talking About Tips",
+  "titleVi": "Nói Về Tiền Boa",
+  "level": "A2",
+  "context": "Dùng những câu này khi nói về tiền boa một cách lịch sự và tự nhiên với khách.",
+  "phrases": [
+    { "english": "Tips are not included.", "vietnamese": "Tiền boa không được tính vào.", "pronunciation": "tips ar not in-klu-ded" },
+    { "english": "Would you like to add a tip?", "vietnamese": "Bạn có muốn thêm tiền boa không?", "pronunciation": "wud yu laik tu æd uh tip" },
+    { "english": "Thank you so much, I really appreciate it!", "vietnamese": "Cảm ơn bạn rất nhiều, tôi rất trân trọng!", "pronunciation": "thænk yu so mutʃ ai ri-li uh-pri-shi-eit it" }
+  ]
+}

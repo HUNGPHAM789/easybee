@@ -1,0 +1,50 @@
+[
+  {
+    "class": "At the Doctor",
+    "file": "at-the-doctor.ts",
+    "module": "healthcare",
+    "lessons": [
+      { "topic": "Checking in at the front desk - I have an appointment at 10, here is my insurance card", "level": "A1" },
+      { "topic": "Describing symptoms to the doctor - I have a stomachache, my back hurts, for 3 days", "level": "A1" },
+      { "topic": "Understanding the doctor's questions - when did it start, does it hurt here, any allergies", "level": "A2" },
+      { "topic": "Getting blood work and lab tests - you need a blood test, fast for 12 hours, results in 3 days", "level": "A2" },
+      { "topic": "Understanding your diagnosis - you have high blood pressure, you need to take medicine daily", "level": "A2" },
+      { "topic": "Asking about treatment options - is there another option, what are the side effects", "level": "B1" },
+      { "topic": "Scheduling follow up appointments - come back in 2 weeks, call if it gets worse", "level": "A2" },
+      { "topic": "Filling out medical forms - emergency contact, current medications, medical history", "level": "B1" },
+      { "topic": "Talking about insurance coverage - does my insurance cover this, how much will I owe", "level": "B1" }
+    ]
+  },
+  {
+    "class": "At the Dentist",
+    "file": "at-the-dentist.ts",
+    "module": "healthcare",
+    "lessons": [
+      { "topic": "Making a dental appointment - I need a cleaning, my tooth hurts, earliest opening", "level": "A1" },
+      { "topic": "Describing dental pain - this tooth hurts when I eat cold food, sharp pain on the right side", "level": "A1" },
+      { "topic": "Understanding dental procedures - you need a filling, we will numb the area first", "level": "A2" },
+      { "topic": "X-rays and dental exams - we need to take an x-ray, open wide, bite down on this", "level": "A2" },
+      { "topic": "Asking about costs before dental work - how much is a crown, does insurance cover this", "level": "A2" },
+      { "topic": "Root canal and extraction conversations - the nerve is infected, we need to pull the tooth", "level": "B1" },
+      { "topic": "Dental aftercare instructions - don't eat for 2 hours, rinse with salt water, soft foods only", "level": "A2" },
+      { "topic": "Children's dental visit - my child is scared, is this normal for a 5 year old, baby teeth", "level": "B1" },
+      { "topic": "Dental emergency - my tooth broke, it's bleeding, I need to see someone today", "level": "A2" }
+    ]
+  },
+  {
+    "class": "Emergency Phrases",
+    "file": "emergency-phrases.ts",
+    "module": "healthcare",
+    "lessons": [
+      { "topic": "Calling 911 - I need an ambulance, someone fell down, the address is, please hurry", "level": "A1" },
+      { "topic": "Car accident English - he hit my car, are you hurt, we need to exchange insurance", "level": "A2" },
+      { "topic": "Describing an emergency to a dispatcher - there is a fire, someone is not breathing, chest pain", "level": "A1" },
+      { "topic": "At the emergency room - I fell and hit my head, my child is very sick, how long is the wait", "level": "A2" },
+      { "topic": "Talking to police at the scene - here is my license, he ran the red light, I was going straight", "level": "A2" },
+      { "topic": "Roadside assistance - my car broke down, I have a flat tire, I'm on highway 95 near exit 12", "level": "A2" },
+      { "topic": "Filing an insurance claim after an accident - I need to file a claim, here is the police report number", "level": "B1" },
+      { "topic": "Allergic reaction emergency - I'm having an allergic reaction, I need my epipen, call 911", "level": "A1" },
+      { "topic": "Asking neighbors for emergency help - can you call 911, do you have a first aid kit, please help", "level": "A2" }
+    ]
+  }
+]

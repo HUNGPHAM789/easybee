@@ -1,0 +1,14 @@
+[
+  {
+    "class": "Consultation",
+    "file": "consultation.ts",
+    "module": "permanent-makeup",
+    "lessons": [
+      { "topic": "Greeting PMU client and asking what service they want - microblading lip blush eyeliner", "level": "A1" },
+      { "topic": "Lip colors for permanent makeup - nude pink coral berry what shade you like", "level": "A1" },
+      { "topic": "Asking about allergies and medical history before permanent makeup - any medications blood thinners pregnant", "level": "A2" },
+      { "topic": "Setting expectations for permanent makeup - it will fade 40 percent need touch up in 6 weeks healing takes 2 weeks", "level": "A2" },
+      { "topic": "Understanding what the PMU client really wants vs what they show on Instagram - realistic expectations communication", "level": "B1" }
+    ]
+  }
+]

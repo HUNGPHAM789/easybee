@@ -1,0 +1,50 @@
+[
+  {
+    "class": "School & Kids",
+    "file": "school-kids.ts",
+    "module": "community",
+    "lessons": [
+      { "topic": "Dropping off and picking up kids at school - I'm here to pick up my son, which line do I go to", "level": "A1" },
+      { "topic": "Talking to the teacher - how is my child doing, is she behaving, any homework", "level": "A2" },
+      { "topic": "Parent teacher conference - what are his grades, how can I help at home, she needs to read more", "level": "A2" },
+      { "topic": "Signing permission slips and school forms - field trip, lunch program, emergency contact", "level": "A2" },
+      { "topic": "Calling the school when child is sick - my daughter is sick today, she won't be in school", "level": "A1" },
+      { "topic": "Understanding report cards and grades - what does this grade mean, is she passing, needs improvement", "level": "B1" },
+      { "topic": "Signing up for after school activities - soccer team, art class, how much does it cost", "level": "A2" },
+      { "topic": "Talking to other parents at school events - which class is your child in, do you live nearby", "level": "B1" },
+      { "topic": "Helping with homework even with limited English - can you show me an example, I don't understand this math", "level": "B1" }
+    ]
+  },
+  {
+    "class": "Neighbors & Building",
+    "file": "neighbors-building.ts",
+    "module": "community",
+    "lessons": [
+      { "topic": "Meeting new neighbors - hi we just moved in, I'm from Vietnam, nice to meet you", "level": "A1" },
+      { "topic": "Noise complaints nicely - could you please keep it down after 10, the music is very loud", "level": "A2" },
+      { "topic": "Talking to the landlord about repairs - the sink is leaking, the AC is not working, when can you fix it", "level": "A2" },
+      { "topic": "Asking about building rules - where do I put trash, is parking free, when is laundry room open", "level": "A1" },
+      { "topic": "Borrowing things from neighbors - can I borrow a ladder, do you have jumper cables", "level": "A2" },
+      { "topic": "Package delivery problems - did you get my package by mistake, someone stole my package", "level": "A2" },
+      { "topic": "Small talk with neighbors - how's your garden, your dog is so cute, did you see the storm last night", "level": "B1" },
+      { "topic": "Dealing with landlord about security deposit - I want my deposit back, what damage are you charging me for", "level": "B1" },
+      { "topic": "HOA and community meeting English - when is the next meeting, I want to bring up parking issues", "level": "B1" }
+    ]
+  },
+  {
+    "class": "Restaurants",
+    "file": "restaurants.ts",
+    "module": "community",
+    "lessons": [
+      { "topic": "Getting a table and ordering food - table for two please, I'll have the chicken, what do you recommend", "level": "A1" },
+      { "topic": "Asking about the menu - what is this dish, is it spicy, does it have seafood", "level": "A1" },
+      { "topic": "Special dietary requests - no onion please, I'm allergic to shellfish, can you make it less spicy", "level": "A2" },
+      { "topic": "Sending food back politely - this is cold, I ordered medium rare, this isn't what I ordered", "level": "A2" },
+      { "topic": "Asking for the check and paying - can I get the check, can we split the bill, do you accept cash", "level": "A1" },
+      { "topic": "Making a reservation - I'd like a reservation for Saturday at 7, party of 6, any outdoor seating", "level": "A2" },
+      { "topic": "Ordering takeout and delivery - I want to place a takeout order, how long will it take, is there a delivery fee", "level": "A2" },
+      { "topic": "Tipping and service at restaurants - the service was great, how much should I tip, is tip included", "level": "B1" },
+      { "topic": "Complimenting food and asking for recipes - this is delicious, what spice is in this, can I get the recipe", "level": "B1" }
+    ]
+  }
+]

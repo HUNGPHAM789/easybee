@@ -1,0 +1,13 @@
+{
+  "lessonId": "L39",
+  "classId": "nail-care-techniques",
+  "title": "Gel & Acrylic Nails",
+  "titleVi": "Móng Gel & Acrylic",
+  "level": "A1",
+  "context": "Dùng những câu này khi khách muốn làm móng gel hoặc móng acrylic.",
+  "phrases": [
+    { "english": "Gel lasts about three weeks.", "vietnamese": "Móng gel kéo dài khoảng ba tuần.", "pronunciation": "jel lasts uh-baut dhri wiks" },
+    { "english": "Acrylic is stronger.", "vietnamese": "Acrylic bền hơn.", "pronunciation": "uh-kril-ik iz strong-er" },
+    { "english": "Do you want a fill?", "vietnamese": "Bạn có muốn dặm móng không?", "pronunciation": "du yu wont uh fil" }
+  ]
+}

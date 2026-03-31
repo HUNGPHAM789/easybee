@@ -1,0 +1,13 @@
+{
+  "lessonId": "L55",
+  "classId": "building-relationships",
+  "title": "How Was Your Day?",
+  "titleVi": "Hôm Nay Của Bạn Thế Nào?",
+  "level": "A2",
+  "context": "Dùng những câu này để hỏi thăm và lắng nghe khách kể về ngày của họ — điều này giúp xây dựng mối quan hệ thân thiết.",
+  "phrases": [
+    { "english": "How was your day?", "vietnamese": "Hôm nay của bạn thế nào?", "pronunciation": "hao wəz yor dei" },
+    { "english": "That sounds really fun!", "vietnamese": "Nghe có vẻ vui thật đó!", "pronunciation": "dhæt saundz ri-li fʌn" },
+    { "english": "I'm glad you came in today.", "vietnamese": "Tôi vui khi hôm nay bạn ghé đây.", "pronunciation": "aim glæd yu keim in tuh-dei" }
+  ]
+}

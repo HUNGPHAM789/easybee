@@ -1,0 +1,13 @@
+{
+  "lessonId": "L46",
+  "classId": "money-tips",
+  "title": "Stating the Total",
+  "titleVi": "Thông Báo Tổng Tiền",
+  "level": "A1",
+  "context": "Dùng những câu này khi bạn thông báo tổng số tiền và nhận thanh toán từ khách.",
+  "phrases": [
+    { "english": "Your total is thirty-five dollars.", "vietnamese": "Tổng cộng là ba mươi lăm đô la.", "pronunciation": "yor to-təl iz ther-tee faiv da-lerz" },
+    { "english": "Will you be paying by cash or card?", "vietnamese": "Bạn muốn trả tiền mặt hay thẻ?", "pronunciation": "wil yu bi pei-ing bai kash or kard" },
+    { "english": "Here is your change.", "vietnamese": "Đây là tiền thừa của bạn.", "pronunciation": "heer iz yor cheinj" }
+  ]
+}

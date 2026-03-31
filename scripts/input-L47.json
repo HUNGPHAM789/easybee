@@ -1,0 +1,13 @@
+{
+  "lessonId": "L47",
+  "classId": "money-tips",
+  "title": "Payment Methods",
+  "titleVi": "Phương Thức Thanh Toán",
+  "level": "A1",
+  "context": "Dùng những câu này để giải thích các phương thức thanh toán cho khách hàng.",
+  "phrases": [
+    { "english": "We accept Visa, Mastercard, and cash.", "vietnamese": "Chúng tôi nhận Visa, Mastercard, và tiền mặt.", "pronunciation": "wi ak-sept vi-za mas-ter-kard ænd kash" },
+    { "english": "Sorry, we don't take American Express.", "vietnamese": "Xin lỗi, chúng tôi không nhận American Express.", "pronunciation": "sor-ee wi dont teik uh-mer-i-kən ek-spres" },
+    { "english": "You can tap your card here.", "vietnamese": "Bạn có thể chạm thẻ vào đây.", "pronunciation": "yu kan tap yor kard heer" }
+  ]
+}

@@ -1,0 +1,99 @@
+{
+  "id": "L51",
+  "title": "Lip Colors",
+  "titleVi": "Màu Sắc Môi",
+  "level": "A1",
+  "context": "Học cách nói về các màu môi khác nhau khi khách hàng hỏi về phun xăm môi.",
+  "phrases": [
+    {
+      "english": "Nude pink, please.",
+      "vietnamese": "Màu hồng nude, làm ơn.",
+      "pronunciation": "nood pink, pleez."
+    },
+    {
+      "english": "Coral is very natural.",
+      "vietnamese": "Màu san hô rất tự nhiên.",
+      "pronunciation": "kor-uhl iz veh-ree na-chur-uhl."
+    },
+    {
+      "english": "I like berry color.",
+      "vietnamese": "Tôi thích màu berry.",
+      "pronunciation": "ai laik beh-ree kuh-ler."
+    }
+  ],
+  "drill": [
+    {
+      "id": "L51C01",
+      "type": "read",
+      "prompt": "Nude pink, please.",
+      "hint": "Màu hồng nude, làm ơn.",
+      "answer": "Nude pink, please."
+    },
+    {
+      "id": "L51C02",
+      "type": "recall",
+      "prompt": "Màu hồng nude, làm ơn.",
+      "hint": "Nhớ lại câu tiếng Anh...",
+      "answer": "Nude pink, please."
+    },
+    {
+      "id": "L51C03",
+      "type": "read",
+      "prompt": "Coral is very natural.",
+      "hint": "Màu san hô rất tự nhiên.",
+      "answer": "Coral is very natural."
+    },
+    {
+      "id": "L51C04",
+      "type": "recall",
+      "prompt": "Màu san hô rất tự nhiên.",
+      "hint": "Nhớ lại câu tiếng Anh...",
+      "answer": "Coral is very natural."
+    },
+    {
+      "id": "L51C05",
+      "type": "read",
+      "prompt": "I like berry color.",
+      "hint": "Tôi thích màu berry.",
+      "answer": "I like berry color."
+    },
+    {
+      "id": "L51C06",
+      "type": "recall",
+      "prompt": "Tôi thích màu berry.",
+      "hint": "Nhớ lại câu tiếng Anh...",
+      "answer": "I like berry color."
+    },
+    {
+      "id": "L51C07",
+      "type": "fill",
+      "prompt": "___ pink, please.",
+      "hint": "Màu hồng nude, làm ơn.",
+      "answer": "Nude",
+      "answerHint": "Nude pink, please."
+    },
+    {
+      "id": "L51C08",
+      "type": "fill",
+      "prompt": "Coral is very ___.",
+      "hint": "Màu san hô rất tự nhiên.",
+      "answer": "natural",
+      "answerHint": "Coral is very natural."
+    },
+    {
+      "id": "L51C09",
+      "type": "fill",
+      "prompt": "I like ___ color.",
+      "hint": "Tôi thích màu berry.",
+      "answer": "berry",
+      "answerHint": "I like berry color."
+    },
+    {
+      "id": "L51C10",
+      "type": "dialogue",
+      "prompt": "Worker: What lip color do you want?\nCustomer: Nude pink, please.\nWorker: Coral is very natural too!",
+      "hint": "Thợ: Bạn muốn màu môi gì?\nKhách: Màu hồng nude, làm ơn.\nThợ: Màu san hô cũng rất tự nhiên!",
+      "answer": "Worker: What lip color do you want?\nCustomer: Nude pink, please.\nWorker: Coral is very natural too!"
+    }
+  ]
+}

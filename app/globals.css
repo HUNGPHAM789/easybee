@@ -1,26 +1,79 @@
 @import "tailwindcss";
 
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* iOS Safari: onClick on divs requires cursor:pointer to fire */
+[onClick], [onclick] {
+  cursor: pointer;
+}
+
+/* Fill-blank pulse glow on the underline */
+@keyframes blankPulse {
+  0%, 100% { border-color: #a3a3a3; }
+  50% { border-color: #d4d4d4; }
+}
+
+@keyframes soundbar1 {
+  0%, 100% { transform: scaleY(0.5); }
+  50% { transform: scaleY(1.2); }
+}
+@keyframes soundbar2 {
+  0%, 100% { transform: scaleY(1); }
+  50% { transform: scaleY(0.4); }
+}
+
+html {
+  /*
+   * GLOBAL FONT SCALE — one number controls the whole app.
+   * 18px = comfortable for 40-50yo. Try 20px for larger, 16px for default.
+   */
+  font-size: 18px;
+}
+
+html, body {
+  overscroll-behavior: none;
+  background: #ffffff;
+  color: #1a1a1a;
+  font-family: var(--font-body), system-ui, sans-serif;
+}
+
+/*
+ * ACTION BUTTON — global token.
+ * Change --btn-bg and --btn-text here to retheme all buttons at once.
+ * Current: Apple keyboard gray (#E5E5EA) with dark text.
+ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --btn-bg: #E5E5EA;
+  --btn-text: #1c1c1e;
+  --btn-bg-active: #D1D1D6;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+.btn-action {
+  background: var(--btn-bg);
+  color: var(--btn-text);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/*
+ * FONT ROLES — swap these to retheme the whole app.
+ * Title: Comfortaa — rounded, friendly, modern
+ * Body: Inter — clean, readable, professional
+ * Mono: used for pronunciation hints
+ */
+h1, h2, h3,
+.font-title {
+  font-family: var(--font-title), system-ui, sans-serif;
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+code, .font-mono {
+  font-family: ui-monospace, monospace;
+}
+
+/* Eliminate 300ms tap delay globally and ensure buttons are touchable */
+button,
+[role="button"],
+a {
+  touch-action: manipulation;
+  cursor: pointer;
 }

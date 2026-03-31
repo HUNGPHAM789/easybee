@@ -1,0 +1,99 @@
+{
+  "id": "L47",
+  "title": "Explaining Nail Problems",
+  "titleVi": "Giải thích các vấn đề về móng",
+  "level": "B1",
+  "context": "Sử dụng những mẫu câu này để giải thích cho khách hàng lý do tại sao móng tay của họ bị bong tróc hoặc hư hỏng.",
+  "phrases": [
+    {
+      "english": "Too much water can cause lifting.",
+      "vietnamese": "Quá nhiều nước có thể gây ra bong tróc.",
+      "pronunciation": "too much wawt-er kuhn kawz lift-ing"
+    },
+    {
+      "english": "Picking at your nails damages them.",
+      "vietnamese": "Cậy móng tay sẽ làm hỏng chúng.",
+      "pronunciation": "pik-ing at yor naylz dam-ij-ez them"
+    },
+    {
+      "english": "It could be the natural oils.",
+      "vietnamese": "Có thể là do dầu tự nhiên.",
+      "pronunciation": "it cood bee thuh nach-uh-ruhl oils"
+    }
+  ],
+  "drill": [
+    {
+      "id": "L47C01",
+      "type": "read",
+      "prompt": "Too much water can cause lifting.",
+      "hint": "Quá nhiều nước có thể gây ra bong tróc.",
+      "answer": "Too much water can cause lifting."
+    },
+    {
+      "id": "L47C02",
+      "type": "recall",
+      "prompt": "Quá nhiều nước có thể gây ra bong tróc.",
+      "hint": "Nhớ lại câu tiếng Anh...",
+      "answer": "Too much water can cause lifting."
+    },
+    {
+      "id": "L47C03",
+      "type": "read",
+      "prompt": "Picking at your nails damages them.",
+      "hint": "Cậy móng tay sẽ làm hỏng chúng.",
+      "answer": "Picking at your nails damages them."
+    },
+    {
+      "id": "L47C04",
+      "type": "recall",
+      "prompt": "Cậy móng tay sẽ làm hỏng chúng.",
+      "hint": "Nhớ lại câu tiếng Anh...",
+      "answer": "Picking at your nails damages them."
+    },
+    {
+      "id": "L47C05",
+      "type": "read",
+      "prompt": "It could be the natural oils.",
+      "hint": "Có thể là do dầu tự nhiên.",
+      "answer": "It could be the natural oils."
+    },
+    {
+      "id": "L47C06",
+      "type": "recall",
+      "prompt": "Có thể là do dầu tự nhiên.",
+      "hint": "Nhớ lại câu tiếng Anh...",
+      "answer": "It could be the natural oils."
+    },
+    {
+      "id": "L47C07",
+      "type": "fill",
+      "prompt": "Too much water can cause ___.",
+      "hint": "Quá nhiều nước có thể gây ra bong tróc.",
+      "answer": "lifting",
+      "answerHint": "Too much water can cause lifting."
+    },
+    {
+      "id": "L47C08",
+      "type": "fill",
+      "prompt": "Picking at your nails ___ them.",
+      "hint": "Cậy móng tay sẽ làm hỏng chúng.",
+      "answer": "damages",
+      "answerHint": "Picking at your nails damages them."
+    },
+    {
+      "id": "L47C09",
+      "type": "fill",
+      "prompt": "It could be the ___ oils.",
+      "hint": "Có thể là do dầu tự nhiên.",
+      "answer": "natural",
+      "answerHint": "It could be the natural oils."
+    },
+    {
+      "id": "L47C10",
+      "type": "dialogue",
+      "prompt": "Worker: I see some lifting here. \nCustomer: Oh no! Why?\nWorker: Too much water can cause lifting. Also, picking at your nails damages them. It could be the natural oils too.",
+      "hint": "Thợ: Tôi thấy có một vài chỗ bị bong tróc ở đây. \nKhách: Ồ không! Tại sao?\nThợ: Quá nhiều nước có thể gây ra bong tróc. Ngoài ra, cậy móng tay sẽ làm hỏng chúng. Cũng có thể là do dầu tự nhiên nữa.",
+      "answer": "Worker: I see some lifting here. \nCustomer: Oh no! Why?\nWorker: Too much water can cause lifting. Also, picking at your nails damages them. It could be the natural oils too."
+    }
+  ]
+}

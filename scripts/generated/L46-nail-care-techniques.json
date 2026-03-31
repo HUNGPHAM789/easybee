@@ -1,0 +1,99 @@
+{
+  "id": "L46",
+  "title": "Avoid Water and Chemicals",
+  "titleVi": "Tránh Nước và Hóa Chất",
+  "level": "A2",
+  "context": "Dùng những câu này để khuyên khách hàng tránh nước và hóa chất sau khi làm móng.",
+  "phrases": [
+    {
+      "english": "Avoid water for two hours.",
+      "vietnamese": "Tránh nước trong hai tiếng.",
+      "pronunciation": "uh-void waw-ter for too ow-ers"
+    },
+    {
+      "english": "Don't wash dishes.",
+      "vietnamese": "Đừng rửa chén.",
+      "pronunciation": "dont wash dish-es"
+    },
+    {
+      "english": "Wear gloves, please.",
+      "vietnamese": "Xin hãy đeo găng tay.",
+      "pronunciation": "wear gloves, pleez"
+    }
+  ],
+  "drill": [
+    {
+      "id": "L46C01",
+      "type": "read",
+      "prompt": "Avoid water for two hours.",
+      "hint": "Tránh nước trong hai tiếng.",
+      "answer": "Avoid water for two hours."
+    },
+    {
+      "id": "L46C02",
+      "type": "recall",
+      "prompt": "Tránh nước trong hai tiếng.",
+      "hint": "Nhớ lại câu tiếng Anh...",
+      "answer": "Avoid water for two hours."
+    },
+    {
+      "id": "L46C03",
+      "type": "read",
+      "prompt": "Don't wash dishes.",
+      "hint": "Đừng rửa chén.",
+      "answer": "Don't wash dishes."
+    },
+    {
+      "id": "L46C04",
+      "type": "recall",
+      "prompt": "Đừng rửa chén.",
+      "hint": "Nhớ lại câu tiếng Anh...",
+      "answer": "Don't wash dishes."
+    },
+    {
+      "id": "L46C05",
+      "type": "read",
+      "prompt": "Wear gloves, please.",
+      "hint": "Xin hãy đeo găng tay.",
+      "answer": "Wear gloves, please."
+    },
+    {
+      "id": "L46C06",
+      "type": "recall",
+      "prompt": "Xin hãy đeo găng tay.",
+      "hint": "Nhớ lại câu tiếng Anh...",
+      "answer": "Wear gloves, please."
+    },
+    {
+      "id": "L46C07",
+      "type": "fill",
+      "prompt": "Avoid water for ___ hours.",
+      "hint": "Tránh nước trong hai tiếng.",
+      "answer": "two",
+      "answerHint": "Avoid water for two hours."
+    },
+    {
+      "id": "L46C08",
+      "type": "fill",
+      "prompt": "Don't wash ___.",
+      "hint": "Đừng rửa chén.",
+      "answer": "dishes",
+      "answerHint": "Don't wash dishes."
+    },
+    {
+      "id": "L46C09",
+      "type": "fill",
+      "prompt": "___ gloves, please.",
+      "hint": "Xin hãy đeo găng tay.",
+      "answer": "Wear",
+      "answerHint": "Wear gloves, please."
+    },
+    {
+      "id": "L46C10",
+      "type": "dialogue",
+      "prompt": "Worker: Your nails look beautiful! \nCustomer: Thank you!\nWorker: Please avoid water for two hours. And don't wash dishes. Wear gloves, please.",
+      "hint": "Thợ: Móng tay của bạn rất đẹp!\nKhách: Cảm ơn!\nThợ: Xin tránh nước trong hai tiếng. Và đừng rửa chén. Xin hãy đeo găng tay.",
+      "answer": "Worker: Your nails look beautiful! \nCustomer: Thank you!\nWorker: Please avoid water for two hours. And don't wash dishes. Wear gloves, please."
+    }
+  ]
+}

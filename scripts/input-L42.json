@@ -1,0 +1,13 @@
+{
+  "lessonId": "L42",
+  "classId": "nail-care-techniques",
+  "title": "Recommending Products for Home",
+  "titleVi": "Gợi Ý Sản Phẩm Chăm Sóc Tại Nhà",
+  "level": "B1",
+  "context": "Dùng những câu này khi bạn muốn gợi ý cho khách các sản phẩm có thể dùng tại nhà để giữ móng đẹp lâu.",
+  "phrases": [
+    { "english": "I recommend this cuticle oil.", "vietnamese": "Tôi đề nghị dùng dầu cuticle này.", "pronunciation": "ai rek-uh-mend dhis kyu-ti-kəl oil" },
+    { "english": "Use this hand lotion every day.", "vietnamese": "Dùng kem dưỡng tay này mỗi ngày.", "pronunciation": "yuz dhis hænd lo-shən ev-ri dei" },
+    { "english": "This top coat protects your nails.", "vietnamese": "Lớp sơn bóng này bảo vệ móng.", "pronunciation": "dhis top kot pruh-tekts yor nailz" }
+  ]
+}

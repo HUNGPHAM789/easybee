@@ -1,0 +1,99 @@
+{
+  "id": "L53",
+  "title": "Permanent Makeup: Setting Expectations",
+  "titleVi": "Trang điểm vĩnh viễn: Đặt kỳ vọng",
+  "level": "A2",
+  "context": "Sử dụng những câu này để giải thích cho khách hàng về quá trình hồi phục sau khi làm trang điểm vĩnh viễn.",
+  "phrases": [
+    {
+      "english": "The color will fade.",
+      "vietnamese": "Màu sẽ nhạt đi.",
+      "pronunciation": "thuh KUH-ler wil feyd"
+    },
+    {
+      "english": "You need a touch-up.",
+      "vietnamese": "Bạn cần dặm lại.",
+      "pronunciation": "yoo need uh tuhch-uhp"
+    },
+    {
+      "english": "It looks dark at first.",
+      "vietnamese": "Ban đầu nó trông đậm.",
+      "pronunciation": "it luhks dark at furst"
+    }
+  ],
+  "drill": [
+    {
+      "id": "L53C01",
+      "type": "read",
+      "prompt": "The color will fade.",
+      "hint": "Màu sẽ nhạt đi.",
+      "answer": "The color will fade."
+    },
+    {
+      "id": "L53C02",
+      "type": "recall",
+      "prompt": "Màu sẽ nhạt đi.",
+      "hint": "Nhớ lại câu tiếng Anh...",
+      "answer": "The color will fade."
+    },
+    {
+      "id": "L53C03",
+      "type": "read",
+      "prompt": "You need a touch-up.",
+      "hint": "Bạn cần dặm lại.",
+      "answer": "You need a touch-up."
+    },
+    {
+      "id": "L53C04",
+      "type": "recall",
+      "prompt": "Bạn cần dặm lại.",
+      "hint": "Nhớ lại câu tiếng Anh...",
+      "answer": "You need a touch-up."
+    },
+    {
+      "id": "L53C05",
+      "type": "read",
+      "prompt": "It looks dark at first.",
+      "hint": "Ban đầu nó trông đậm.",
+      "answer": "It looks dark at first."
+    },
+    {
+      "id": "L53C06",
+      "type": "recall",
+      "prompt": "Ban đầu nó trông đậm.",
+      "hint": "Nhớ lại câu tiếng Anh...",
+      "answer": "It looks dark at first."
+    },
+    {
+      "id": "L53C07",
+      "type": "fill",
+      "prompt": "The color will ___.",
+      "hint": "Màu sẽ nhạt đi.",
+      "answer": "fade",
+      "answerHint": "The color will fade."
+    },
+    {
+      "id": "L53C08",
+      "type": "fill",
+      "prompt": "You need a ___.",
+      "hint": "Bạn cần dặm lại.",
+      "answer": "touch-up",
+      "answerHint": "You need a touch-up."
+    },
+    {
+      "id": "L53C09",
+      "type": "fill",
+      "prompt": "It looks ___ at first.",
+      "hint": "Ban đầu nó trông đậm.",
+      "answer": "dark",
+      "answerHint": "It looks dark at first."
+    },
+    {
+      "id": "L53C10",
+      "type": "dialogue",
+      "prompt": "Worker: Your eyebrows look great! But it looks dark at first.\nCustomer: Oh, really? Will it stay this dark?\nWorker: No, the color will fade. You need a touch-up in a few weeks.",
+      "hint": "Thợ: Lông mày của bạn trông rất đẹp! Nhưng ban đầu nó trông đậm.\nKhách: Ồ, thật sao? Nó sẽ đậm như thế này sao?\nThợ: Không, màu sẽ nhạt đi. Bạn cần dặm lại sau vài tuần.",
+      "answer": "Worker: Your eyebrows look great! But it looks dark at first.\nCustomer: Oh, really? Will it stay this dark?\nWorker: No, the color will fade. You need a touch-up in a few weeks."
+    }
+  ]
+}

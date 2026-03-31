@@ -1,0 +1,99 @@
+{
+  "id": "L49",
+  "title": "Greeting PMU Client",
+  "titleVi": "Chào Khách Hàng PMU",
+  "level": "A1",
+  "context": "Sử dụng những mẫu câu này để chào khách hàng PMU và hỏi họ muốn làm dịch vụ gì.",
+  "phrases": [
+    {
+      "english": "Hello! Welcome!",
+      "vietnamese": "Xin chào! Mừng bạn đến!",
+      "pronunciation": "Heh-loh! Wel-kuhm!"
+    },
+    {
+      "english": "What service do you want?",
+      "vietnamese": "Bạn muốn làm dịch vụ gì?",
+      "pronunciation": "Wot sur-viss doo yoo wawnt?"
+    },
+    {
+      "english": "Microblading, lips, or eyeliner?",
+      "vietnamese": "Điêu khắc chân mày, môi, hay là mí mắt?",
+      "pronunciation": "Mai-kroh-blei-ding, lips, or ai-lai-ner?"
+    }
+  ],
+  "drill": [
+    {
+      "id": "L49C01",
+      "type": "read",
+      "prompt": "Hello! Welcome!",
+      "hint": "Xin chào! Mừng bạn đến!",
+      "answer": "Hello! Welcome!"
+    },
+    {
+      "id": "L49C02",
+      "type": "recall",
+      "prompt": "Xin chào! Mừng bạn đến!",
+      "hint": "Nhớ lại câu tiếng Anh...",
+      "answer": "Hello! Welcome!"
+    },
+    {
+      "id": "L49C03",
+      "type": "read",
+      "prompt": "What service do you want?",
+      "hint": "Bạn muốn làm dịch vụ gì?",
+      "answer": "What service do you want?"
+    },
+    {
+      "id": "L49C04",
+      "type": "recall",
+      "prompt": "Bạn muốn làm dịch vụ gì?",
+      "hint": "Nhớ lại câu tiếng Anh...",
+      "answer": "What service do you want?"
+    },
+    {
+      "id": "L49C05",
+      "type": "read",
+      "prompt": "Microblading, lips, or eyeliner?",
+      "hint": "Điêu khắc chân mày, môi, hay là mí mắt?",
+      "answer": "Microblading, lips, or eyeliner?"
+    },
+    {
+      "id": "L49C06",
+      "type": "recall",
+      "prompt": "Điêu khắc chân mày, môi, hay là mí mắt?",
+      "hint": "Nhớ lại câu tiếng Anh...",
+      "answer": "Microblading, lips, or eyeliner?"
+    },
+    {
+      "id": "L49C07",
+      "type": "fill",
+      "prompt": "Hello! ___!",
+      "hint": "Xin chào! Mừng bạn đến!",
+      "answer": "Welcome",
+      "answerHint": "Hello! Welcome!"
+    },
+    {
+      "id": "L49C08",
+      "type": "fill",
+      "prompt": "What service do you ___?",
+      "hint": "Bạn muốn làm dịch vụ gì?",
+      "answer": "want",
+      "answerHint": "What service do you want?"
+    },
+    {
+      "id": "L49C09",
+      "type": "fill",
+      "prompt": "Microblading, lips, or ___?",
+      "hint": "Điêu khắc chân mày, môi, hay là mí mắt?",
+      "answer": "eyeliner",
+      "answerHint": "Microblading, lips, or eyeliner?"
+    },
+    {
+      "id": "L49C10",
+      "type": "dialogue",
+      "prompt": "Worker: Hello! Welcome!\nCustomer: Hello.\nWorker: What service do you want?\nCustomer: Microblading, please.",
+      "hint": "Thợ: Xin chào! Mừng bạn đến!\nKhách: Xin chào.\nThợ: Bạn muốn làm dịch vụ gì?\nKhách: Làm điêu khắc chân mày.",
+      "answer": "Worker: Hello! Welcome!\nCustomer: Hello.\nWorker: What service do you want?\nCustomer: Microblading, please."
+    }
+  ]
+}

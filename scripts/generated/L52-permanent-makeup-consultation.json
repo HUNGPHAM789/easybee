@@ -1,0 +1,99 @@
+{
+  "id": "L52",
+  "title": "Allergies and Medical History",
+  "titleVi": "Hỏi về dị ứng và tiền sử bệnh",
+  "level": "A2",
+  "context": "Sử dụng những mẫu câu này để hỏi khách hàng về dị ứng và tiền sử bệnh trước khi làm phun xăm thẩm mỹ.",
+  "phrases": [
+    {
+      "english": "Are you pregnant?",
+      "vietnamese": "Bạn có đang mang thai không?",
+      "pronunciation": "ar yoo preg-nant?"
+    },
+    {
+      "english": "Do you have allergies?",
+      "vietnamese": "Bạn có bị dị ứng gì không?",
+      "pronunciation": "doo yoo hav al-er-jeez?"
+    },
+    {
+      "english": "Do you take blood thinners?",
+      "vietnamese": "Bạn có uống thuốc làm loãng máu không?",
+      "pronunciation": "doo yoo tayk blud thin-ers?"
+    }
+  ],
+  "drill": [
+    {
+      "id": "L52C01",
+      "type": "read",
+      "prompt": "Are you pregnant?",
+      "hint": "Bạn có đang mang thai không?",
+      "answer": "Are you pregnant?"
+    },
+    {
+      "id": "L52C02",
+      "type": "recall",
+      "prompt": "Bạn có đang mang thai không?",
+      "hint": "Nhớ lại câu tiếng Anh...",
+      "answer": "Are you pregnant?"
+    },
+    {
+      "id": "L52C03",
+      "type": "read",
+      "prompt": "Do you have allergies?",
+      "hint": "Bạn có bị dị ứng gì không?",
+      "answer": "Do you have allergies?"
+    },
+    {
+      "id": "L52C04",
+      "type": "recall",
+      "prompt": "Bạn có bị dị ứng gì không?",
+      "hint": "Nhớ lại câu tiếng Anh...",
+      "answer": "Do you have allergies?"
+    },
+    {
+      "id": "L52C05",
+      "type": "read",
+      "prompt": "Do you take blood thinners?",
+      "hint": "Bạn có uống thuốc làm loãng máu không?",
+      "answer": "Do you take blood thinners?"
+    },
+    {
+      "id": "L52C06",
+      "type": "recall",
+      "prompt": "Bạn có uống thuốc làm loãng máu không?",
+      "hint": "Nhớ lại câu tiếng Anh...",
+      "answer": "Do you take blood thinners?"
+    },
+    {
+      "id": "L52C07",
+      "type": "fill",
+      "prompt": "Are you ___?",
+      "hint": "Bạn có đang mang thai không?",
+      "answer": "pregnant",
+      "answerHint": "Are you pregnant?"
+    },
+    {
+      "id": "L52C08",
+      "type": "fill",
+      "prompt": "Do you have ___?",
+      "hint": "Bạn có bị dị ứng gì không?",
+      "answer": "allergies",
+      "answerHint": "Do you have allergies?"
+    },
+    {
+      "id": "L52C09",
+      "type": "fill",
+      "prompt": "Do you take blood ___?",
+      "hint": "Bạn có uống thuốc làm loãng máu không?",
+      "answer": "thinners",
+      "answerHint": "Do you take blood thinners?"
+    },
+    {
+      "id": "L52C10",
+      "type": "dialogue",
+      "prompt": "Worker: Hello! Do you have allergies?\nCustomer: No, I don't.\nWorker: Do you take blood thinners?",
+      "hint": "Thợ: Xin chào! Bạn có bị dị ứng gì không?\nKhách: Không, tôi không bị.\nThợ: Bạn có uống thuốc làm loãng máu không?",
+      "answer": "Worker: Hello! Do you have allergies?\nCustomer: No, I don't.\nWorker: Do you take blood thinners?"
+    }
+  ]
+}
