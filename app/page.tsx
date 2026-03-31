@@ -12,6 +12,7 @@ import { useAuth } from "@/components/AuthProvider";
 import { useProgress } from "@/lib/hooks/useProgress";
 import { useStreak } from "@/lib/hooks/useStreak";
 import VoiceTeacher from "@/components/VoiceTeacher";
+import FloatingHelper from "@/components/FloatingHelper";
 
 import type { Lesson } from "@/lib/content/index";
 
@@ -30,6 +31,7 @@ export default function Home() {
   const [studentName, setStudentName] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState<Tab>("lessons");
+  const [recommendedIds, setRecommendedIds] = useState<string[]>([]);
 
   useEffect(() => {
     setMounted(true);
@@ -40,6 +42,38 @@ export default function Home() {
       // Private browsing or storage unavailable
     }
   }, []);
+
+  // Load recommended lessons
+  useEffect(() => {
+    // From user_metadata or localStorage
+    const metaRecs = user?.user_metadata?.recommended_lessons;
+    if (Array.isArray(metaRecs) && metaRecs.length > 0) {
+      setRecommendedIds(metaRecs);
+      return;
+    }
+    try {
+      const stored = localStorage.getItem("easybee_recommended");
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed)) setRecommendedIds(parsed);
+      }
+    } catch {
+      // ignore
+    }
+  }, [user]);
+
+  // Resolve recommended lesson objects
+  const allLessonsFlat = useMemo(
+    () => modules.flatMap((m) => m.classes.flatMap((c) => c.lessons)),
+    []
+  );
+  const recommendedLessons = useMemo(
+    () =>
+      recommendedIds
+        .map((id) => allLessonsFlat.find((l) => l.id === id))
+        .filter((l): l is Lesson => !!l),
+    [recommendedIds, allLessonsFlat]
+  );
 
   // Auto-expand first module
   useEffect(() => {
@@ -215,6 +249,36 @@ export default function Home() {
                 </motion.div>
               )}
             </AnimatePresence>
+
+            {/* Recommended lessons */}
+            {recommendedLessons.length > 0 && !query && (
+              <div className="mb-6">
+                <h2 className="text-base font-semibold text-neutral-900 font-title mb-3">
+                  B&agrave;i h&#7885;c g&#7907;i &yacute; cho b&#7841;n
+                </h2>
+                <div className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1" style={{ scrollbarWidth: "none" }}>
+                  {recommendedLessons.map((lesson) => (
+                    <button
+                      key={lesson.id}
+                      type="button"
+                      onClick={() => setExpandedLesson(lesson.id)}
+                      className="shrink-0 w-44 bg-neutral-50 rounded-2xl p-4 text-left active:bg-neutral-100 transition-colors touch-manipulation border border-neutral-100"
+                    >
+                      <span className="text-xs text-neutral-400">{lesson.id}</span>
+                      {lesson.level && (
+                        <span className="text-xs font-semibold px-1.5 py-0.5 rounded-md bg-neutral-100 text-neutral-500 ml-2">
+                          {lesson.level}
+                        </span>
+                      )}
+                      <p className="text-sm font-medium text-neutral-800 mt-1 line-clamp-2">
+                        {lesson.titleVi}
+                      </p>
+                      <p className="text-xs text-neutral-400 mt-1 line-clamp-1">{lesson.title}</p>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Module → Class → Lesson tree */}
             <div className="space-y-1">
@@ -412,6 +476,9 @@ export default function Home() {
           <VoiceTeacher />
         )}
       </motion.main>
+
+      {/* Floating Helper */}
+      {activeTab === "lessons" && <FloatingHelper />}
 
       {/* Bottom tab bar */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-neutral-100 z-40">

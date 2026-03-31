@@ -1,21 +1,47 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
 import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/components/AuthProvider";
 import ActionButton from "@/components/ActionButton";
+import { connectGeminiLive, type GeminiLiveClient } from "@/lib/gemini-live";
+import { startMicStream, playPcmAudio } from "@/lib/audio-utils";
 
-const AGE_RANGES = ["20-30", "30-40", "40-50", "50+"] as const;
+type VoiceState = "idle" | "connecting" | "listening" | "speaking" | "done" | "error";
+type TranscriptEntry = { role: "bee" | "user"; text: string };
+
+const ONBOARDING_PROMPT = `You are EasyBee, a friendly Vietnamese-speaking AI tutor assistant. You help Vietnamese workers in America learn English.
+
+Your job right now: have a short, warm conversation (3-5 turns) with a new student to understand their needs.
+
+CONVERSATION STEPS:
+1. Greet warmly in Vietnamese: "Chào bạn! Mình là EasyBee. Rất vui được gặp bạn! Cho mình hỏi vài câu nha."
+2. Ask about their job: "Bạn đang làm nghề gì ở Mỹ?" (follow up naturally based on answer)
+3. Ask what they need: Based on their job, ask what English situations they struggle with most. Be specific. If they say nail tech, ask "Bạn muốn học nói chuyện với khách, hay học về tiền tip, hay cần đi bác sĩ mà không biết nói?"
+4. Wrap up: "Tuyệt vời! Mình hiểu rồi. Để mình chọn bài học phù hợp cho bạn nha!"
+
+RULES:
+- Speak Vietnamese primarily, mix simple English phrases when relevant
+- Keep it warm, casual, encouraging — like a friend, not a teacher
+- Short sentences (these are ESL learners, even Vietnamese might be casual)
+- Maximum 5 turns from your side, then wrap up
+- After wrapping up, output a special marker: [ONBOARDING_COMPLETE]`;
 
 export default function OnboardingPage() {
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
-  const [gender, setGender] = useState<"male" | "female" | null>(null);
-  const [age, setAge] = useState<string>("");
-  const [job, setJob] = useState("");
-  const [goal, setGoal] = useState("");
+  const [state, setState] = useState<VoiceState>("idle");
+  const [transcript, setTranscript] = useState<TranscriptEntry[]>([]);
+  const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+
+  const liveClientRef = useRef<GeminiLiveClient | null>(null);
+  const micStopRef = useRef<{ stop: () => void } | null>(null);
+  const audioQueueRef = useRef<string[]>([]);
+  const isPlayingRef = useRef(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -29,27 +55,159 @@ export default function OnboardingPage() {
     }
   }, [user, router]);
 
-  const canSubmit = gender && age && job.trim();
+  // Auto-scroll transcript
+  useEffect(() => {
+    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
+  }, [transcript]);
 
-  const handleSubmit = async () => {
-    if (!canSubmit) return;
+  const playAudioQueue = useCallback(async () => {
+    if (isPlayingRef.current) return;
+    isPlayingRef.current = true;
+    while (audioQueueRef.current.length > 0) {
+      const chunk = audioQueueRef.current.shift()!;
+      try {
+        await playPcmAudio(chunk, 24000);
+      } catch {
+        // skip
+      }
+    }
+    isPlayingRef.current = false;
+  }, []);
+
+  const finishOnboarding = useCallback(async () => {
     setSaving(true);
 
-    const metadata = { gender, age, job: job.trim(), goal: goal.trim(), onboarded: true };
+    // Collect user responses for matching
+    const userText = transcript
+      .filter((t) => t.role === "user")
+      .map((t) => t.text)
+      .join(" ");
+
+    let recommendedLessons: string[] = [];
+
+    if (userText.trim()) {
+      try {
+        const res = await fetch("/api/match-lessons", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text: userText, topN: 10 }),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          recommendedLessons = data.matches?.map(
+            (m: { lessonId: string }) => m.lessonId
+          ) ?? [];
+        }
+      } catch {
+        // Matching failed — proceed without recommendations
+      }
+    }
+
+    const metadata = {
+      onboarded: true,
+      recommended_lessons: recommendedLessons,
+    };
 
     try {
       const supabase = createClient();
       await supabase.auth.updateUser({ data: metadata });
     } catch {
-      // Supabase update failed — localStorage fallback still works
+      // Supabase update failed
     }
 
     try {
+      localStorage.setItem("easybee_recommended", JSON.stringify(recommendedLessons));
       localStorage.setItem("easybee_profile", JSON.stringify(metadata));
     } catch {
       // Storage unavailable
     }
 
+    router.replace("/");
+  }, [transcript, router]);
+
+  const startSession = useCallback(async () => {
+    setState("connecting");
+    setError(null);
+
+    try {
+      const res = await fetch("/api/voice-tutor/token", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ lessonContext: ONBOARDING_PROMPT }),
+      });
+      if (!res.ok) throw new Error("Token API error");
+      const { wsUrl, model, systemInstruction } = await res.json();
+
+      const client = await connectGeminiLive(wsUrl, model, systemInstruction, {
+        onAudioChunk: (base64Pcm) => {
+          setState("speaking");
+          audioQueueRef.current.push(base64Pcm);
+          playAudioQueue();
+        },
+        onTurnEnd: () => setState("listening"),
+        onError: (msg) => {
+          setState("error");
+          setError(msg);
+        },
+        onClose: () => {
+          micStopRef.current?.stop();
+          micStopRef.current = null;
+        },
+      });
+
+      liveClientRef.current = client;
+
+      const mic = await startMicStream(
+        (base64Pcm) => client.sendAudio(base64Pcm),
+        (errMsg) => {
+          setState("error");
+          setError(errMsg);
+        }
+      );
+      micStopRef.current = mic;
+
+      setState("listening");
+      setTranscript([
+        { role: "bee", text: "Đang nghe... Hãy nói để bắt đầu!" },
+      ]);
+    } catch {
+      setState("error");
+      setError("Không thể kết nối. Vui lòng thử lại.");
+    }
+  }, [playAudioQueue]);
+
+  const endSession = useCallback(() => {
+    liveClientRef.current?.close();
+    liveClientRef.current = null;
+    micStopRef.current?.stop();
+    micStopRef.current = null;
+    audioQueueRef.current = [];
+    isPlayingRef.current = false;
+    setState("done");
+  }, []);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      liveClientRef.current?.close();
+      micStopRef.current?.stop();
+    };
+  }, []);
+
+  const handleSkip = async () => {
+    setSaving(true);
+    const metadata = { onboarded: true, recommended_lessons: [] };
+    try {
+      const supabase = createClient();
+      await supabase.auth.updateUser({ data: metadata });
+    } catch {
+      // fallback
+    }
+    try {
+      localStorage.setItem("easybee_profile", JSON.stringify(metadata));
+    } catch {
+      // ignore
+    }
     router.replace("/");
   };
 
@@ -61,109 +219,169 @@ export default function OnboardingPage() {
     );
   }
 
+  // Done state — saving recommendations
+  if (state === "done" || saving) {
+    return (
+      <main className="px-5 pt-12 pb-10 flex flex-col items-center justify-center min-h-screen">
+        <span className="text-5xl mb-6">{"\uD83D\uDC1D"}</span>
+        <p className="text-lg font-semibold text-neutral-900 font-title mb-3">
+          {saving ? "Đang chọn bài học cho bạn..." : "Xong rồi!"}
+        </p>
+        {saving ? (
+          <div className="w-6 h-6 border-2 border-neutral-200 border-t-neutral-600 rounded-full animate-spin" />
+        ) : (
+          <ActionButton onClick={finishOnboarding} className="px-8 py-4 text-base mt-4">
+            Xem bài học gợi ý
+          </ActionButton>
+        )}
+      </main>
+    );
+  }
+
+  // Idle — show start button
+  if (state === "idle") {
+    return (
+      <main className="px-5 pt-14 pb-10 min-h-screen flex flex-col items-center justify-center">
+        <span className="text-6xl mb-6">{"\uD83D\uDC1D"}</span>
+        <h1 className="text-2xl font-semibold text-neutral-900 font-title mb-3 text-center">
+          Ch&agrave;o b&#7841;n!
+        </h1>
+        <p className="text-sm text-neutral-500 text-center mb-8 max-w-xs">
+          N&oacute;i chuy&#7879;n v&#7899;i EasyBee &#273;&#7875; m&igrave;nh ch&#7885;n b&agrave;i h&#7885;c ph&ugrave; h&#7907;p nh&eacute;!
+        </p>
+        <ActionButton onClick={startSession} className="px-8 py-4 text-base mb-4">
+          B&#7855;t &#273;&#7847;u n&oacute;i chuy&#7879;n
+        </ActionButton>
+        <button
+          type="button"
+          onClick={handleSkip}
+          className="text-sm text-neutral-400 active:opacity-60 touch-manipulation"
+        >
+          B&#7887; qua &rarr;
+        </button>
+      </main>
+    );
+  }
+
+  // Active voice session
+  const stateLabel: Record<string, string> = {
+    connecting: "\u0110ang k\u1EBFt n\u1ED1i...",
+    listening: "\u0110ang nghe... h\u00E3y n\u00F3i",
+    speaking: "EasyBee \u0111ang n\u00F3i...",
+    error: "",
+  };
+
   return (
     <main className="px-5 pt-14 pb-10 min-h-screen flex flex-col">
-      <h1 className="text-2xl font-semibold text-neutral-900 font-title mb-8">
-        Cho EasyBee bi&#7871;t v&#7873; b&#7841;n
-      </h1>
-
-      {/* Gender */}
-      <div className="mb-6">
-        <label className="text-sm font-medium text-neutral-600 mb-2 block">
-          Gi&#7899;i t&iacute;nh
-        </label>
-        <div className="flex gap-3">
-          <button
-            type="button"
-            onClick={() => setGender("male")}
-            className={`flex-1 py-3 rounded-2xl border text-base font-medium transition-colors touch-manipulation ${
-              gender === "male"
-                ? "bg-neutral-900 text-white border-neutral-900"
-                : "bg-neutral-50 text-neutral-700 border-neutral-100 active:bg-neutral-100"
-            }`}
-          >
-            Nam
-          </button>
-          <button
-            type="button"
-            onClick={() => setGender("female")}
-            className={`flex-1 py-3 rounded-2xl border text-base font-medium transition-colors touch-manipulation ${
-              gender === "female"
-                ? "bg-neutral-900 text-white border-neutral-900"
-                : "bg-neutral-50 text-neutral-700 border-neutral-100 active:bg-neutral-100"
-            }`}
-          >
-            N&#7919;
-          </button>
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-2">
+          <span className="text-2xl">{"\uD83D\uDC1D"}</span>
+          <h1 className="text-xl font-semibold text-neutral-900 font-title">
+            EasyBee
+          </h1>
         </div>
+        <button
+          type="button"
+          onClick={endSession}
+          className="text-sm text-neutral-400 active:opacity-60 touch-manipulation"
+        >
+          K&#7871;t th&uacute;c
+        </button>
       </div>
 
-      {/* Age */}
-      <div className="mb-6">
-        <label className="text-sm font-medium text-neutral-600 mb-2 block">
-          Tu&#7893;i
-        </label>
-        <div className="flex gap-2">
-          {AGE_RANGES.map((range) => (
-            <button
-              key={range}
-              type="button"
-              onClick={() => setAge(range)}
-              className={`flex-1 py-3 rounded-2xl border text-sm font-medium transition-colors touch-manipulation ${
-                age === range
-                  ? "bg-neutral-900 text-white border-neutral-900"
-                  : "bg-neutral-50 text-neutral-700 border-neutral-100 active:bg-neutral-100"
-              }`}
+      {/* Mic visualization */}
+      <div className="flex flex-col items-center py-6">
+        <div className="relative w-24 h-24 flex items-center justify-center mb-3">
+          {state === "speaking" ? (
+            <div className="relative w-24 h-24">
+              <div
+                className="absolute inset-0 rounded-full bg-amber-100"
+                style={{ animation: "onbPulse 1.2s ease-in-out infinite" }}
+              />
+              <div className="absolute inset-3 rounded-full bg-amber-200 flex items-center justify-center">
+                <span className="text-3xl">{"\uD83D\uDC1D"}</span>
+              </div>
+            </div>
+          ) : state === "listening" ? (
+            <div className="relative w-24 h-24">
+              <div
+                className="absolute inset-0 rounded-full bg-green-50"
+                style={{ animation: "onbGlow 2s ease-in-out infinite" }}
+              />
+              <div className="absolute inset-3 rounded-full bg-green-100 flex items-center justify-center">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2">
+                  <rect x="9" y="2" width="6" height="11" rx="3" />
+                  <path d="M5 10a7 7 0 0 0 14 0" />
+                  <line x1="12" y1="19" x2="12" y2="22" />
+                </svg>
+              </div>
+            </div>
+          ) : state === "connecting" ? (
+            <div className="w-24 h-24 rounded-full bg-neutral-100 flex items-center justify-center">
+              <span className="w-6 h-6 border-2 border-neutral-300 border-t-neutral-600 rounded-full animate-spin" />
+            </div>
+          ) : null}
+        </div>
+        <p className="text-sm text-neutral-500">
+          {state === "error" ? error : stateLabel[state] || ""}
+        </p>
+      </div>
+
+      {/* Transcript */}
+      <div ref={scrollRef} className="flex-1 overflow-y-auto space-y-2 mb-4">
+        <AnimatePresence initial={false}>
+          {transcript.map((entry, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.2 }}
+              className={`flex ${entry.role === "user" ? "justify-end" : "justify-start"}`}
             >
-              {range}
-            </button>
+              <div
+                className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
+                  entry.role === "user"
+                    ? "bg-blue-50 text-neutral-900"
+                    : "bg-neutral-50 text-neutral-900"
+                }`}
+              >
+                {entry.role === "bee" && (
+                  <span className="mr-1">{"\uD83D\uDC1D"}</span>
+                )}
+                {entry.text}
+              </div>
+            </motion.div>
           ))}
-        </div>
+        </AnimatePresence>
       </div>
 
-      {/* Job */}
-      <div className="mb-6">
-        <label className="text-sm font-medium text-neutral-600 mb-2 block">
-          Ngh&#7873; nghi&#7879;p
-        </label>
-        <input
-          type="text"
-          value={job}
-          onChange={(e) => setJob(e.target.value)}
-          placeholder="VD: th&#7907; nail, phun x&#259;m, n&#7897;i tr&#7907;..."
-          className="w-full px-4 py-3 rounded-2xl bg-neutral-50 border border-neutral-100 text-base text-neutral-900 placeholder:text-neutral-300 outline-none focus:border-neutral-300 transition-colors"
-        />
-      </div>
-
-      {/* Goal */}
-      <div className="mb-8">
-        <label className="text-sm font-medium text-neutral-600 mb-2 block">
-          B&#7841;n mu&#7889;n n&oacute;i ti&#7871;ng Anh t&#7889;t h&#417;n v&#7873; g&igrave;?
-        </label>
-        <input
-          type="text"
-          value={goal}
-          onChange={(e) => setGoal(e.target.value)}
-          placeholder="VD: n&oacute;i chuy&#7879;n v&#7899;i kh&aacute;ch, &#273;i b&aacute;c s&#297;, mua s&#7855;m..."
-          className="w-full px-4 py-3 rounded-2xl bg-neutral-50 border border-neutral-100 text-base text-neutral-900 placeholder:text-neutral-300 outline-none focus:border-neutral-300 transition-colors"
-        />
-      </div>
-
-      {/* Submit */}
-      <ActionButton
-        onClick={handleSubmit}
-        disabled={!canSubmit || saving}
-        className="w-full text-base min-h-[52px] py-4"
-      >
-        {saving ? (
-          <span className="inline-flex items-center gap-2">
-            <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-            &#272;ang l&#432;u...
-          </span>
-        ) : (
-          "B\u1eaft \u0111\u1ea7u h\u1ecdc"
+      {/* Error retry / skip */}
+      <div className="flex justify-center gap-4 py-3">
+        {state === "error" && (
+          <ActionButton onClick={startSession} className="px-6 text-sm">
+            Th&#7917; l&#7841;i
+          </ActionButton>
         )}
-      </ActionButton>
+        <button
+          type="button"
+          onClick={handleSkip}
+          className="text-sm text-neutral-400 active:opacity-60 touch-manipulation"
+        >
+          B&#7887; qua &rarr;
+        </button>
+      </div>
+
+      <style jsx>{`
+        @keyframes onbPulse {
+          0%, 100% { transform: scale(1); opacity: 0.6; }
+          50% { transform: scale(1.08); opacity: 1; }
+        }
+        @keyframes onbGlow {
+          0%, 100% { opacity: 0.5; transform: scale(1); }
+          50% { opacity: 1; transform: scale(1.04); }
+        }
+      `}</style>
     </main>
   );
 }
