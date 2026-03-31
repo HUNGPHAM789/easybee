@@ -330,8 +330,9 @@ One command does everything:
 - `gen-from-json.js` — deterministic, no API key, takes pre-written phrases JSON
 
 ### Engine note
-- `batch-gen-v3.js` uses **Gemini 2.0 Flash** (API key, fast, cheap)
-- `gen-lesson.js` uses **Claude CLI** (Max subscription, higher quality for single lessons)
+- `batch-gen-v3.js` uses **Claude CLI** (Max subscription, free, high quality, no API key)
+- `gen-lesson.js` uses **Claude CLI** (same engine)
+- `batch-gen-v2.js` / `batch-gen.js` — legacy Gemini scripts (deprecated, no hardcoded keys)
 
 ### CEFR Level Completion & Progression System
 

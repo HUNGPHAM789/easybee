@@ -1,16 +1,17 @@
 #!/usr/bin/env node
 /**
- * EasyBee Batch Generator v3 — HARDENED
- * Generates lessons AND inserts them directly. No Claude Code step.
+ * EasyBee Batch Generator v3 — Claude CLI Edition
+ * Generates lessons via Claude CLI and inserts them directly into class files.
  *
  * Usage: node scripts/batch-gen-v3.js --plan scripts/batch-plan.json
  *
- * Improvements over v2:
- * - Direct file insertion (no Claude Code middleman)
- * - Retry on Gemini parse failure (same ID, up to 3 attempts)
+ * Features:
+ * - Uses Claude CLI (free with Max subscription, no API key needed)
+ * - Direct file insertion (no separate step)
+ * - Retry on parse failure (up to 3 attempts)
  * - Post-insert TypeScript validation
  * - Rollback on TS error
- * - Batch reporting with notification per lesson
+ * - Batch reporting
  */
 
 import path from "path";
@@ -21,21 +22,6 @@ import { fileURLToPath } from "url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(__dirname, "..");
 
-// ─── Load env ────────────────────────────────────────────────────────────────
-const envPath = path.join(process.env.HOME || process.env.USERPROFILE, ".openclaw", ".env");
-if (fs.existsSync(envPath)) {
-  fs.readFileSync(envPath, "utf8").split("\n").forEach((line) => {
-    const [k, ...v] = line.split("=");
-    if (k && v.length) process.env[k.trim()] = v.join("=").trim();
-  });
-}
-
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-if (!GEMINI_API_KEY) {
-  console.error("ERROR: GEMINI_API_KEY environment variable is not set.");
-  process.exit(1);
-}
-const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
 const DRY_RUN = process.argv.includes("--dry-run");
 const PLAN_ARG = process.argv.indexOf("--plan");
 const PLAN_FILE = PLAN_ARG !== -1 ? process.argv[PLAN_ARG + 1] : path.join(__dirname, "batch-plan.json");
@@ -61,7 +47,7 @@ function getNextLessonId() {
   return maxNum + 1;
 }
 
-// ─── Generate one lesson via Gemini (with retry) ─────────────────────────────
+// ─── Generate one lesson via Claude CLI (with retry) ─────────────────────────
 async function generateLesson(topic, level, lessonId) {
   const prompt = `You are generating content for EasyBee — an ESL app for Vietnamese workers in America (40-50yo).
 
@@ -102,22 +88,31 @@ RULES:
 - hint = Vietnamese translation
 - Vietnamese must be accurate and natural`;
 
+  // Write prompt to temp file (avoids shell quoting hell on Windows)
+  const tmpFile = path.join(ROOT, "scripts", `.tmp-prompt-${lessonId}.txt`);
+
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
     try {
-      const res = await fetch(GEMINI_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { temperature: 0.4, maxOutputTokens: 2048 },
-        }),
-      });
+      fs.writeFileSync(tmpFile, prompt);
 
-      const data = await res.json();
-      const raw = data.candidates?.[0]?.content?.parts?.[0]?.text;
-      if (!raw) throw new Error("Empty Gemini response");
+      // Call Claude CLI with --print mode (no interactive, no PTY needed)
+      const raw = execSync(
+        `claude --print --permission-mode bypassPermissions "Read ${tmpFile} and follow the instructions exactly. Output ONLY the JSON, nothing else."`,
+        { cwd: ROOT, timeout: 120000, maxBuffer: 1024 * 1024, encoding: "utf8" }
+      );
 
-      const json = raw.replace(/^```(?:json)?\n?/m, "").replace(/\n?```$/m, "").trim();
+      // Clean up temp file
+      if (fs.existsSync(tmpFile)) fs.unlinkSync(tmpFile);
+
+      // Parse — strip markdown fences if Claude wraps them
+      const cleaned = raw.replace(/^```(?:json)?\n?/m, "").replace(/\n?```\s*$/m, "").trim();
+      
+      // Find the JSON object in the output
+      const jsonStart = cleaned.indexOf("{");
+      const jsonEnd = cleaned.lastIndexOf("}");
+      if (jsonStart === -1 || jsonEnd === -1) throw new Error("No JSON object found in Claude output");
+      
+      const json = cleaned.substring(jsonStart, jsonEnd + 1);
       const lesson = JSON.parse(json);
 
       // Override IDs
@@ -133,9 +128,12 @@ RULES:
 
       return lesson;
     } catch (e) {
+      // Clean up temp file on error too
+      if (fs.existsSync(tmpFile)) fs.unlinkSync(tmpFile);
+      
       if (attempt === MAX_RETRIES) throw e;
-      console.log(`⟳ retry ${attempt}/${MAX_RETRIES} (${e.message})`);
-      await new Promise(r => setTimeout(r, 2000));
+      console.log(`⟳ retry ${attempt}/${MAX_RETRIES} (${e.message.substring(0, 80)})`);
+      await new Promise(r => setTimeout(r, 3000));
     }
   }
 }
@@ -146,18 +144,14 @@ function insertLesson(lesson, classFile, moduleName) {
   if (!fs.existsSync(filePath)) throw new Error(`File not found: ${filePath}`);
 
   const src = fs.readFileSync(filePath, "utf8");
-  // Convert JSON to TypeScript object literal (unquoted keys, double-quoted values)
   const lessonJson = JSON.stringify(lesson, null, 2)
     .replace(/"([a-zA-Z_]\w*)":/g, "$1:");
 
-  // Find the lessons array and insert
-  // Strategy: find "lessons: [" and the matching close, insert before close
   const lessonsMatch = src.match(/lessons:\s*\[/);
   if (!lessonsMatch) throw new Error(`No lessons:[] found in ${classFile}`);
 
   const arrStart = src.indexOf(lessonsMatch[0]) + lessonsMatch[0].length;
 
-  // Find the matching ] — count brackets
   let depth = 1;
   let pos = arrStart;
   while (pos < src.length && depth > 0) {
@@ -166,13 +160,10 @@ function insertLesson(lesson, classFile, moduleName) {
     if (depth > 0) pos++;
   }
 
-  // pos is now at the closing ]
   const before = src.substring(0, pos).trimEnd();
   const after = src.substring(pos);
 
-  // Check if array is empty or has content
   const arrContent = src.substring(arrStart, pos).trim();
-  // Strip trailing comma from existing content to avoid double comma
   const cleanBefore = before.replace(/,\s*$/, "").trimEnd();
   const separator = arrContent.length > 0 ? ",\n  " : "\n  ";
 
@@ -194,6 +185,14 @@ function validateTs() {
 
 // ─── Main ────────────────────────────────────────────────────────────────────
 async function main() {
+  // Verify Claude CLI is available
+  try {
+    execSync("claude --version", { stdio: "pipe" });
+  } catch {
+    console.error("❌ Claude CLI not found. Install: npm install -g @anthropic-ai/claude-cli");
+    process.exit(1);
+  }
+
   if (!fs.existsSync(PLAN_FILE)) {
     console.error(`❌ Plan file not found: ${PLAN_FILE}`);
     process.exit(1);
@@ -203,7 +202,8 @@ async function main() {
   let nextId = getNextLessonId();
   const totalLessons = plan.reduce((acc, cls) => acc + cls.lessons.length, 0);
 
-  console.log(`\n🐝 EasyBee Batch Generator v3 (hardened)`);
+  console.log(`\n🐝 EasyBee Batch Generator v3 (Claude CLI)`);
+  console.log(`   Engine: Claude Code (Max subscription)`);
   console.log(`   Starting ID: L${String(nextId).padStart(2, "0")}`);
   console.log(`   Lessons: ${totalLessons}`);
   console.log(`   Dry run: ${DRY_RUN}\n`);
@@ -226,22 +226,16 @@ async function main() {
       }
 
       try {
-        // Generate
         const generated = await generateLesson(lesson.topic, lesson.level, lessonId);
 
-        // Backup file before insert
         const filePath = path.join(ROOT, "lib/content", moduleName, cls.file);
         const backup = fs.readFileSync(filePath, "utf8");
 
-        // Insert
         insertLesson(generated, cls.file, moduleName);
 
-        // Validate
         const valid = validateTs();
         if (valid !== true) {
-          // Save debug copy before rollback
           fs.writeFileSync(filePath + ".debug", fs.readFileSync(filePath, "utf8"));
-          // Rollback
           fs.writeFileSync(filePath, backup, "utf8");
           console.log(`❌ TS error — rolled back (debug saved)`);
           results.failed.push({ lessonId, topic: lesson.topic, error: valid[0] });
@@ -253,18 +247,17 @@ async function main() {
         results.success.push({ lessonId, title: generated.title, level: lesson.level });
         nextId++;
 
-        // Rate limit
-        await new Promise(r => setTimeout(r, 1500));
+        // No aggressive rate limit needed for Claude CLI (Max sub has generous limits)
+        await new Promise(r => setTimeout(r, 500));
 
       } catch (err) {
-        console.log(`❌ ${err.message}`);
+        console.log(`❌ ${err.message.substring(0, 80)}`);
         results.failed.push({ lessonId, topic: lesson.topic, error: err.message });
         nextId++;
       }
     }
   }
 
-  // Summary
   console.log(`\n${"═".repeat(60)}`);
   console.log(`🐝 Batch complete`);
   console.log(`   ✅ ${results.success.length} generated & inserted`);
