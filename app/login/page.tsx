@@ -8,7 +8,27 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [guestLoading, setGuestLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const handleGuest = async () => {
+    setGuestLoading(true);
+    setError(null);
+    try {
+      // Clear all localStorage for fresh experience
+      localStorage.clear();
+      const supabase = createClient();
+      const { error: anonError } = await supabase.auth.signInAnonymously();
+      if (anonError) {
+        setError(anonError.message);
+        setGuestLoading(false);
+      }
+      // Auth state change will trigger redirect via AuthProvider
+    } catch {
+      setError("Không thể đăng nhập. Thử lại sau.");
+      setGuestLoading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -70,6 +90,15 @@ export default function LoginPage() {
               <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
             </svg>
             Đăng nhập bằng Google
+          </button>
+
+          <button
+            onClick={handleGuest}
+            disabled={guestLoading}
+            className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-2xl border border-neutral-200 bg-neutral-50 text-neutral-600 text-base font-medium hover:bg-neutral-100 active:bg-neutral-200 transition-colors disabled:opacity-50"
+          >
+            <span className="text-xl">👤</span>
+            {guestLoading ? "Đang vào..." : "Vào thử không cần đăng ký"}
           </button>
 
           <div className="flex items-center gap-3">
