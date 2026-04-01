@@ -706,6 +706,32 @@ const SummaryView = ({ phrases, onBack }: { phrases: Phrase[]; onBack: () => voi
 };
 
 // ═══════════════════════════════════════════════════════════
+// BLURRED STAGGER TEXT (per-char blur-to-clear reveal)
+// ═══════════════════════════════════════════════════════════
+const blurredContainer = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.015 } } };
+const blurredLetter = { hidden: { opacity: 0, filter: 'blur(10px)' }, show: { opacity: 1, filter: 'blur(0px)' } };
+
+const BlurredStagger = ({ text }: { text: string }) => {
+  const reduced = usePrefersReducedMotion();
+  if (reduced) {
+    return (
+      <p className="text-[13px] text-text-secondary text-center leading-relaxed line-clamp-2">
+        {text}
+      </p>
+    );
+  }
+  return (
+    <motion.p variants={blurredContainer} initial="hidden" animate="show" className="text-[13px] text-text-secondary text-center leading-relaxed line-clamp-2">
+      {text.split('').map((char, i) => (
+        <motion.span key={i} variants={blurredLetter} transition={{ duration: 0.3 }} className="inline-block">
+          {char === ' ' ? '\u00A0' : char}
+        </motion.span>
+      ))}
+    </motion.p>
+  );
+};
+
+// ═══════════════════════════════════════════════════════════
 // AUTH WRAPPER
 // ═══════════════════════════════════════════════════════════
 export default function App() {
@@ -999,9 +1025,7 @@ function TutorApp({ session }: { session: Session }) {
                       transition={{ duration: 0.3, ease }}
                       className="px-8 mb-4 max-w-full"
                     >
-                      <p className="text-[13px] text-text-secondary text-center leading-relaxed line-clamp-2">
-                        {latestTutorMsg}
-                      </p>
+                      <BlurredStagger key={latestTutorMsg.slice(0, 30)} text={latestTutorMsg} />
                     </motion.div>
                   )}
                 </AnimatePresence>
