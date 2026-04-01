@@ -68,7 +68,7 @@ function parseAIOutput(buffer: string): IELTSParseResult {
     if (pMatch) bandScore.p = pMatch[1];
   }
 
-  // Strip all markers from display text
+  // Strip all markers from display text (including incomplete/partial tags)
   let displayText = buffer
     .replace(/\[PHRASE\].*?\[\/PHRASE\]\s*\[VN\].*?\[\/VN\]/g, '')
     .replace(/\[CUECARD\][\s\S]*?\[\/CUECARD\]/g, '')
@@ -77,6 +77,9 @@ function parseAIOutput(buffer: string): IELTSParseResult {
     .replace(/\[LR\][\d.]+\[\/LR\]/g, '')
     .replace(/\[GRA\][\d.]+\[\/GRA\]/g, '')
     .replace(/\[P\][\d.]+\[\/P\]/g, '')
+    // Strip any remaining incomplete/orphaned tags
+    .replace(/\[\/?(PHRASE|VN|CUECARD|BAND|FC|LR|GRA|P)\][^\[]*$/g, '')
+    .replace(/\[\/?(PHRASE|VN|CUECARD|BAND|FC|LR|GRA|P)\]/g, '')
     .trim();
 
   return { displayText, phrases, cueCard, bandScore };
@@ -449,6 +452,36 @@ const Flashcard = ({ phrase, reduced = false }: { phrase: Phrase; reduced?: bool
     </motion.div>
   );
 };
+
+/** All learned phrases list — shows all 3 with newest highlighted */
+const PhraseList = ({ phrases, currentPhrase, reduced = false }: { phrases: Phrase[]; currentPhrase: Phrase | null; reduced?: boolean }) => (
+  <motion.div
+    className="w-full px-8 py-4 space-y-4 overflow-y-auto max-h-[240px]"
+    initial={reduced ? { opacity: 0 } : { opacity: 0, y: 10 }}
+    animate={reduced ? { opacity: 1 } : { opacity: 1, y: 0 }}
+    transition={{ duration: 0.3, ease }}
+  >
+    {phrases.map((p, i) => {
+      const isCurrent = currentPhrase?.english === p.english;
+      return (
+        <motion.div
+          key={p.english}
+          initial={reduced ? { opacity: 0 } : { opacity: 0, x: -10 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={reduced ? { duration: 0 } : { delay: i * 0.05, duration: 0.3, ease }}
+          className="flex flex-col"
+        >
+          <p className={`leading-tight ${isCurrent ? 'text-[22px] font-light text-[#0a0a0a] tracking-tight' : 'text-[15px] font-light text-[#6a6a6a]'}`}>
+            {p.english}
+          </p>
+          <p className={`mt-0.5 ${isCurrent ? 'text-[14px] text-[#8a8a8a]' : 'text-[12px] text-[#b0b0b0]'}`}>
+            {p.vietnamese}
+          </p>
+        </motion.div>
+      );
+    })}
+  </motion.div>
+);
 
 /** Pulsing dots */
 const PulsingDots = () => (
@@ -887,8 +920,8 @@ function TutorApp({ session }: { session: Session }) {
                       <CueCard key="cuecard" text={currentCueCard} />
                     ) : currentBandScore ? (
                       <BandScore key="bandscore" data={currentBandScore} />
-                    ) : currentPhrase ? (
-                      <Flashcard phrase={currentPhrase} reduced={reduced} />
+                    ) : learnedPhrases.length > 0 && phase === 'lesson' ? (
+                      <PhraseList phrases={learnedPhrases} currentPhrase={currentPhrase} reduced={reduced} />
                     ) : phase === 'idle' ? (
                       <motion.div key="idle" initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
                         transition={{ duration: 0.6, delay: 0.25, ease }}
