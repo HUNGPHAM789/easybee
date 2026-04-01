@@ -1,0 +1,5 @@
+{
+  "name": "VietTutor AI",
+  "description": "An English tutor for Vietnamese learners using Gemini Live API.",
+  "requestFramePermissions": ["microphone"]
+}

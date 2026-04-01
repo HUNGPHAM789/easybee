@@ -1,0 +1,31 @@
+@import "tailwindcss";
+
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background: #ffffff;
+  color: #0a0a0a;
+  overscroll-behavior: none;
+}
+
+::selection {
+  background: rgba(10, 10, 10, 0.08);
+}
+
+/* Hide scrollbar but keep functionality */
+.overflow-y-auto::-webkit-scrollbar {
+  display: none;
+}
+.overflow-y-auto {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
