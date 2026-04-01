@@ -470,34 +470,69 @@ const Flashcard = ({ phrase, reduced = false }: { phrase: Phrase; reduced?: bool
 };
 
 /** All learned phrases list — shows all 3 with newest highlighted */
-const PhraseList = ({ phrases, currentPhrase, reduced = false }: { phrases: Phrase[]; currentPhrase: Phrase | null; reduced?: boolean }) => (
-  <motion.div
-    className="w-full px-8 py-4 space-y-4 overflow-y-auto max-h-[240px]"
-    initial={reduced ? { opacity: 0 } : { opacity: 0, y: 10 }}
-    animate={reduced ? { opacity: 1 } : { opacity: 1, y: 0 }}
-    transition={{ duration: 0.3, ease }}
-  >
-    {phrases.map((p, i) => {
-      const isCurrent = currentPhrase?.english === p.english;
-      return (
-        <motion.div
-          key={p.english}
-          initial={reduced ? { opacity: 0 } : { opacity: 0, x: -10 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={reduced ? { duration: 0 } : { delay: i * 0.05, duration: 0.3, ease }}
-          className="flex flex-col"
-        >
-          <p className={`leading-tight ${isCurrent ? 'text-[22px] font-light text-text tracking-tight' : 'text-[15px] font-light text-text-muted'}`}>
-            {p.english}
-          </p>
-          <p className={`mt-0.5 ${isCurrent ? 'text-[14px] text-text-secondary' : 'text-[12px] text-text-muted'}`}>
-            {p.vietnamese}
-          </p>
-        </motion.div>
-      );
-    })}
-  </motion.div>
-);
+const phraseListVariants = {
+  hidden: { opacity: 0 },
+  show: { opacity: 1, transition: { staggerChildren: 0.08 } },
+};
+const phraseItemVariants = {
+  hidden: { opacity: 0, y: 12, filter: 'blur(4px)' },
+  show: { opacity: 1, y: 0, filter: 'blur(0px)', transition: { duration: 0.35, ease: [0.22, 1, 0.36, 1] } },
+};
+
+const PhraseList = ({ phrases, currentPhrase, reduced = false }: { phrases: Phrase[]; currentPhrase: Phrase | null; reduced?: boolean }) => {
+  if (reduced) {
+    return (
+      <div className="w-full px-8 py-4 space-y-4 overflow-y-auto max-h-[240px]">
+        {phrases.map((p) => {
+          const isCurrent = currentPhrase?.english === p.english;
+          return (
+            <div key={p.english} className="flex flex-col">
+              <p className={`leading-tight ${isCurrent ? 'text-[22px] font-light text-text tracking-tight' : 'text-[15px] font-light text-text-muted'}`}>
+                {p.english}
+              </p>
+              <p className={`mt-0.5 ${isCurrent ? 'text-[14px] text-text-secondary' : 'text-[12px] text-text-muted'}`}>
+                {p.vietnamese}
+              </p>
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
+
+  return (
+    <motion.div
+      className="w-full px-8 py-4 space-y-4 overflow-y-auto max-h-[240px]"
+      variants={phraseListVariants}
+      initial="hidden"
+      animate="show"
+    >
+      <AnimatePresence mode="popLayout">
+        {phrases.map((p) => {
+          const isCurrent = currentPhrase?.english === p.english;
+          return (
+            <motion.div
+              key={p.english}
+              layout
+              variants={phraseItemVariants}
+              initial="hidden"
+              animate="show"
+              exit={{ opacity: 0, y: -8, filter: 'blur(4px)', transition: { duration: 0.2 } }}
+              className="flex flex-col"
+            >
+              <p className={`leading-tight ${isCurrent ? 'text-[22px] font-light text-text tracking-tight' : 'text-[15px] font-light text-text-muted'}`}>
+                {p.english}
+              </p>
+              <p className={`mt-0.5 ${isCurrent ? 'text-[14px] text-text-secondary' : 'text-[12px] text-text-muted'}`}>
+                {p.vietnamese}
+              </p>
+            </motion.div>
+          );
+        })}
+      </AnimatePresence>
+    </motion.div>
+  );
+};
 
 /** Pulsing dots */
 const PulsingDots = () => (
