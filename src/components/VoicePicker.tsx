@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { motion } from 'motion/react';
 import { Play, Square } from 'lucide-react';
 
@@ -75,28 +75,29 @@ const ease = [0.25, 0.1, 0.25, 1] as const;
 export default function VoicePicker({ onSelect, reduced = false }: { onSelect: (persona: Persona) => void; reduced?: boolean }) {
   const [selected, setSelected] = useState<Persona>(getSavedVoice() || 'thay-bee');
   const [playing, setPlaying] = useState<Persona | null>(null);
-  const [synthRef] = useState(() => ({ utterance: null as SpeechSynthesisUtterance | null }));
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const stopPreview = useCallback(() => {
-    window.speechSynthesis.cancel();
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+      audioRef.current = null;
+    }
     setPlaying(null);
-    synthRef.utterance = null;
-  }, [synthRef]);
+  }, []);
 
   const playPreview = useCallback((voice: VoiceOption) => {
     stopPreview();
-    const utterance = new SpeechSynthesisUtterance(voice.introPreview);
-    utterance.lang = 'vi-VN';
-    utterance.rate = 0.95;
-    utterance.onend = () => setPlaying(null);
-    utterance.onerror = () => setPlaying(null);
-    synthRef.utterance = utterance;
+    const audio = new Audio(`/voices/${voice.id}.wav`);
+    audio.onended = () => setPlaying(null);
+    audio.onerror = () => setPlaying(null);
+    audioRef.current = audio;
     setPlaying(voice.id);
-    window.speechSynthesis.speak(utterance);
-  }, [stopPreview, synthRef]);
+    audio.play().catch(() => setPlaying(null));
+  }, [stopPreview]);
 
-  // Cleanup speech synthesis on unmount
-  useEffect(() => () => { window.speechSynthesis.cancel(); }, []);
+  // Cleanup on unmount
+  useEffect(() => () => { audioRef.current?.pause(); }, []);
 
   const handleConfirm = useCallback(() => {
     stopPreview();
