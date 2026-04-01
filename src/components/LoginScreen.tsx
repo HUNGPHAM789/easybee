@@ -9,7 +9,7 @@ function ElegantShape({
   width = 400,
   height = 100,
   rotate = 0,
-  gradient = 'from-white/[0.06]',
+  gradient = 'from-[#0a0a0a]/[0.03]',
 }: {
   className?: string;
   delay?: number;
@@ -43,10 +43,10 @@ function ElegantShape({
         className="relative"
       >
         <div
-          className={`absolute inset-0 rounded-full bg-gradient-to-r ${gradient} to-transparent border border-white/[0.08]`}
+          className={`absolute inset-0 rounded-full bg-gradient-to-r ${gradient} to-transparent border border-[#0a0a0a]/[0.04]`}
           style={{
             transform: `rotate(${rotate}deg)`,
-            boxShadow: '0 0 30px rgba(255,255,255,0.05)',
+            boxShadow: '0 0 30px rgba(0,0,0,0.02)',
           }}
         />
       </motion.div>
@@ -101,7 +101,7 @@ export default function LoginScreen() {
   if (!mounted) return null;
 
   return (
-    <div className="relative min-h-screen bg-[#030303] flex items-center justify-center px-6 overflow-hidden">
+    <div className="relative min-h-screen bg-white flex items-center justify-center px-6 overflow-hidden">
       {/* --- Floating shapes --- */}
       <div className="absolute inset-0 overflow-hidden">
         <ElegantShape
@@ -124,7 +124,7 @@ export default function LoginScreen() {
           width={300}
           height={80}
           rotate={-8}
-          gradient="from-white/[0.04]"
+          gradient="from-[#0a0a0a]/[0.02]"
         />
         <ElegantShape
           className="bottom-[-5%] right-[5%]"
@@ -132,20 +132,16 @@ export default function LoginScreen() {
           width={200}
           height={60}
           rotate={20}
-          gradient="from-white/[0.03]"
+          gradient="from-[#0a0a0a]/[0.015]"
         />
       </div>
-
-      {/* --- Top / bottom gradient fades --- */}
-      <div className="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-[#030303] to-transparent z-10" />
-      <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-[#030303] to-transparent z-10" />
 
       {/* --- Content --- */}
       <div className="relative z-20 w-full max-w-sm flex flex-col items-center">
         {/* Title */}
-        <FadeUp delay={0.5}>
+        <FadeUp delay={0.3}>
           <h1
-            className="text-5xl font-bold tracking-tight text-center bg-clip-text text-transparent bg-gradient-to-b from-white to-white/70"
+            className="text-5xl font-bold tracking-tight text-center text-[#0a0a0a]"
             style={{ fontFamily: "'Comfortaa', sans-serif" }}
           >
             EasyBee
@@ -153,21 +149,20 @@ export default function LoginScreen() {
         </FadeUp>
 
         {/* Subtitle */}
-        <FadeUp delay={0.7}>
-          <p className="mt-3 text-sm text-white/40 font-light tracking-wide text-center">
+        <FadeUp delay={0.5}>
+          <p className="mt-3 text-sm text-[#8a8a8a] font-light tracking-wide text-center">
             Tiếng Anh cho người Việt
           </p>
         </FadeUp>
 
         {/* Buttons */}
-        <FadeUp delay={0.9}>
+        <FadeUp delay={0.7}>
           <div className="mt-10 w-full space-y-3" style={{ minWidth: 320 }}>
             {/* Google */}
             <button
               onClick={signInWithGoogle}
               disabled={loading}
-              className="flex items-center justify-center gap-3 w-full py-3.5 rounded-xl text-sm font-medium text-gray-900 bg-white transition-all hover:bg-white/90 disabled:opacity-50"
-              style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.25)' }}
+              className="flex items-center justify-center gap-3 w-full py-3.5 rounded-xl text-sm font-medium text-[#0a0a0a] bg-white border border-[#e0e0e0] transition-all hover:bg-[#fafafa] disabled:opacity-50"
             >
               <svg width="18" height="18" viewBox="0 0 24 24">
                 <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
@@ -182,22 +177,22 @@ export default function LoginScreen() {
             <button
               onClick={signInAsGuest}
               disabled={loading}
-              className="flex items-center justify-center w-full py-3.5 rounded-xl text-sm font-medium text-white/60 bg-white/10 transition-all hover:bg-white/[0.15] disabled:opacity-50 border border-white/[0.08]"
+              className="flex items-center justify-center w-full py-3.5 rounded-xl text-sm font-medium text-[#6a6a6a] bg-[#f2f2f2] border border-[#e0e0e0] transition-all hover:bg-[#eaeaea] disabled:opacity-50"
             >
               Vào thử không cần đăng ký
             </button>
 
-            <p className="text-xs text-white/30 text-center pt-1">
+            <p className="text-xs text-[#b0b0b0] text-center pt-1">
               Dữ liệu sẽ mất khi đăng xuất
             </p>
           </div>
         </FadeUp>
 
         {error && (
-          <p className="mt-4 text-xs text-red-400 text-center">{error}</p>
+          <p className="mt-4 text-xs text-red-500 text-center">{error}</p>
         )}
         {loading && (
-          <p className="mt-4 text-xs text-white/40">Đang xử lý...</p>
+          <p className="mt-4 text-xs text-[#8a8a8a]">Đang xử lý...</p>
         )}
       </div>
     </div>
