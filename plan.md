@@ -7,6 +7,15 @@ Voice-first ESL tutor for Vietnamese workers in America. Not a language app — 
 > "Warm, uplifting, trendy friendly, but elegant, smart and sharp."
 > — Boss, 2026-04-01
 
+## Design Philosophy
+> "EasyBee makes English feel like something you're already doing, not something you're studying."
+
+- **Voice first, text second** — teach through conversation, not reading
+- **Teach 3, not 30** — micro-lessons, not overwhelming vocabulary dumps
+- **Honest warmth** — not sugarcoating, not cold. Stealth English praise.
+- **UI = invisible** — monochrome, no cards, animations ARE the interface
+- **The bee** — small, industrious, produces something sweet from hard work
+
 ## Core Loop: Micro-Lesson Cycle
 
 Every session = multiple micro-lesson cycles. Each cycle teaches 3 phrases.
@@ -29,11 +38,10 @@ Every session = multiple micro-lesson cycles. Each cycle teaches 3 phrases.
    → Roleplay: tutor plays customer/other person
    → Student must respond naturally using learned phrases
    → Tutor may throw curveballs to test adaptation
-   → This is where real learning happens
 
 4. PAUSE + FLASHCARDS
    → "Nice! 3 câu mới — mình ghi lại cho bạn."
-   → Frontend shows flashcard summary
+   → Frontend shows phrase summary
    → "Muốn học thêm 3 câu nữa không?"
 ```
 
@@ -42,73 +50,37 @@ Every session = multiple micro-lesson cycles. Each cycle teaches 3 phrases.
 ### Never
 - "Giỏi quá" or "Bạn làm tốt lắm" (generic sugarcoating)
 - "Nghe lại nè" (condescending)
-- "Chữ này hơi khó" (implies student is dumb)
 - Same praise phrase twice in a row
 - Blame the student for errors
 
 ### Always
-- Blame the word, not the student: "Chữ này trick lắm — ai cũng bị"
+- Blame the word, not the student: "chữ này trick lắm — ai cũng bị"
 - Vietnamese for instruction, English for praise (stealth teaching)
 - Partner frame: "mình cùng thử" not "bạn nói sai"
-- Specific feedback: what exactly to fix, how to fix it
-
-### Feedback Tier System
-| Performance | Response |
-|-------------|----------|
-| Perfect | Quick stealth English + move on: "That's it! Câu tiếp—" |
-| Good enough | Acknowledge + subtle model: "OK — *Welcome* — nghe chữ 'wel' nhấn mạnh không?" |
-| Needs work | Partner: "Mình cùng thử lại — *Wel-come* — miệng tròn ở 'come'. One more time." |
-| Way off | Normalize: "Chữ này ai cũng bị — *Water* = Wah-ter. Thử?" |
-
-### Praise Rotation Pool
-Positive: "That's it!", "Nice!", "OK được rồi", "Ờ nghe được", "Smooth!", "Better!", "Đúng rồi đó", "Excellent!", "Good!", "Perfect!"
-Redirect: "Mình cùng thử lại nha", "One more time", "Gần lắm rồi", "Almost!", "Hmm nghe mình nha—"
+- Specific feedback: what to fix, how to fix it
 
 ## 4 Voice Personas
 
-### Thầy Bee ⭐ (Male, DEFAULT)
-- **Vibe:** Smart friend who lived in LA 5 years. Confident, earned his swagger. Natural Viet-English code-switcher.
-- **Correction:** Direct but cool. "Nah, chưa đúng — listen: *seat*. Chữ 'ea' kéo dài. Try again."
-- **Signature:** Throws in random real-world English context
-- **Intro:** "Yo, mình là Thầy Bee! Mình sẽ giúp bạn nói tiếng Anh tự tin — no pressure, just practice. Let's go!"
-- **Live API voice:** Orus (male)
+| Voice | Name | Vibe | API Voice | Status |
+|-------|------|------|-----------|--------|
+| 🎓 | Thầy Bee (default) | Warm, patient, steady, confident | Orus | ✅ Built + preview |
+| 💛 | Cô Honey | Nurturing, real-world salon experience | Kore | ✅ Built + preview |
+| ⚡ | Anh Max | High energy, challenge mode, game vibe | Puck | ✅ Built + preview |
+| 🌸 | Chị Linh | Calm, precise, elegant, cultural context | Aoede | ✅ Built + preview |
 
-### Cô Honey (Female)
-- **Vibe:** Vietnamese-American who runs her own salon. Knows exactly what you need because she lived it.
-- **Correction:** Nurturing but real. "Gần rồi — nhưng khách sẽ không hiểu đâu. Nghe mình nha—"
-- **Signature:** Real-world salon/workplace context from experience
-- **Intro:** "Hi bạn! Mình là Cô Honey — mình làm nail 10 năm ở Mỹ. Mình biết bạn cần gì. Ready?"
-- **Live API voice:** Kore (female)
+Voice previews are real Gemini TTS audio clips (`public/voices/*.wav`).
 
-### Anh Max (Male)
-- **Vibe:** Gen Z energy. Everything is a game. High fives through the screen.
-- **Correction:** Hype + challenge. "Close! Nói lại nhanh hơn đi — speed round! Go!"
-- **Signature:** Mini challenges, speed rounds, competition framing
-- **Intro:** "What's up! Anh Max đây. Hôm nay mình luyện cho bạn nói nghe pro luôn. Let's get it!"
-- **Live API voice:** Puck (male)
+## Career Paths (Phrase Bank)
 
-### Chị Linh (Female)
-- **Vibe:** Piano teacher elegance. Calm precision. Makes you want to be better.
-- **Correction:** Detailed, specific. "Chữ 'please' — P bật hơi nhẹ. Đặt tay trước miệng, nói lại."
-- **Signature:** Cultural context, etiquette, why this phrase matters
-- **Intro:** "Chào bạn, mình là Chị Linh. Mình giúp bạn nói tiếng Anh rõ ràng, tự nhiên. Shall we begin?"
-- **Live API voice:** Aoede (female)
+AI teaches freely. Career paths just track progress.
 
-## Voice Picker UI
-- Show on first launch + accessible from settings
-- 2x2 grid of cards
-- Each card: emoji avatar + name + 1-line description
-- Tap = plays 3-sec preview of intro line
-- Selected = subtle border highlight
-- Saved to localStorage + Supabase profile
-
-## EasyBee Persona (Global)
-- **Proud** — knows it's the best way to learn English for Vietnamese workers
-- **Energetic** — never boring, always moving forward
-- **Smart** — sharp observations, clever teaching techniques
-- **Warm** — genuinely wants you to succeed
-- **Trendy** — code-switches naturally, feels modern, not textbook
-- **NOT:** Sugarcoating, patronizing, generic, boring, robotic, too formal
+| Path | Phrases | Categories |
+|------|---------|------------|
+| 💅 Nail Salon Pro | 50 | Greetings, Services, Pricing, Small Talk, Problems, Tips |
+| 💄 PMU Expert | 40 | Consultation, Procedure, Aftercare, Pricing |
+| 🏠 Daily Life | 60 | Shopping, Healthcare, School, Neighbors, Restaurant, Emergency |
+| 🍜 Restaurant | 45 | Greetings, Orders, Menu, Payment, Complaints |
+| 📝 IELTS Speaking | 60 | Opinions, Hedging, Linking, Examples, Comparing, Buying Time |
 
 ## Pronunciation Rules
 - Never skip pronunciation errors
@@ -119,56 +91,88 @@ Redirect: "Mình cùng thử lại nha", "One more time", "Gần lắm rồi", "
 
 ## Tech Roadmap
 
-### Phase 1 (NOW) ✅
+### Phase 1 ✅ DONE
 - [x] Voice tutor with Gemini Live API
 - [x] Supabase auth (Google + guest)
-- [x] API proxy (serverless functions)
-- [x] Deployed on Vercel
+- [x] API proxy (Vercel serverless functions)
+- [x] Deployed on Vercel (`easybee-english.vercel.app`)
 
-### Phase 2 (THIS WEEK)
-- [ ] Micro-lesson loop (teach → combine → scenario → pause)
-- [ ] Voice picker (4 personas with preview)
-- [ ] System instruction rewrite (feedback rules, persona, pronunciation strictness)
-- [ ] Stealth English teaching patterns
-- [ ] Flashcard pause screen with export
+### Phase 2 ✅ DONE
+- [x] Micro-lesson loop (teach → combine → scenario → pause)
+- [x] Voice picker (4 personas with real Gemini TTS preview audio)
+- [x] System instruction rewrite (feedback rules, persona, pronunciation strictness)
+- [x] Stealth English teaching patterns
+- [x] Per-persona instruction variants
 
-### Phase 3 (NEXT)
-- [ ] Structured curriculum: nail salon, PMU, healthcare, daily life
-- [ ] Session history timeline
-- [ ] Weekly progress summary
-- [ ] Spaced repetition across sessions (already partially built)
-- [ ] Sharing learned phrases to social
+### Phase 3 ✅ DONE
+- [x] Career paths: Nail Salon, PMU, Daily Life, Restaurant
+- [x] Phrase bank (persistent, separate from sessions, de-duplicated)
+- [x] Post-session career mapping via curriculum agent
+- [x] Progress screen with career path breakdown
+- [x] Auto-detect career from first session
 
-### Phase 4 (LATER)
+### Phase 4 — UI/Animation ✅ DONE
+- [x] WordReveal (word-by-word stagger) replaces char-by-char TextReveal
+- [x] Phase blur transitions (blur-in/blur-out)
+- [x] Animated number counters for stats
+- [x] MicOrb idle breathing animation
+- [x] Voice picker card stagger + emoji bounce
+- [x] `prefers-reduced-motion` support
+- [x] Shared animation tokens (`src/lib/motion.ts`)
+- [x] Removed card styling — clean text, no backgrounds
+
+### Phase 5 ✅ DONE
+- [x] Mode selector: "Học Giao Tiếp" vs "Luyện IELTS Speaking"
+- [x] IELTS examiner-coach system instruction (simulate → score → coach → retry)
+- [x] Band scoring (Fluency, Vocabulary, Grammar, Pronunciation — 4 criteria)
+- [x] Part 2 cue card UI with 1-min prep timer
+- [x] IELTS phrase bank (opinions, hedging, linking, examples, comparing, buying time)
+- [x] Per-persona IELTS variants
+
+### Code Review ✅ DONE
+- [x] 9 bug fixes (audio cleanup, double-click guard, WebSocket reset, dead imports, type safety)
+- [x] Security: API key proxy, no client exposure, git history cleaned
+- [x] Mobile UX: touch targets, iOS scrolling
+- [x] Accessibility: semantic buttons, reduced-motion
+
+### Phase 6 (NEXT)
+- [ ] Session history timeline view
+- [ ] Weekly progress summary / streak visualization
+- [ ] Sharing learned phrases (social/clipboard)
 - [ ] Bee mascot/avatar animation
-- [ ] Offline mode (cached phrases)
-- [ ] Group/classroom mode
-- [ ] Teacher dashboard (for Boss's classes)
+- [ ] Offline flashcard review mode
 
-### Phase 5 — IELTS Speaking Mode
-- [ ] Mode selector on home screen: "Học Giao Tiếp" vs "Luyện IELTS Speaking"
-- [ ] IELTS examiner-coach system instruction (simulate → score → coach → retry)
-- [ ] Band scoring (Fluency, Vocabulary, Grammar, Pronunciation — 4 criteria)
-- [ ] Part 1/2/3 structure with timers
-- [ ] Part 2 cue card UI with 1-min prep timer + 2-min speaking timer
-- [ ] Model answers after each question
-- [ ] IELTS phrase bank (cohesive devices, opinion phrases, hedging language)
-- [ ] IELTS topic bank (current exam topics)
-- [ ] Vietnamese minimal — only for key explanations
-- [ ] Target: B1-C1 students, teenagers, exam prep
+### Phase 7 (LATER)
+- [ ] Group/classroom mode
+- [ ] Teacher dashboard (Boss's classes)
+- [ ] Natural TTS for flashcard review
+- [ ] Cross-device flashcard sync
+- [ ] Progressive Web App (installable)
 
 ## Files Reference
 ```
 C:\viettutor\
-  src/App.tsx              — Main orchestrator (phases, system instruction, UI)
-  src/components/MicOrb.tsx — Mic button with waveform
-  src/lib/audio.ts         — Audio capture/playback
-  src/lib/profile.ts       — localStorage + Supabase profile sync
-  src/lib/curriculum.ts    — Post-session analysis agent
-  src/lib/supabase.ts      — Supabase client
-  src/components/LoginScreen.tsx — Auth UI
-  api/gemini-token.ts      — API key proxy (Vercel serverless)
-  api/curriculum.ts        — Curriculum analysis proxy (Vercel serverless)
+  src/
+    App.tsx                    — Main orchestrator
+    components/
+      MicOrb.tsx               — Mic button + waveform
+      VoicePicker.tsx          — 4-voice selector + real audio preview
+      LoginScreen.tsx          — Auth UI
+      ProgressScreen.tsx       — Career progress
+      CueCard.tsx              — IELTS Part 2 cue card
+      BandScore.tsx            — IELTS band score display
+    lib/
+      audio.ts                 — Audio capture/playback
+      profile.ts               — Profile + phrase bank + Supabase sync
+      curriculum.ts            — Post-session analysis agent
+      career-paths.ts          — Career + IELTS path definitions
+      supabase.ts              — Supabase client
+      motion.ts                — Animation tokens + reduced-motion hook
+  api/
+    gemini-token.ts            — API key proxy (Vercel)
+    curriculum.ts              — Analysis proxy (Vercel)
+  public/
+    voices/                    — Gemini TTS preview clips
 ```
 
 ---
