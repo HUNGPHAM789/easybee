@@ -454,10 +454,10 @@ const Flashcard = ({ phrase, reduced = false }: { phrase: Phrase; reduced?: bool
       <WordReveal
         text={phrase.english}
         reduced={reduced}
-        className="text-[28px] font-light text-[#0a0a0a] text-center leading-tight tracking-tight"
+        className="text-[28px] font-light text-text text-center leading-tight tracking-tight"
       />
       <motion.p
-        className="text-[15px] text-[#8a8a8a] mt-4 text-center"
+        className="text-[15px] text-text-secondary mt-4 text-center"
         initial={reduced ? { opacity: 0 } : { opacity: 0, y: 12, filter: 'blur(4px)' }}
         animate={reduced ? { opacity: 1 } : { opacity: 1, y: 0, filter: 'blur(0px)' }}
         transition={reduced ? { duration: 0 } : { duration: 0.6, delay: vnDelay, ease }}
@@ -486,10 +486,10 @@ const PhraseList = ({ phrases, currentPhrase, reduced = false }: { phrases: Phra
           transition={reduced ? { duration: 0 } : { delay: i * 0.05, duration: 0.3, ease }}
           className="flex flex-col"
         >
-          <p className={`leading-tight ${isCurrent ? 'text-[22px] font-light text-[#0a0a0a] tracking-tight' : 'text-[15px] font-light text-[#6a6a6a]'}`}>
+          <p className={`leading-tight ${isCurrent ? 'text-[22px] font-light text-text tracking-tight' : 'text-[15px] font-light text-text-muted'}`}>
             {p.english}
           </p>
-          <p className={`mt-0.5 ${isCurrent ? 'text-[14px] text-[#8a8a8a]' : 'text-[12px] text-[#b0b0b0]'}`}>
+          <p className={`mt-0.5 ${isCurrent ? 'text-[14px] text-text-secondary' : 'text-[12px] text-text-muted'}`}>
             {p.vietnamese}
           </p>
         </motion.div>
@@ -545,7 +545,7 @@ const SessionEndScreen = ({
       className="flex-1 flex flex-col px-6 pt-4 pb-6 overflow-y-auto"
     >
       <motion.h2
-        className="text-[22px] font-light text-[#0a0a0a] text-center mb-8"
+        className="text-[22px] font-light text-text text-center mb-8"
         style={{ letterSpacing: '-0.5px' }}
         initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
         transition={{ duration: reduced ? 0 : 0.5, ease }}
@@ -566,12 +566,12 @@ const SessionEndScreen = ({
             animate={reduced ? { opacity: 1 } : { opacity: 1, y: 0 }}
             transition={{ ...t.spring, delay: reduced ? 0 : 0.15 + i * 0.1 }}
             className="flex-1 rounded-xl p-4 text-center"
-            style={{ background: '#f2f2f2', border: '1px solid #e0e0e0' }}
+            style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}
           >
-            <p className="text-[22px] font-semibold text-[#0a0a0a]">
+            <p className="text-[22px] font-semibold text-text">
               <AnimatedNumber value={stat.value} duration={0.8 + i * 0.2} reduced={reduced} />
             </p>
-            <p className="text-[10px] text-[#8a8a8a] mt-1.5 tracking-wider uppercase font-semibold">{stat.label}</p>
+            <p className="text-[12px] text-text-secondary mt-1.5 tracking-wider uppercase font-semibold">{stat.label}</p>
           </motion.div>
         ))}
       </div>
@@ -585,12 +585,12 @@ const SessionEndScreen = ({
               initial={reduced ? { opacity: 0 } : { opacity: 0, x: i % 2 === 0 ? -20 : 20 }}
               animate={reduced ? { opacity: 1 } : { opacity: 1, x: 0 }}
               transition={{ ...t.spring, delay: reduced ? 0 : 0.4 + i * 0.07 }}
-              className="flex gap-3 items-start py-3 border-b border-[#f0f0f0]"
+              className="flex gap-3 items-start py-3 border-b border-border"
             >
-              <span className="text-[#b0b0b0] font-semibold text-sm min-w-[20px]">{i + 1}</span>
+              <span className="text-text-muted font-semibold text-sm min-w-[20px]">{i + 1}</span>
               <div>
-                <p className="text-[#0a0a0a] font-medium text-[15px]">{p.english}</p>
-                <p className="text-[#8a8a8a] text-[13px] mt-0.5">{p.vietnamese}</p>
+                <p className="text-text font-medium text-[15px]">{p.english}</p>
+                <p className="text-text-secondary text-[13px] mt-0.5">{p.vietnamese}</p>
               </div>
             </motion.div>
           ))}
@@ -600,7 +600,7 @@ const SessionEndScreen = ({
       {/* Next plan — monochrome */}
       {isAnalyzing ? (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}
-          className="flex items-center gap-2.5 text-[#8a8a8a] text-sm mb-6 px-1"
+          className="flex items-center gap-2.5 text-text-secondary text-sm mb-6 px-1"
         >
           <Loader2 className="w-3.5 h-3.5 animate-spin" />
           <span>Đang chuẩn bị buổi học tiếp theo...</span>
@@ -610,10 +610,10 @@ const SessionEndScreen = ({
           initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.7, ease }}
           className="mb-6 p-5 rounded-xl"
-          style={{ background: '#f2f2f2', border: '1px solid #e0e0e0' }}
+          style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}
         >
-          <p className="text-[10px] text-[#8a8a8a] font-semibold mb-2 tracking-[0.1em] uppercase">Buổi học tiếp theo</p>
-          <p className="text-[13px] text-[#4B4B4B] leading-relaxed">{nextPlan}</p>
+          <p className="text-[12px] text-text-secondary font-semibold mb-2 tracking-[0.1em] uppercase">Buổi học tiếp theo</p>
+          <p className="text-[13px] text-text-secondary leading-relaxed">{nextPlan}</p>
         </motion.div>
       ) : null}
 
@@ -625,7 +625,7 @@ const SessionEndScreen = ({
             transition={{ ...spring.gentle, delay: 0.9 }}
             whileTap={{ scale: 0.98 }}
             onClick={onViewNotes}
-            className="flex items-center justify-center gap-2.5 w-full py-4 rounded-xl bg-[#0a0a0a] text-white text-[15px] font-semibold"
+            className="flex items-center justify-center gap-2.5 w-full py-4 rounded-xl bg-accent text-white text-[15px] font-semibold"
             style={{ boxShadow: '0 2px 12px rgba(10,10,10,0.15)' }}
           >
             <Copy className="w-4 h-4" /> Copy ghi chú
@@ -636,7 +636,7 @@ const SessionEndScreen = ({
           transition={{ ...spring.gentle, delay: 1.0 }}
           whileTap={{ scale: 0.98 }}
           onClick={onNewSession}
-          className="flex items-center justify-center gap-2.5 w-full py-4 rounded-xl text-[#0a0a0a] text-[15px] font-semibold bg-[#f2f2f2] border border-[#e0e0e0]"
+          className="flex items-center justify-center gap-2.5 w-full py-4 rounded-xl text-text text-[15px] font-semibold bg-surface border border-border"
         >
           Học tiếp
         </motion.button>
@@ -663,14 +663,14 @@ const SummaryView = ({ phrases, onBack }: { phrases: Phrase[]; onBack: () => voi
     >
       <motion.button
         onClick={onBack} whileTap={{ scale: 0.98 }}
-        className="flex items-center gap-1.5 text-[#8a8a8a] hover:text-[#0a0a0a] text-[13px] mb-6 self-start transition-colors duration-200"
+        className="flex items-center gap-1.5 text-text-secondary hover:text-text text-[13px] mb-6 self-start transition-colors duration-200"
       >
         <ArrowLeft className="w-3.5 h-3.5" /> Quay lại
       </motion.button>
 
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1, ease }}>
-        <h2 className="text-[20px] font-light text-[#0a0a0a]" style={{ letterSpacing: '-0.5px' }}>Ghi chú hôm nay</h2>
-        <p className="text-[#8a8a8a] text-[13px] mt-1 mb-6">{phrases.length} cụm từ đã học</p>
+        <h2 className="text-[20px] font-light text-text" style={{ letterSpacing: '-0.5px' }}>Ghi chú hôm nay</h2>
+        <p className="text-text-secondary text-[13px] mt-1 mb-6">{phrases.length} cụm từ đã học</p>
       </motion.div>
 
       <div className="space-y-2 flex-1 overflow-y-auto">
@@ -678,12 +678,12 @@ const SummaryView = ({ phrases, onBack }: { phrases: Phrase[]; onBack: () => voi
           <motion.div key={idx}
             initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}
             transition={{ ...spring.gentle, delay: 0.15 + idx * 0.05 }}
-            className="flex gap-3 items-start py-3 border-b border-[#f0f0f0]"
+            className="flex gap-3 items-start py-3 border-b border-border"
           >
-            <span className="text-[#b0b0b0] font-semibold text-sm min-w-[20px]">{idx + 1}</span>
+            <span className="text-text-muted font-semibold text-sm min-w-[20px]">{idx + 1}</span>
             <div>
-              <p className="text-[#0a0a0a] font-medium text-[15px]">{p.english}</p>
-              <p className="text-[#8a8a8a] text-[13px] mt-0.5">{p.vietnamese}</p>
+              <p className="text-text font-medium text-[15px]">{p.english}</p>
+              <p className="text-text-secondary text-[13px] mt-0.5">{p.vietnamese}</p>
             </div>
           </motion.div>
         ))}
@@ -695,7 +695,7 @@ const SummaryView = ({ phrases, onBack }: { phrases: Phrase[]; onBack: () => voi
           transition={{ delay: 0.2 + phrases.length * 0.05, ease }}
           whileTap={{ scale: 0.98 }}
           onClick={copyNotes}
-          className="mt-6 flex items-center justify-center gap-2.5 w-full py-4 rounded-xl bg-[#0a0a0a] text-white text-[15px] font-semibold"
+          className="mt-6 flex items-center justify-center gap-2.5 w-full py-4 rounded-xl bg-accent text-white text-[15px] font-semibold"
           style={{ boxShadow: '0 2px 12px rgba(10,10,10,0.15)' }}
         >
           {copied ? <><Check className="w-4 h-4" /> Đã copy!</> : <><Copy className="w-4 h-4" /> Copy ghi chú</>}
@@ -731,7 +731,7 @@ export default function App() {
   if (authLoading) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
-        <Loader2 className="w-6 h-6 animate-spin text-[#8a8a8a]" />
+        <Loader2 className="w-6 h-6 animate-spin text-text-muted" />
       </div>
     );
   }
@@ -875,8 +875,8 @@ function TutorApp({ session }: { session: Session }) {
 
   // ── Render ──
   return (
-    <div className="min-h-screen bg-white text-[#0a0a0a] flex justify-center">
-      <div className="w-full max-w-md min-h-screen flex flex-col relative overflow-hidden bg-white">
+    <div className="min-h-screen bg-bg text-text flex justify-center">
+      <div className="w-full max-w-md min-h-screen flex flex-col relative overflow-hidden bg-bg">
 
         {/* Header */}
         <motion.div
@@ -888,22 +888,23 @@ function TutorApp({ session }: { session: Session }) {
           <div className="absolute right-6 top-14 flex items-center gap-3">
             <button
               onClick={() => setShowVoicePicker(true)}
-              className="text-[#b0b0b0] hover:text-[#0a0a0a] transition-colors"
+              className="text-text-muted hover:text-text transition-colors"
               title="Đổi giáo viên"
+              aria-label="Đổi giáo viên"
             >
               <UserCircle className="w-4 h-4" />
             </button>
             <button
               onClick={() => supabase.auth.signOut()}
-              className="text-[11px] text-[#b0b0b0] hover:text-[#0a0a0a] transition-colors"
+              className="text-[12px] text-text-muted hover:text-text transition-colors"
             >
               Đăng xuất
             </button>
           </div>
-          <h1 className="text-[20px] font-bold tracking-tight text-[#0a0a0a]" style={{ fontFamily: "'Comfortaa', sans-serif" }}>
+          <h1 className="text-[20px] font-bold tracking-tight text-text" style={{ fontFamily: "'Comfortaa', sans-serif" }}>
             EasyBee
           </h1>
-          <p className="text-[10px] text-[#8a8a8a] mt-1 tracking-[0.15em] uppercase font-semibold">{mode === 'ielts' ? 'IELTS Speaking' : 'Gia sư tiếng Anh'}</p>
+          <p className="text-[12px] text-text-secondary mt-1 tracking-[0.15em] uppercase font-semibold">{mode === 'ielts' ? 'IELTS Speaking' : 'Gia sư tiếng Anh'}</p>
         </motion.div>
 
         {/* ── Phase content ── */}
@@ -954,24 +955,23 @@ function TutorApp({ session }: { session: Session }) {
                               animate={reduced ? { opacity: 1 } : { opacity: 1, scale: 1, y: 0 }}
                               transition={reduced ? { duration: 0 } : { delay: i * 0.1, duration: 0.4, ease }}
                               onClick={() => { setMode(m.id); saveMode(m.id); }}
-                              className={`w-full text-left rounded-xl p-4 transition-all duration-200 ${mode === m.id ? 'ring-2 ring-[#0a0a0a]' : ''}`}
-                              style={{ background: '#f2f2f2', border: '1px solid #e0e0e0' }}
+                              className={`w-full text-left rounded-xl p-4 transition-all duration-200 bg-surface border border-border ${mode === m.id ? 'ring-2 ring-accent' : ''}`}
                             >
-                              <p className="text-[15px] font-semibold text-[#0a0a0a]">{m.title}</p>
-                              <p className="text-[12px] text-[#8a8a8a] mt-1 leading-relaxed">{m.desc}</p>
+                              <p className="text-[15px] font-semibold text-text">{m.title}</p>
+                              <p className="text-[12px] text-text-secondary mt-1 leading-relaxed">{m.desc}</p>
                             </motion.button>
                           ))}
                         </div>
                         {/* Change voice button */}
                         <button
                           onClick={() => setShowVoicePicker(true)}
-                          className="text-[12px] text-[#8a8a8a] hover:text-[#0a0a0a] transition-colors mb-4 flex items-center gap-1.5"
+                          className="text-[12px] text-text-secondary hover:text-text transition-colors mb-4 flex items-center gap-1.5"
                         >
                           <UserCircle className="w-3.5 h-3.5" />
                           Đổi giáo viên
                         </button>
 
-                        <p className="text-center text-[13px] text-[#8a8a8a] max-w-[260px] leading-relaxed">
+                        <p className="text-center text-[13px] text-text-secondary max-w-[260px] leading-relaxed">
                           {isNewUser()
                             ? 'Nhấn vào micro để bắt đầu'
                             : `Chào mừng bạn quay lại! Bạn đã học ${getProfile().totalPhrases} cụm từ.`}
@@ -982,7 +982,7 @@ function TutorApp({ session }: { session: Session }) {
                         transition={{ duration: 0.3 }} className="flex flex-col items-center gap-3"
                       >
                         <PulsingDots />
-                        <p className="text-[12px] text-[#8a8a8a]">Đang nghe...</p>
+                        <p className="text-[12px] text-text-secondary">Đang nghe...</p>
                       </motion.div>
                     ) : null}
                   </AnimatePresence>
@@ -999,7 +999,7 @@ function TutorApp({ session }: { session: Session }) {
                       transition={{ duration: 0.3, ease }}
                       className="px-8 mb-4 max-w-full"
                     >
-                      <p className="text-[13px] text-[#8a8a8a] text-center leading-relaxed line-clamp-2">
+                      <p className="text-[13px] text-text-secondary text-center leading-relaxed line-clamp-2">
                         {latestTutorMsg}
                       </p>
                     </motion.div>
@@ -1014,8 +1014,7 @@ function TutorApp({ session }: { session: Session }) {
               >
                 {errorMsg && (
                   <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ ...spring.snappy }}
-                    className="mb-4 px-4 py-2.5 rounded-xl text-[#0a0a0a] text-[12px] text-center max-w-[85%]"
-                    style={{ background: '#f2f2f2', border: '1px solid #e0e0e0' }}
+                    className="mb-4 px-4 py-2.5 rounded-xl text-text text-[12px] text-center max-w-[85%] bg-surface border border-border"
                   >
                     {errorMsg}
                   </motion.div>
@@ -1025,8 +1024,7 @@ function TutorApp({ session }: { session: Session }) {
                   <motion.div
                     initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
                     transition={spring.snappy}
-                    className="mb-5 flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[11px] text-[#8a8a8a] font-semibold"
-                    style={{ background: '#f2f2f2', border: '1px solid #e0e0e0' }}
+                    className="mb-5 flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[12px] text-text-secondary font-semibold bg-surface border border-border"
                   >
                     {learnedPhrases.length} cụm từ đã học
                   </motion.div>
@@ -1036,15 +1034,17 @@ function TutorApp({ session }: { session: Session }) {
 
                 <AnimatePresence>
                   {isRecording && (
-                    <motion.p
-                      className="text-[11px] text-[#8a8a8a] mt-5 tracking-[0.05em]"
+                    <motion.button
+                      className="mt-5 px-5 py-2 rounded-full text-[12px] text-text-secondary font-medium bg-surface border border-border hover:bg-surface-hover hover:text-text transition-colors"
                       initial={{ opacity: 0, y: 5 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0 }}
                       transition={{ delay: 0.6, duration: 0.4 }}
+                      onClick={endSession}
+                      aria-label="Kết thúc buổi học"
                     >
-                      Nhấn để kết thúc
-                    </motion.p>
+                      Kết thúc buổi học
+                    </motion.button>
                   )}
                 </AnimatePresence>
               </div>

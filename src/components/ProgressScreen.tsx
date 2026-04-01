@@ -10,15 +10,15 @@ function ProgressBar({ value, max, className = '' }: { value: number; max: numbe
   const pct = max > 0 ? Math.min(100, Math.round((value / max) * 100)) : 0;
   return (
     <div className={`flex items-center gap-3 ${className}`}>
-      <div className="flex-1 h-2 rounded-xl bg-[#f2f2f2] overflow-hidden">
+      <div className="flex-1 h-2 rounded-xl bg-surface overflow-hidden">
         <motion.div
-          className="h-full rounded-xl bg-[#0a0a0a]"
+          className="h-full rounded-xl bg-accent"
           initial={{ width: 0 }}
           animate={{ width: `${pct}%` }}
           transition={{ duration: 0.6, ease }}
         />
       </div>
-      <span className="text-[11px] text-[#8a8a8a] font-semibold min-w-[32px] text-right">{pct}%</span>
+      <span className="text-[12px] text-text-secondary font-semibold min-w-[32px] text-right">{pct}%</span>
     </div>
   );
 }
@@ -41,20 +41,20 @@ function CareerCard({
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ ...spring, delay }}
-      className={`p-5 rounded-xl border ${isPrimary ? 'border-[#0a0a0a]' : 'border-[#e0e0e0]'}`}
+      className={`p-5 rounded-xl border ${isPrimary ? 'border-accent' : 'border-border'}`}
       style={{ background: '#f2f2f2', opacity: isPrimary ? 1 : 0.7 }}
     >
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <span className="text-lg">{path.emoji}</span>
           <div>
-            <p className={`text-[14px] font-semibold text-[#0a0a0a] ${isPrimary ? '' : 'opacity-70'}`}>
+            <p className={`text-[14px] font-semibold text-text ${isPrimary ? '' : 'opacity-70'}`}>
               {path.titleEn}
             </p>
-            <p className="text-[11px] text-[#8a8a8a]">{path.title}</p>
+            <p className="text-[12px] text-text-secondary">{path.title}</p>
           </div>
         </div>
-        <span className="text-[13px] text-[#8a8a8a] font-semibold">
+        <span className="text-[13px] text-text-secondary font-semibold">
           {count}/{path.targetPhraseCount}
         </span>
       </div>
@@ -69,16 +69,16 @@ function CareerCard({
             ).length;
             return (
               <div key={cat.id} className="flex items-center gap-2">
-                <span className="text-[11px] text-[#8a8a8a] min-w-[100px] truncate">{cat.titleEn}</span>
-                <div className="flex-1 h-1 rounded-full bg-[#e0e0e0] overflow-hidden">
+                <span className="text-[12px] text-text-secondary min-w-[100px] truncate">{cat.titleEn}</span>
+                <div className="flex-1 h-1 rounded-full bg-border overflow-hidden">
                   <motion.div
-                    className="h-full rounded-full bg-[#0a0a0a]"
+                    className="h-full rounded-full bg-accent"
                     initial={{ width: 0 }}
                     animate={{ width: `${cat.targetCount > 0 ? Math.min(100, (catCount / cat.targetCount) * 100) : 0}%` }}
                     transition={{ duration: 0.5, delay: delay + 0.2, ease }}
                   />
                 </div>
-                <span className="text-[10px] text-[#8a8a8a] min-w-[28px] text-right">{catCount}/{cat.targetCount}</span>
+                <span className="text-[12px] text-text-secondary min-w-[28px] text-right">{catCount}/{cat.targetCount}</span>
               </div>
             );
           })}
@@ -115,7 +115,7 @@ export default function ProgressScreen({ onBack }: { onBack: () => void }) {
       <motion.button
         onClick={onBack}
         whileTap={{ scale: 0.98 }}
-        className="flex items-center gap-1.5 text-[#8a8a8a] hover:text-[#0a0a0a] text-[13px] mb-4 self-start transition-colors duration-200"
+        className="flex items-center gap-1.5 text-text-secondary hover:text-text text-[13px] mb-4 self-start transition-colors duration-200"
       >
         <ArrowLeft className="w-3.5 h-3.5" /> Quay lại
       </motion.button>
@@ -127,12 +127,12 @@ export default function ProgressScreen({ onBack }: { onBack: () => void }) {
         className="mb-6"
       >
         <h2
-          className="text-[22px] font-light text-[#0a0a0a]"
+          className="text-[22px] font-light text-text"
           style={{ letterSpacing: '-0.5px', fontFamily: "'Comfortaa', sans-serif" }}
         >
           Tiến trình của bạn
         </h2>
-        <p className="text-[#8a8a8a] text-[13px] mt-1">
+        <p className="text-text-secondary text-[13px] mt-1">
           {phrases.length} cụm từ đã học
         </p>
       </motion.div>
@@ -143,7 +143,7 @@ export default function ProgressScreen({ onBack }: { onBack: () => void }) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.15 }}
-          className="text-[10px] text-[#8a8a8a] font-semibold tracking-[0.1em] uppercase mb-2"
+          className="text-[12px] text-text-secondary font-semibold tracking-[0.1em] uppercase mb-2"
         >
           Lộ trình của bạn
         </motion.p>
@@ -159,7 +159,7 @@ export default function ProgressScreen({ onBack }: { onBack: () => void }) {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.3 }}
-                  className="text-[10px] text-[#8a8a8a] font-semibold tracking-[0.1em] uppercase mb-2 mt-4"
+                  className="text-[12px] text-text-secondary font-semibold tracking-[0.1em] uppercase mb-2 mt-4"
                 >
                   Khám phá thêm
                 </motion.p>
@@ -193,10 +193,10 @@ export function MiniProgress({ todayCount }: { todayCount: number }) {
       initial={{ opacity: 0, y: 6 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease }}
-      className="text-[12px] text-[#8a8a8a] text-center"
+      className="text-[12px] text-text-secondary text-center"
     >
       {path.emoji} {path.titleEn}: {count}/{path.targetPhraseCount} câu
-      {todayCount > 0 && <span className="text-[#0a0a0a]"> (+{todayCount} hôm nay)</span>}
+      {todayCount > 0 && <span className="text-text"> (+{todayCount} hôm nay)</span>}
     </motion.div>
   );
 }

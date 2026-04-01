@@ -99,6 +99,7 @@ const ease = [0.25, 0.1, 0.25, 1] as const;
 export default function VoicePicker({ onSelect, reduced = false }: { onSelect: (persona: Persona) => void; reduced?: boolean }) {
   const [selected, setSelected] = useState<Persona>(getSavedVoice() || 'thay-bee');
   const [playing, setPlaying] = useState<Persona | null>(null);
+  const [failedImgs, setFailedImgs] = useState<Set<Persona>>(new Set());
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const stopPreview = useCallback(() => {
@@ -141,7 +142,7 @@ export default function VoicePicker({ onSelect, reduced = false }: { onSelect: (
     >
       {/* Heading */}
       <motion.h2
-        className="text-[20px] font-light text-[#0a0a0a] text-center mb-6"
+        className="text-[20px] font-light text-text text-center mb-6"
         style={{ fontFamily: "'Comfortaa', sans-serif" }}
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
@@ -156,6 +157,7 @@ export default function VoicePicker({ onSelect, reduced = false }: { onSelect: (
           const isSelected = selected === voice.id;
           const isPlaying = playing === voice.id;
           const avatar = AVATAR_STYLES[voice.id];
+          const imgFailed = failedImgs.has(voice.id);
 
           return (
             <motion.div
@@ -166,9 +168,10 @@ export default function VoicePicker({ onSelect, reduced = false }: { onSelect: (
               transition={reduced ? { duration: 0 } : { ...spring, delay: 0.1 + i * 0.07 }}
             >
               {/* Avatar with double ring */}
-              <div
-                className="relative cursor-pointer mb-2"
+              <button
+                className="relative mb-2 cursor-pointer bg-transparent border-none p-0"
                 onClick={() => setSelected(voice.id)}
+                aria-label={`Chọn ${voice.name}`}
               >
                 {/* Outer ring */}
                 <div
@@ -176,8 +179,8 @@ export default function VoicePicker({ onSelect, reduced = false }: { onSelect: (
                   style={{
                     width: 86,
                     height: 86,
-                    border: '1px solid #e0e0e0',
-                    padding: 2, // 2px gap
+                    border: '1px solid var(--color-border)',
+                    padding: 2,
                   }}
                 >
                   {/* Inner ring */}
@@ -186,31 +189,29 @@ export default function VoicePicker({ onSelect, reduced = false }: { onSelect: (
                     style={{
                       width: 80,
                       height: 80,
-                      border: isSelected ? '2px solid #0a0a0a' : '1px solid #e0e0e0',
-                      padding: isSelected ? 1 : 2, // compensate border width
+                      border: isSelected ? '2px solid var(--color-accent)' : '1px solid var(--color-border)',
+                      padding: isSelected ? 1 : 2,
                     }}
                     animate={{ scale: isSelected ? 1.05 : 1 }}
                     transition={spring}
                   >
                     {/* Avatar circle */}
                     <div
-                      className="rounded-full w-full h-full overflow-hidden"
+                      className="rounded-full w-full h-full overflow-hidden flex items-center justify-center"
                       style={{ background: avatar.gradient }}
                     >
-                      <img
-                        src={`/avatars/${voice.id}.png`}
-                        alt={voice.name}
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          // Fallback to initials if image fails
-                          (e.target as HTMLImageElement).style.display = 'none';
-                          (e.target as HTMLImageElement).parentElement!.classList.add('flex', 'items-center', 'justify-center');
-                          const span = document.createElement('span');
-                          span.className = 'text-white text-[20px] font-semibold select-none';
-                          span.textContent = avatar.initials;
-                          (e.target as HTMLImageElement).parentElement!.appendChild(span);
-                        }}
-                      />
+                      {imgFailed ? (
+                        <span className="text-white text-[20px] font-semibold select-none">
+                          {avatar.initials}
+                        </span>
+                      ) : (
+                        <img
+                          src={`/avatars/${voice.id}.png`}
+                          alt={voice.name}
+                          className="w-full h-full object-cover"
+                          onError={() => setFailedImgs(prev => new Set(prev).add(voice.id))}
+                        />
+                      )}
                     </div>
                   </motion.div>
                 </div>
@@ -223,40 +224,41 @@ export default function VoicePicker({ onSelect, reduced = false }: { onSelect: (
                       animate={{ scale: 1 }}
                       exit={{ scale: 0 }}
                       transition={spring}
-                      className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-[#0a0a0a] flex items-center justify-center"
+                      className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-accent flex items-center justify-center"
                     >
                       <Check className="w-3 h-3 text-white" strokeWidth={3} />
                     </motion.div>
                   )}
                 </AnimatePresence>
-              </div>
+              </button>
 
               {/* Name */}
               <p
-                className="text-[14px] text-[#0a0a0a] text-center leading-tight"
+                className="text-[14px] text-text text-center leading-tight"
                 style={{ fontWeight: isSelected ? 700 : 600 }}
               >
                 {voice.name}
               </p>
 
               {/* Description */}
-              <p className="text-[11px] text-[#8a8a8a] text-center leading-snug mt-0.5 line-clamp-2">
+              <p className="text-[12px] text-text-secondary text-center leading-snug mt-0.5 line-clamp-2">
                 {voice.description}
               </p>
 
-              {/* Play button */}
+              {/* Play button — 44px touch target */}
               <button
                 onClick={(e) => {
                   e.stopPropagation();
                   if (isPlaying) stopPreview();
                   else playPreview(voice);
                 }}
-                className="mt-1.5 w-6 h-6 rounded-full flex items-center justify-center transition-colors duration-200"
-                style={{ background: isPlaying ? '#0a0a0a' : '#e8e8e8' }}
+                aria-label={isPlaying ? `Dừng nghe ${voice.name}` : `Nghe thử ${voice.name}`}
+                className="mt-1.5 w-11 h-11 rounded-full flex items-center justify-center transition-colors duration-200"
+                style={{ background: isPlaying ? 'var(--color-accent)' : 'var(--color-surface)' }}
               >
                 {isPlaying
                   ? <Equalizer />
-                  : <Play className="w-2.5 h-2.5 text-[#8a8a8a] ml-[1px]" />
+                  : <Play className="w-3.5 h-3.5 text-text-secondary ml-[1px]" />
                 }
               </button>
             </motion.div>
@@ -269,7 +271,7 @@ export default function VoicePicker({ onSelect, reduced = false }: { onSelect: (
         <motion.button
           whileTap={{ scale: 0.98 }}
           onClick={handleConfirm}
-          className="w-full py-4 rounded-xl bg-[#0a0a0a] text-white text-[15px] font-semibold"
+          className="w-full py-4 rounded-xl bg-accent text-accent-fg text-[15px] font-semibold"
           style={{ boxShadow: '0 2px 12px rgba(10,10,10,0.15)' }}
         >
           Bắt đầu với {selectedVoice.name}

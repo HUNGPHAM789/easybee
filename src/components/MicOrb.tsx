@@ -15,7 +15,7 @@ const BAR_COUNT = 28;
 
 export default function MicOrb({ volume, isActive, isConnecting, onClick, reduced = false }: MicOrbProps) {
   const scale = useMotionValue(1);
-  const springScale = useSpring(scale, { stiffness: 400, damping: 22 });
+  const springScale = useSpring(scale, { stiffness: 400, damping: 25 });
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animRef = useRef<number>(0);
   const smoothVol = useRef(0);
@@ -90,14 +90,13 @@ export default function MicOrb({ volume, isActive, isConnecting, onClick, reduce
         {isActive && [0, 1].map(i => (
           <motion.div
             key={`ring-${i}`}
-            className="absolute rounded-full"
+            className="absolute rounded-full bg-[#0a0a0a]/10"
             style={{
               width: SIZE,
               height: SIZE,
-              border: '1px solid rgba(10,10,10,0.05)',
             }}
             initial={{ scale: 1, opacity: 0 }}
-            animate={{ scale: [1, 1.4 + i * 0.2], opacity: [0, 0.2, 0] }}
+            animate={{ scale: [1, 1.3, 1], opacity: [0, 0.3, 0] }}
             exit={{ opacity: 0 }}
             transition={{
               duration: 2.4,
@@ -118,10 +117,10 @@ export default function MicOrb({ volume, isActive, isConnecting, onClick, reduce
           width: SIZE,
           height: SIZE,
           background: '#ffffff',
-          border: '1px solid #e0e0e0',
+          border: '1px solid var(--color-border)',
           boxShadow: isActive
-            ? '0 2px 20px rgba(0,0,0,0.1), 0 0 0 1px rgba(0,0,0,0.03)'
-            : '0 1px 8px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.03)',
+            ? '0 2px 12px rgba(10,10,10,0.12), 0 0 24px rgba(10,10,10,0.15), 0 0 0 1px rgba(10,10,10,0.03)'
+            : '0 2px 12px rgba(10,10,10,0.12), 0 0 0 1px rgba(10,10,10,0.03)',
           scale: springScale,
         }}
         onTapStart={handleTapStart}
@@ -141,8 +140,7 @@ export default function MicOrb({ volume, isActive, isConnecting, onClick, reduce
         {/* Active subtle overlay */}
         {isActive && (
           <motion.div
-            className="absolute inset-0 rounded-full"
-            style={{ background: 'rgba(0,0,0,0.015)' }}
+            className="absolute inset-0 rounded-full bg-[#0a0a0a]/5"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.3 }}
@@ -160,7 +158,7 @@ export default function MicOrb({ volume, isActive, isConnecting, onClick, reduce
                 exit={{ opacity: 0, scale: 0.6 }}
                 transition={{ type: 'spring', damping: 20, stiffness: 300 }}
               >
-                <Loader2 className="w-7 h-7 text-[#8a8a8a] animate-spin" />
+                <Loader2 className="w-7 h-7 text-text-secondary animate-spin" />
               </motion.div>
             ) : (
               <motion.div
@@ -170,7 +168,7 @@ export default function MicOrb({ volume, isActive, isConnecting, onClick, reduce
                 exit={{ opacity: 0, scale: 0.6 }}
                 transition={{ type: 'spring', damping: 20, stiffness: 300 }}
               >
-                <Mic className={`w-7 h-7 transition-colors duration-300 ${isActive ? 'text-[#0a0a0a]' : 'text-[#8a8a8a]'}`} />
+                <Mic className={`w-7 h-7 transition-colors duration-300 ${isActive ? 'text-text' : 'text-text-secondary'}`} />
               </motion.div>
             )}
           </AnimatePresence>

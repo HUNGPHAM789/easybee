@@ -35,26 +35,25 @@ export default function LoginScreen() {
       <div className="w-full max-w-sm flex flex-col items-center">
         {/* Logo */}
         <h1
-          className="text-[32px] font-bold tracking-tight text-[#0a0a0a] mb-1"
+          className="text-[32px] font-bold tracking-tight text-text mb-1"
           style={{ fontFamily: "'Comfortaa', sans-serif" }}
         >
           EasyBee
         </h1>
-        <p className="text-[12px] text-[#8a8a8a] tracking-[0.15em] uppercase font-semibold mb-12">
+        <p className="text-[12px] text-text-secondary tracking-[0.15em] uppercase font-semibold mb-12">
           Tiếng Anh cho người Việt
         </p>
 
         {/* Card */}
         <div
-          className="w-full rounded-xl p-6 space-y-3"
-          style={{ background: '#fafafa', border: '1px solid #e0e0e0' }}
+          className="w-full rounded-xl p-6 space-y-3 bg-subtle border border-border"
         >
           {/* Google button */}
           <button
             onClick={signInWithGoogle}
             disabled={loading}
-            className="flex items-center justify-center gap-3 w-full py-3.5 rounded-xl text-[14px] font-medium text-[#0a0a0a] bg-white transition-colors hover:bg-[#f8f8f8] disabled:opacity-50"
-            style={{ border: '1px solid #e0e0e0', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}
+            className="flex items-center justify-center gap-3 w-full py-3.5 rounded-xl text-[14px] font-medium text-text bg-white transition-colors hover:bg-[#f8f8f8] disabled:opacity-50 border border-border"
+            style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}
           >
             <svg width="18" height="18" viewBox="0 0 24 24">
               <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
@@ -67,28 +66,31 @@ export default function LoginScreen() {
 
           {/* Divider */}
           <div className="flex items-center gap-3 py-1">
-            <div className="flex-1 h-px bg-[#e0e0e0]" />
-            <span className="text-[11px] text-[#b0b0b0] uppercase tracking-wider">hoặc</span>
-            <div className="flex-1 h-px bg-[#e0e0e0]" />
+            <div className="flex-1 h-px bg-border" />
+            <span className="text-[12px] text-text-muted uppercase tracking-wider">hoặc</span>
+            <div className="flex-1 h-px bg-border" />
           </div>
 
           {/* Guest button */}
           <button
             onClick={signInAsGuest}
             disabled={loading}
-            className="flex items-center justify-center w-full py-3.5 rounded-xl text-[14px] font-medium text-[#4b4b4b] bg-[#f2f2f2] transition-colors hover:bg-[#eaeaea] disabled:opacity-50"
-            style={{ border: '1px solid #e0e0e0' }}
+            className="flex items-center justify-center w-full py-3.5 rounded-xl text-[14px] font-medium text-text-secondary bg-surface transition-colors hover:bg-surface-hover disabled:opacity-50 border border-border"
           >
             Vào thử không cần đăng ký
           </button>
+
+          <p className="text-[12px] text-text-muted text-center pt-1">
+            Dữ liệu sẽ mất khi đăng xuất
+          </p>
         </div>
 
         {error && (
-          <p className="mt-4 text-[12px] text-red-500 text-center">{error}</p>
+          <p className="mt-4 text-[12px] text-error text-center">{error}</p>
         )}
 
         {loading && (
-          <p className="mt-4 text-[12px] text-[#8a8a8a]">Đang xử lý...</p>
+          <p className="mt-4 text-[12px] text-text-secondary">Đang xử lý...</p>
         )}
       </div>
     </div>

@@ -56,37 +56,33 @@ export default function CueCard({ text }: CueCardProps) {
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: -12, scale: 0.98, transition: { duration: 0.25 } }}
       transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-      className="flex flex-col mx-6 rounded-xl px-6 py-6"
-      style={{
-        background: '#ffffff',
-        border: '1px solid #e0e0e0',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-      }}
+      className="flex flex-col mx-6 rounded-xl px-6 py-6 bg-white border border-border"
+      style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}
     >
-      <p className="text-[10px] text-[#8a8a8a] font-semibold tracking-[0.12em] uppercase mb-3">Part 2</p>
-      <p className="text-[16px] font-semibold text-[#0a0a0a] leading-snug mb-3">{topic}</p>
+      <p className="text-[12px] text-text-secondary font-semibold tracking-[0.12em] uppercase mb-3">Part 2</p>
+      <p className="text-[16px] font-semibold text-text leading-snug mb-3">{topic}</p>
 
       {bullets.length > 0 && (
         <div className="space-y-1.5 mb-2">
-          <p className="text-[12px] text-[#8a8a8a]">You should say:</p>
+          <p className="text-[12px] text-text-secondary">You should say:</p>
           {bullets.map((b, i) => (
-            <p key={i} className="text-[13px] text-[#4b4b4b] pl-3">• {b}</p>
+            <p key={i} className="text-[13px] text-text-secondary pl-3">{'\u2022'} {b}</p>
           ))}
         </div>
       )}
 
       {explain && (
-        <p className="text-[13px] text-[#4b4b4b] pl-3 mb-3">{explain}</p>
+        <p className="text-[13px] text-text-secondary pl-3 mb-3">{explain}</p>
       )}
 
-      <div className="mt-3 pt-3 border-t border-[#e0e0e0] flex items-center justify-between">
+      <div className="mt-3 pt-3 border-t border-border flex items-center justify-between">
         {!prepDone ? (
           <>
-            <p className="text-[12px] text-[#8a8a8a]">Thời gian chuẩn bị</p>
-            <p className="text-[16px] font-semibold text-[#0a0a0a] tabular-nums">{mm}:{ss}</p>
+            <p className="text-[12px] text-text-secondary">Thời gian chuẩn bị</p>
+            <p className="text-[16px] font-semibold text-text tabular-nums">{mm}:{ss}</p>
           </>
         ) : (
-          <p className="text-[13px] text-[#0a0a0a] font-medium">Nói trong 1-2 phút</p>
+          <p className="text-[13px] text-text font-medium">Nói trong 1-2 phút</p>
         )}
       </div>
     </motion.div>
