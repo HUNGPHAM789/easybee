@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { GoogleGenAI, LiveServerMessage, Modality } from '@google/genai';
-import { Copy, Check, ArrowLeft, Loader2, UserCircle } from 'lucide-react';
+import { Copy, Check, ArrowLeft, Loader2, UserCircle, Search } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { AudioHandler } from './lib/audio';
 import { type Phrase, isNewUser, getProfile, getLastSession, getReviewPhrases } from './lib/profile';
@@ -13,6 +13,7 @@ import MicOrb from './components/MicOrb';
 import VoicePicker, { type Persona, VOICE_MAP, getSavedVoice } from './components/VoicePicker';
 import CueCard from './components/CueCard';
 import BandScore, { type BandScoreData } from './components/BandScore';
+import CommandPalette from './components/CommandPalette';
 import type { Session } from '@supabase/supabase-js';
 
 // ── Types ────────────────────────────────────────────────────
@@ -784,6 +785,7 @@ function TutorApp({ session }: { session: Session }) {
   const [sessionTopic, setSessionTopic] = useState('');
   const [allTutorMessages, setAllTutorMessages] = useState<string[]>([]);
   const [showVoicePicker, setShowVoicePicker] = useState(!getSavedVoice());
+  const [showCommandPalette, setShowCommandPalette] = useState(false);
   const [mode, setMode] = useState<AppMode>(getSavedMode());
   const [currentCueCard, setCurrentCueCard] = useState<string | null>(null);
   const [currentBandScore, setCurrentBandScore] = useState<BandScoreData | null>(null);
@@ -912,6 +914,14 @@ function TutorApp({ session }: { session: Session }) {
           transition={{ duration: 0.6, ease }}
         >
           <div className="absolute right-6 top-14 flex items-center gap-3">
+            <button
+              onClick={() => setShowCommandPalette(true)}
+              className="text-text-muted hover:text-text transition-colors"
+              title="Hành động nhanh"
+              aria-label="Hành động nhanh"
+            >
+              <Search className="w-4 h-4" />
+            </button>
             <button
               onClick={() => setShowVoicePicker(true)}
               className="text-text-muted hover:text-text transition-colors"
@@ -1076,6 +1086,17 @@ function TutorApp({ session }: { session: Session }) {
           )}
         </AnimatePresence>
       </div>
+
+      <CommandPalette
+        open={showCommandPalette}
+        onClose={() => setShowCommandPalette(false)}
+        onChangeVoice={() => setShowVoicePicker(true)}
+        onSetMode={(m) => { setMode(m); saveMode(m); }}
+        onShowProgress={() => setPhase('summary')}
+        onEndSession={endSession}
+        onSignOut={() => supabase.auth.signOut()}
+        isInLesson={phase === 'lesson'}
+      />
     </div>
   );
 }
