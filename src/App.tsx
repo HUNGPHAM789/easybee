@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { GoogleGenAI, LiveServerMessage, Modality } from '@google/genai';
-import { Copy, Check, ArrowLeft, Loader2, UserCircle, Search } from 'lucide-react';
+import { Copy, Check, ArrowLeft, Loader2, UserCircle, Search, ChevronDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { AudioHandler } from './lib/audio';
 import { type Phrase, isNewUser, getProfile, getLastSession, getReviewPhrases } from './lib/profile';
@@ -567,7 +567,76 @@ const AnimatedNumber = ({ value, duration = 0.8, reduced = false }: { value: num
   return <span>{display}</span>;
 };
 
-/** Session end screen — monochrome */
+// ═══════════════════════════════════════════════════════════
+// BLURRED STAGGER TEXT (per-char blur-to-clear reveal)
+// ═══════════════════════════════════════════════════════════
+const blurredContainer = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.015 } } };
+const blurredLetter = { hidden: { opacity: 0, filter: 'blur(10px)' }, show: { opacity: 1, filter: 'blur(0px)' } };
+
+const BlurredStagger = ({ text }: { text: string }) => {
+  const reduced = usePrefersReducedMotion();
+  if (reduced) {
+    return (
+      <p className="text-[13px] text-text-secondary text-center leading-relaxed line-clamp-2">
+        {text}
+      </p>
+    );
+  }
+  return (
+    <motion.p variants={blurredContainer} initial="hidden" animate="show" className="text-[13px] text-text-secondary text-center leading-relaxed line-clamp-2">
+      {text.split('').map((char, i) => (
+        <motion.span key={i} variants={blurredLetter} transition={{ duration: 0.3 }} className="inline-block">
+          {char === ' ' ? '\u00A0' : char}
+        </motion.span>
+      ))}
+    </motion.p>
+  );
+};
+
+/** Accordion section — height animation via scrollHeight */
+const AccordionSection = ({
+  title, open, onToggle, reduced, children,
+}: {
+  title: string; open: boolean; onToggle: () => void; reduced: boolean; children: React.ReactNode;
+}) => {
+  const contentRef = useRef<HTMLDivElement>(null);
+  const [height, setHeight] = useState<number>(open ? -1 : 0); // -1 = auto (initial open)
+
+  useEffect(() => {
+    if (!contentRef.current) return;
+    setHeight(open ? contentRef.current.scrollHeight : 0);
+  }, [open]);
+
+  return (
+    <div className="border-b border-[#e0e0e0]">
+      <button
+        onClick={onToggle}
+        className="flex w-full items-center justify-between py-3.5 px-1 text-left"
+      >
+        <span className="text-[15px] font-medium text-text">{title}</span>
+        <ChevronDown
+          className="w-4 h-4 text-text-secondary transition-transform"
+          style={{
+            transform: open ? 'rotate(180deg)' : 'rotate(0deg)',
+            transitionDuration: reduced ? '0ms' : '200ms',
+          }}
+        />
+      </button>
+      <div
+        ref={contentRef}
+        style={{
+          height: height === -1 ? 'auto' : height,
+          overflow: 'hidden',
+          transition: reduced ? 'none' : 'height 200ms ease-out',
+        }}
+      >
+        {children}
+      </div>
+    </div>
+  );
+};
+
+/** Session end screen — monochrome with accordion */
 const SessionEndScreen = ({
   phrases, isAnalyzing, nextPlan, onViewNotes, onNewSession, reduced,
 }: {
@@ -576,6 +645,14 @@ const SessionEndScreen = ({
 }) => {
   const profile = getProfile();
   const t = getTransitions(reduced);
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({
+    phrases: true,
+    plan: false,
+  });
+
+  const toggle = (key: string) =>
+    setOpenSections(prev => ({ ...prev, [key]: !prev[key] }));
+
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: reduced ? 0 : 0.5 }}
       className="flex-1 flex flex-col px-6 pt-4 pb-6 overflow-y-auto"
@@ -589,8 +666,8 @@ const SessionEndScreen = ({
         Bài học hôm nay
       </motion.h2>
 
-      {/* Stats — monochrome only, animated counters */}
-      <div className="flex gap-3 mb-8">
+      {/* Stats — animated counters */}
+      <div className="flex gap-3 mb-6">
         {[
           { value: phrases.length, label: 'cụm từ mới' },
           { value: profile.streak || 1, label: 'ngày liên tiếp' },
@@ -612,46 +689,57 @@ const SessionEndScreen = ({
         ))}
       </div>
 
-      {/* Phrases — alternating slide direction */}
-      {phrases.length > 0 && (
-        <div className="mb-6 space-y-2">
-          {phrases.map((p, i) => (
-            <motion.div
-              key={i}
-              initial={reduced ? { opacity: 0 } : { opacity: 0, x: i % 2 === 0 ? -20 : 20 }}
-              animate={reduced ? { opacity: 1 } : { opacity: 1, x: 0 }}
-              transition={{ ...t.spring, delay: reduced ? 0 : 0.4 + i * 0.07 }}
-              className="flex gap-3 items-start py-3 border-b border-border"
-            >
-              <span className="text-text-muted font-semibold text-sm min-w-[20px]">{i + 1}</span>
-              <div>
-                <p className="text-text font-medium text-[15px]">{p.english}</p>
-                <p className="text-text-secondary text-[13px] mt-0.5">{p.vietnamese}</p>
-              </div>
-            </motion.div>
-          ))}
-        </div>
-      )}
+      {/* Accordion sections */}
+      <div className="mb-6">
+        {/* Section: Phrases */}
+        {phrases.length > 0 && (
+          <AccordionSection
+            title="Cụm từ đã học"
+            open={openSections.phrases}
+            onToggle={() => toggle('phrases')}
+            reduced={reduced}
+          >
+            <div className="pb-3">
+              {phrases.map((p, i) => (
+                <motion.div
+                  key={i}
+                  initial={reduced ? { opacity: 0 } : { opacity: 0, x: i % 2 === 0 ? -20 : 20 }}
+                  animate={reduced ? { opacity: 1 } : { opacity: 1, x: 0 }}
+                  transition={{ ...t.spring, delay: reduced ? 0 : 0.4 + i * 0.07 }}
+                  className="flex gap-3 items-start py-3 border-b border-border last:border-b-0"
+                >
+                  <span className="text-text-muted font-semibold text-sm min-w-[20px]">{i + 1}</span>
+                  <div>
+                    <p className="text-text font-medium text-[15px]">{p.english}</p>
+                    <p className="text-text-secondary text-[13px] mt-0.5">{p.vietnamese}</p>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </AccordionSection>
+        )}
 
-      {/* Next plan — monochrome */}
-      {isAnalyzing ? (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}
-          className="flex items-center gap-2.5 text-text-secondary text-sm mb-6 px-1"
+        {/* Section: Next plan */}
+        <AccordionSection
+          title="Kế hoạch tiếp theo"
+          open={openSections.plan}
+          onToggle={() => toggle('plan')}
+          reduced={reduced}
         >
-          <Loader2 className="w-3.5 h-3.5 animate-spin" />
-          <span>Đang chuẩn bị buổi học tiếp theo...</span>
-        </motion.div>
-      ) : nextPlan ? (
-        <motion.div
-          initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.7, ease }}
-          className="mb-6 p-5 rounded-xl"
-          style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}
-        >
-          <p className="text-[12px] text-text-secondary font-semibold mb-2 tracking-[0.1em] uppercase">Buổi học tiếp theo</p>
-          <p className="text-[13px] text-text-secondary leading-relaxed">{nextPlan}</p>
-        </motion.div>
-      ) : null}
+          <div className="pb-4 px-1">
+            {isAnalyzing ? (
+              <div className="flex items-center gap-2.5 text-text-secondary text-sm py-2">
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                <span>Đang chuẩn bị buổi học tiếp theo...</span>
+              </div>
+            ) : nextPlan ? (
+              <BlurredStagger text={nextPlan} />
+            ) : (
+              <p className="text-[13px] text-text-secondary py-2">Chưa có kế hoạch.</p>
+            )}
+          </div>
+        </AccordionSection>
+      </div>
 
       {/* Actions */}
       <div className="mt-auto space-y-3 pt-4">
@@ -738,32 +826,6 @@ const SummaryView = ({ phrases, onBack }: { phrases: Phrase[]; onBack: () => voi
         </motion.button>
       )}
     </motion.div>
-  );
-};
-
-// ═══════════════════════════════════════════════════════════
-// BLURRED STAGGER TEXT (per-char blur-to-clear reveal)
-// ═══════════════════════════════════════════════════════════
-const blurredContainer = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.015 } } };
-const blurredLetter = { hidden: { opacity: 0, filter: 'blur(10px)' }, show: { opacity: 1, filter: 'blur(0px)' } };
-
-const BlurredStagger = ({ text }: { text: string }) => {
-  const reduced = usePrefersReducedMotion();
-  if (reduced) {
-    return (
-      <p className="text-[13px] text-text-secondary text-center leading-relaxed line-clamp-2">
-        {text}
-      </p>
-    );
-  }
-  return (
-    <motion.p variants={blurredContainer} initial="hidden" animate="show" className="text-[13px] text-text-secondary text-center leading-relaxed line-clamp-2">
-      {text.split('').map((char, i) => (
-        <motion.span key={i} variants={blurredLetter} transition={{ duration: 0.3 }} className="inline-block">
-          {char === ' ' ? '\u00A0' : char}
-        </motion.span>
-      ))}
-    </motion.p>
   );
 };
 
