@@ -195,16 +195,23 @@ export default function VoicePicker({ onSelect, reduced = false }: { onSelect: (
                   >
                     {/* Avatar circle */}
                     <div
-                      className="rounded-full w-full h-full flex items-center justify-center overflow-hidden"
+                      className="rounded-full w-full h-full overflow-hidden"
                       style={{ background: avatar.gradient }}
                     >
-                      {/* TODO: Replace with <img src=/avatars/thay-bee.png /> */}
-                      {/* TODO: Replace with <img src=/avatars/co-honey.png /> */}
-                      {/* TODO: Replace with <img src=/avatars/anh-max.png /> */}
-                      {/* TODO: Replace with <img src=/avatars/chi-linh.png /> */}
-                      <span className="text-white text-[20px] font-semibold select-none">
-                        {avatar.initials}
-                      </span>
+                      <img
+                        src={`/avatars/${voice.id}.png`}
+                        alt={voice.name}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          // Fallback to initials if image fails
+                          (e.target as HTMLImageElement).style.display = 'none';
+                          (e.target as HTMLImageElement).parentElement!.classList.add('flex', 'items-center', 'justify-center');
+                          const span = document.createElement('span');
+                          span.className = 'text-white text-[20px] font-semibold select-none';
+                          span.textContent = avatar.initials;
+                          (e.target as HTMLImageElement).parentElement!.appendChild(span);
+                        }}
+                      />
                     </div>
                   </motion.div>
                 </div>
