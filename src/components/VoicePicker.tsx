@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { motion } from 'motion/react';
-import { Play, Square } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
+import { Play, Check } from 'lucide-react';
 
 // ── Types & Data ────────────────────────────────────────────
 export type Persona = 'thay-bee' | 'co-honey' | 'anh-max' | 'chi-linh';
@@ -67,7 +67,31 @@ export function saveVoice(persona: Persona): void {
   localStorage.setItem(STORAGE_KEY, persona);
 }
 
-// ── Spring / ease presets ───────────────────────────────────
+// ── Avatar gradients & initials ─────────────────────────────
+const AVATAR_STYLES: Record<Persona, { gradient: string; initials: string }> = {
+  'thay-bee': { gradient: 'linear-gradient(135deg, #4a4a4a, #8a8a8a)', initials: 'TB' },
+  'co-honey': { gradient: 'linear-gradient(135deg, #d4a373, #e8c9a0)', initials: 'CH' },
+  'anh-max': { gradient: 'linear-gradient(135deg, #5a5a5a, #3a3a3a)', initials: 'AM' },
+  'chi-linh': { gradient: 'linear-gradient(135deg, #c9b1d4, #e0d0e8)', initials: 'CL' },
+};
+
+// ── Animated Equalizer (3 bars) ─────────────────────────────
+function Equalizer() {
+  return (
+    <div className="flex items-end gap-[2px] h-[10px]">
+      {[0, 0.15, 0.3].map((delay, i) => (
+        <motion.div
+          key={i}
+          className="w-[2px] bg-white rounded-full"
+          animate={{ height: ['3px', '10px', '3px'] }}
+          transition={{ duration: 0.5, repeat: Infinity, delay, ease: 'easeInOut' }}
+        />
+      ))}
+    </div>
+  );
+}
+
+// ── Spring presets ──────────────────────────────────────────
 const spring = { type: 'spring' as const, damping: 25, stiffness: 200 };
 const ease = [0.25, 0.1, 0.25, 1] as const;
 
@@ -115,8 +139,9 @@ export default function VoicePicker({ onSelect, reduced = false }: { onSelect: (
       transition={{ duration: 0.4 }}
       className="flex-1 flex flex-col px-6 pt-4 pb-8"
     >
+      {/* Heading */}
       <motion.h2
-        className="text-[20px] font-bold text-[#0a0a0a] text-center mb-1"
+        className="text-[20px] font-light text-[#0a0a0a] text-center mb-6"
         style={{ fontFamily: "'Comfortaa', sans-serif" }}
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
@@ -124,35 +149,95 @@ export default function VoicePicker({ onSelect, reduced = false }: { onSelect: (
       >
         Chọn giáo viên
       </motion.h2>
-      <motion.p
-        className="text-[12px] text-[#8a8a8a] text-center mb-6"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.15, duration: 0.4 }}
-      >
-        Mỗi giáo viên có phong cách dạy riêng
-      </motion.p>
 
-      {/* 2x2 grid */}
-      <div className="grid grid-cols-2 gap-3 mb-6">
+      {/* Horizontal scroll of avatars */}
+      <div className="flex justify-center gap-5 mb-8 overflow-x-auto px-2 py-2">
         {VOICES.map((voice, i) => {
           const isSelected = selected === voice.id;
           const isPlaying = playing === voice.id;
+          const avatar = AVATAR_STYLES[voice.id];
+
           return (
             <motion.div
               key={voice.id}
-              initial={reduced ? { opacity: 0 } : { opacity: 0, scale: 0.95, y: 20 }}
-              animate={reduced ? { opacity: 1 } : { opacity: 1, scale: 1, y: 0 }}
+              className="flex flex-col items-center flex-shrink-0"
+              style={{ width: 88 }}
+              initial={reduced ? { opacity: 0 } : { opacity: 0, y: 20 }}
+              animate={reduced ? { opacity: 1 } : { opacity: 1, y: 0 }}
               transition={reduced ? { duration: 0 } : { ...spring, delay: 0.1 + i * 0.07 }}
-              onClick={() => setSelected(voice.id)}
-              className="relative rounded-xl p-4 cursor-pointer transition-all duration-200"
-              style={{
-                background: '#f2f2f2',
-                border: isSelected ? '2px solid #0a0a0a' : '1px solid #e0e0e0',
-                boxShadow: isSelected ? '0 2px 12px rgba(10,10,10,0.1)' : '0 1px 4px rgba(0,0,0,0.08)',
-                padding: isSelected ? '15px' : '16px', // compensate border width
-              }}
             >
+              {/* Avatar with double ring */}
+              <div
+                className="relative cursor-pointer mb-2"
+                onClick={() => setSelected(voice.id)}
+              >
+                {/* Outer ring */}
+                <div
+                  className="rounded-full flex items-center justify-center"
+                  style={{
+                    width: 86,
+                    height: 86,
+                    border: '1px solid #e0e0e0',
+                    padding: 2, // 2px gap
+                  }}
+                >
+                  {/* Inner ring */}
+                  <motion.div
+                    className="rounded-full flex items-center justify-center"
+                    style={{
+                      width: 80,
+                      height: 80,
+                      border: isSelected ? '2px solid #0a0a0a' : '1px solid #e0e0e0',
+                      padding: isSelected ? 1 : 2, // compensate border width
+                    }}
+                    animate={{ scale: isSelected ? 1.05 : 1 }}
+                    transition={spring}
+                  >
+                    {/* Avatar circle */}
+                    <div
+                      className="rounded-full w-full h-full flex items-center justify-center overflow-hidden"
+                      style={{ background: avatar.gradient }}
+                    >
+                      {/* TODO: Replace with <img src=/avatars/thay-bee.png /> */}
+                      {/* TODO: Replace with <img src=/avatars/co-honey.png /> */}
+                      {/* TODO: Replace with <img src=/avatars/anh-max.png /> */}
+                      {/* TODO: Replace with <img src=/avatars/chi-linh.png /> */}
+                      <span className="text-white text-[20px] font-semibold select-none">
+                        {avatar.initials}
+                      </span>
+                    </div>
+                  </motion.div>
+                </div>
+
+                {/* Checkmark badge (selected) */}
+                <AnimatePresence>
+                  {isSelected && (
+                    <motion.div
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      exit={{ scale: 0 }}
+                      transition={spring}
+                      className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-[#0a0a0a] flex items-center justify-center"
+                    >
+                      <Check className="w-3 h-3 text-white" strokeWidth={3} />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              {/* Name */}
+              <p
+                className="text-[14px] text-[#0a0a0a] text-center leading-tight"
+                style={{ fontWeight: isSelected ? 700 : 600 }}
+              >
+                {voice.name}
+              </p>
+
+              {/* Description */}
+              <p className="text-[11px] text-[#8a8a8a] text-center leading-snug mt-0.5 line-clamp-2">
+                {voice.description}
+              </p>
+
               {/* Play button */}
               <button
                 onClick={(e) => {
@@ -160,26 +245,14 @@ export default function VoicePicker({ onSelect, reduced = false }: { onSelect: (
                   if (isPlaying) stopPreview();
                   else playPreview(voice);
                 }}
-                className="absolute top-3 right-3 w-7 h-7 rounded-full flex items-center justify-center transition-colors duration-200"
-                style={{ background: isPlaying ? '#0a0a0a' : '#e0e0e0' }}
+                className="mt-1.5 w-6 h-6 rounded-full flex items-center justify-center transition-colors duration-200"
+                style={{ background: isPlaying ? '#0a0a0a' : '#e8e8e8' }}
               >
                 {isPlaying
-                  ? <Square className="w-3 h-3 text-white" />
-                  : <Play className="w-3 h-3 text-[#8a8a8a] ml-0.5" />
+                  ? <Equalizer />
+                  : <Play className="w-2.5 h-2.5 text-[#8a8a8a] ml-[1px]" />
                 }
               </button>
-
-              {/* Emoji with bounce on select */}
-              <motion.div
-                className="text-[32px] mb-2"
-                animate={isSelected && !reduced ? { scale: [1, 1.3, 1] } : { scale: 1 }}
-                transition={{ type: 'spring', damping: 12, stiffness: 400 }}
-                key={`${voice.id}-${isSelected}`}
-              >
-                {voice.emoji}
-              </motion.div>
-              <p className="text-[14px] font-semibold text-[#0a0a0a] mb-1">{voice.name}</p>
-              <p className="text-[11px] text-[#8a8a8a] leading-snug">{voice.description}</p>
             </motion.div>
           );
         })}
