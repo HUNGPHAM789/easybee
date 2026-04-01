@@ -520,12 +520,28 @@ const PhraseList = ({ phrases, currentPhrase, reduced = false }: { phrases: Phra
               exit={{ opacity: 0, y: -8, filter: 'blur(4px)', transition: { duration: 0.2 } }}
               className="flex flex-col"
             >
-              <p className={`leading-tight ${isCurrent ? 'text-[22px] font-light text-text tracking-tight' : 'text-[15px] font-light text-text-muted'}`}>
+              <motion.p
+                className="leading-tight font-light"
+                animate={{
+                  fontSize: isCurrent ? '22px' : '15px',
+                  color: isCurrent ? '#0a0a0a' : '#8a8a8a',
+                  letterSpacing: isCurrent ? '-0.025em' : '0em',
+                }}
+                transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+              >
                 {p.english}
-              </p>
-              <p className={`mt-0.5 ${isCurrent ? 'text-[14px] text-text-secondary' : 'text-[12px] text-text-muted'}`}>
+              </motion.p>
+              <motion.p
+                className="mt-0.5"
+                animate={{
+                  fontSize: isCurrent ? '14px' : '12px',
+                  color: isCurrent ? '#8a8a8a' : '#b0b0b0',
+                  opacity: isCurrent ? 1 : 0.7,
+                }}
+                transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+              >
                 {p.vietnamese}
-              </p>
+              </motion.p>
             </motion.div>
           );
         })}
