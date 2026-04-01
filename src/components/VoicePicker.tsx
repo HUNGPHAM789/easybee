@@ -150,8 +150,8 @@ export default function VoicePicker({ onSelect, reduced = false }: { onSelect: (
         Chọn giáo viên
       </motion.h2>
 
-      {/* Horizontal scroll of avatars */}
-      <div className="flex justify-center gap-5 mb-8 overflow-x-auto px-2 py-2">
+      {/* 2x2 grid of avatars */}
+      <div className="grid grid-cols-2 gap-4 mb-8 px-2">
         {VOICES.map((voice, i) => {
           const isSelected = selected === voice.id;
           const isPlaying = playing === voice.id;
@@ -160,8 +160,7 @@ export default function VoicePicker({ onSelect, reduced = false }: { onSelect: (
           return (
             <motion.div
               key={voice.id}
-              className="flex flex-col items-center flex-shrink-0"
-              style={{ width: 88 }}
+              className="flex flex-col items-center"
               initial={reduced ? { opacity: 0 } : { opacity: 0, y: 20 }}
               animate={reduced ? { opacity: 1 } : { opacity: 1, y: 0 }}
               transition={reduced ? { duration: 0 } : { ...spring, delay: 0.1 + i * 0.07 }}
