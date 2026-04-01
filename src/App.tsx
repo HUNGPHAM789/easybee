@@ -68,7 +68,7 @@ function parseAIOutput(buffer: string): IELTSParseResult {
     if (pMatch) bandScore.p = pMatch[1];
   }
 
-  // Strip all markers from display text (including incomplete/partial tags)
+  // Strip all markers from display text (including typos like [/CHRASE], [/VN], etc.)
   let displayText = buffer
     .replace(/\[PHRASE\].*?\[\/PHRASE\]\s*\[VN\].*?\[\/VN\]/g, '')
     .replace(/\[CUECARD\][\s\S]*?\[\/CUECARD\]/g, '')
@@ -77,9 +77,8 @@ function parseAIOutput(buffer: string): IELTSParseResult {
     .replace(/\[LR\][\d.]+\[\/LR\]/g, '')
     .replace(/\[GRA\][\d.]+\[\/GRA\]/g, '')
     .replace(/\[P\][\d.]+\[\/P\]/g, '')
-    // Strip any remaining incomplete/orphaned tags
-    .replace(/\[\/?(PHRASE|VN|CUECARD|BAND|FC|LR|GRA|P)\][^\[]*$/g, '')
-    .replace(/\[\/?(PHRASE|VN|CUECARD|BAND|FC|LR|GRA|P)\]/g, '')
+    // Catch-all: strip ANY remaining [TAG] or [/TAG] patterns (handles AI typos like [/CHRASE])
+    .replace(/\[\/?[A-Z]{1,10}\]/g, '')
     .trim();
 
   return { displayText, phrases, cueCard, bandScore };
@@ -172,15 +171,15 @@ NGUYEN TAC CO BAN:
 - Dung "minh", "ban" de tao cam giac gan gui
 
 DINH DANG OUTPUT — BAT BUOC:
-Moi khi ban day mot cum tieng Anh, LUON LUON viet theo format nay:
+Chi dung tags [PHRASE] khi GIOI THIEU cum tu MOI LAN DAU. Khong dung tags khi nhac lai, luyen tap, hay noi chung.
 [PHRASE]cum tieng Anh[/PHRASE][VN]nghia tieng Viet[/VN]
-BAT BUOC phai dung tags nay cho MOI cum tieng Anh ban day. KHONG DUOC QUEN.
+Chi tag MOT LAN duy nhat khi day lan dau. Khi on lai hay noi cac buoc 2-4, chi viet plain text, KHONG dung tags.
 
 PHUONG PHAP DAY — CHU TRINH MICRO-LESSON (BAT BUOC):
 Moi 3 cum tu = 1 chu trinh hoan chinh. Lam theo dung thu tu:
 
 BUOC 1 - DAY (3 cum tu, tung cai mot):
-- Noi: "Cum dau tien: [PHRASE]...[/PHRASE][VN]...[/VN]"
+- Noi: "Cum dau tien: [PHRASE]...[/PHRASE][VN]...[/VN]" (chi lan dau day cum nay)
 - Demo phat am ro rang, cham
 - Bao hoc vien noi lai
 - Neu phat am chua dung: sua cu the (mieng tron hon, luoi cong len, bat hoi nhe)
@@ -372,9 +371,9 @@ Band 7: "It largely depends on", "From my perspective", "That being said", "By a
 Band 8+: "It's worth noting that", "One could argue that", "There's a growing tendency to"
 
 DINH DANG OUTPUT — BAT BUOC:
-Moi khi ban day mot cum tieng Anh, LUON LUON viet theo format nay:
+Chi dung tags [PHRASE] khi GIOI THIEU cum tu MOI LAN DAU. Khong dung tags khi nhac lai.
 [PHRASE]cum tieng Anh[/PHRASE][VN]nghia tieng Viet[/VN]
-BAT BUOC phai dung tags nay cho MOI cum tieng Anh ban day. KHONG DUOC QUEN.
+Chi tag MOT LAN duy nhat khi day lan dau. Khi on lai hay luyen tap, chi viet plain text.
 
 ${ieltsPersona[persona]}
 
