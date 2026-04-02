@@ -120,8 +120,9 @@ export default function VoicePicker({ onSelect, reduced = false, isLockedVoice, 
 
   const playPreview = useCallback((voice: VoiceOption) => {
     // Stop guide audio if playing
-    if (guidePlayingRef.current) {
-      stopTTS();
+    if (guidePlayingRef.current && guideAudioRef.current) {
+      guideAudioRef.current.pause();
+      guideAudioRef.current.currentTime = 0;
       guidePlayingRef.current = false;
     }
     stopPreview();
@@ -134,29 +135,24 @@ export default function VoicePicker({ onSelect, reduced = false, isLockedVoice, 
   }, [stopPreview]);
 
   const guidePlayingRef = useRef(false);
+  const guideAudioRef = useRef<HTMLAudioElement | null>(null);
 
-  // Mount: light haptic + voice guide (fallback to chime)
+  // Mount: light haptic + pre-recorded voice guide
   useEffect(() => {
     const t1 = setTimeout(() => navigator.vibrate?.([30]), 200);
-    const t2 = setTimeout(async () => {
+    const t2 = setTimeout(() => {
       if (guidePlayed) return;
       guidePlayed = true;
       guidePlayingRef.current = true;
-      try {
-        if (accessToken) setTTSAuthToken(accessToken);
-        await speakPhrase(GUIDE_TEXT, 'Kore', undefined, () => {
-          guidePlayingRef.current = false;
-        });
-      } catch {
-        // Fallback to chime on any error
-        guidePlayingRef.current = false;
-        const chime = new Audio('/chime.wav');
-        chime.volume = 0.4;
-        chime.play().catch(() => {});
-      }
+      const guide = new Audio('/voice-picker-guide.wav');
+      guide.volume = 0.9;
+      guide.onended = () => { guidePlayingRef.current = false; };
+      guide.onerror = () => { guidePlayingRef.current = false; };
+      guideAudioRef.current = guide;
+      guide.play().catch(() => { guidePlayingRef.current = false; });
     }, 400);
-    return () => { clearTimeout(t1); clearTimeout(t2); };
-  }, [accessToken]);
+    return () => { clearTimeout(t1); clearTimeout(t2); guideAudioRef.current?.pause(); };
+  }, []);
 
   // Cleanup on unmount
   useEffect(() => () => { audioRef.current?.pause(); }, []);
