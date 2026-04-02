@@ -20,8 +20,6 @@ import { setPremium, getSubscription } from './subscription';
 // RevenueCat API key — set after creating RevenueCat account
 const REVENUECAT_API_KEY = ''; // TODO: Add after RevenueCat setup on Mac
 
-// Product identifier matching App Store Connect
-const PRODUCT_ID = 'easybee_premium_monthly';
 
 /**
  * Initialize RevenueCat SDK.

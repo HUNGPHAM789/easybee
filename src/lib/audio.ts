@@ -154,6 +154,7 @@ export class AudioHandler {
       this.analyser.disconnect();
       this.analyser = null;
     }
+    this.dataArray = null;
     if (this.stream) {
       this.stream.getTracks().forEach(t => t.stop());
       this.stream = null;

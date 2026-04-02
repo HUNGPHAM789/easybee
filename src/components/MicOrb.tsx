@@ -112,6 +112,7 @@ export default function MicOrb({ volume, isActive, isConnecting, onClick, reduce
       <motion.button
         onClick={onClick}
         disabled={isConnecting}
+        aria-label={isConnecting ? 'Đang kết nối...' : isActive ? 'Kết thúc buổi học' : 'Bắt đầu buổi học'}
         className="relative z-10 rounded-full flex items-center justify-center cursor-pointer select-none overflow-hidden"
         style={{
           width: SIZE,

@@ -60,11 +60,12 @@ export const VOICE_MAP: Record<Persona, string> = {
 const STORAGE_KEY = 'easybee_voice';
 
 export function getSavedVoice(): Persona | null {
-  return localStorage.getItem(STORAGE_KEY) as Persona | null;
+  try { return localStorage.getItem(STORAGE_KEY) as Persona | null; }
+  catch { return null; }
 }
 
 export function saveVoice(persona: Persona): void {
-  localStorage.setItem(STORAGE_KEY, persona);
+  try { localStorage.setItem(STORAGE_KEY, persona); } catch {}
 }
 
 // ── Avatar gradients & initials ─────────────────────────────

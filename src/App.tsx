@@ -3,7 +3,7 @@ import { GoogleGenAI, LiveServerMessage, Modality } from '@google/genai';
 import { Copy, Check, ArrowLeft, Loader2, UserCircle, Search, ChevronDown, Lock, Volume2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { AudioHandler } from './lib/audio';
-import { speakPhrase, stopTTS } from './lib/tts';
+import { speakPhrase, stopTTS, setTTSAuthToken } from './lib/tts';
 import { type Phrase, isNewUser, getProfile, getLastSession, getReviewPhrases } from './lib/profile';
 import { analyzeSession } from './lib/curriculum';
 import { supabase } from './lib/supabase';
@@ -25,10 +25,11 @@ type AppMode = 'conversation' | 'ielts';
 
 const MODE_STORAGE_KEY = 'easybee_mode';
 function getSavedMode(): AppMode {
-  return (localStorage.getItem(MODE_STORAGE_KEY) as AppMode) || 'conversation';
+  try { return (localStorage.getItem(MODE_STORAGE_KEY) as AppMode) || 'conversation'; }
+  catch { return 'conversation'; }
 }
 function saveMode(mode: AppMode) {
-  localStorage.setItem(MODE_STORAGE_KEY, mode);
+  try { localStorage.setItem(MODE_STORAGE_KEY, mode); } catch {}
 }
 
 // ── IELTS parsed data types ─────────────────────────────────
@@ -928,6 +929,9 @@ export default function App() {
 function TutorApp({ session }: { session: Session }) {
   const reduced = usePrefersReducedMotion();
   const pv = getPhaseVariants(reduced);
+
+  // Set TTS auth token whenever session changes
+  useEffect(() => { setTTSAuthToken(session.access_token); }, [session.access_token]);
   const [phase, setPhase] = useState<Phase>('idle');
   const [volume, setVolume] = useState(0);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -947,6 +951,7 @@ function TutorApp({ session }: { session: Session }) {
 
   const audioHandlerRef = useRef<AudioHandler | null>(null);
   const sessionRef = useRef<any>(null);
+  const greetingAudioRef = useRef<HTMLAudioElement | null>(null);
   const tutorBufferRef = useRef('');
   const knownPhrasesRef = useRef<Set<string>>(new Set());
 
@@ -994,7 +999,6 @@ function TutorApp({ session }: { session: Session }) {
   const startSession = async () => {
     if (phase === 'connecting' || phase === 'lesson') return; // prevent double-click
     if (!checkCanStartSession()) { setShowPaywall(true); return; }
-    incrementSessionCount();
 
     // ── Instant feedback: haptic + visual + greeting audio ──
     navigator.vibrate?.([50]);
@@ -1003,7 +1007,10 @@ function TutorApp({ session }: { session: Session }) {
     // Play pre-recorded greeting while WebSocket connects
     const greetingPersona = getSavedVoice() || 'thay-bee';
     const greetingState = isNewUser() ? 'new' : 'return';
+    greetingAudioRef.current?.pause();
     const greetingAudio = new Audio(`/greetings/${greetingPersona}-${greetingState}.wav`);
+    greetingAudioRef.current = greetingAudio;
+    greetingAudio.onended = () => { greetingAudioRef.current = null; };
     greetingAudio.play().catch(() => {});
 
     try {
@@ -1038,6 +1045,7 @@ function TutorApp({ session }: { session: Session }) {
         },
         callbacks: {
           onopen: () => {
+            incrementSessionCount();
             setPhase('lesson');
             handler.startRecording(b64 => { sp.then(s => s.sendRealtimeInput({ audio: { data: b64, mimeType: 'audio/pcm;rate=16000' } })); });
           },
@@ -1064,10 +1072,11 @@ function TutorApp({ session }: { session: Session }) {
   const cleanup = () => {
     audioHandlerRef.current?.stopRecording(); audioHandlerRef.current = null;
     sessionRef.current?.then((s: any) => { try { s.close(); } catch {} }); sessionRef.current = null;
+    if (greetingAudioRef.current) { greetingAudioRef.current.pause(); greetingAudioRef.current = null; }
     setVolume(0);
   };
 
-  const endSession = () => { cleanup(); setPhase('session-end'); runPostSessionAnalysis(learnedPhrases, allTutorMessages); };
+  const endSession = () => { if (phase !== 'lesson' && phase !== 'connecting') return; cleanup(); setPhase('session-end'); runPostSessionAnalysis(learnedPhrases, allTutorMessages); };
   const toggleSession = () => { setErrorMsg(null); if (isRecording) endSession(); else startSession(); };
 
   // ── Render ──

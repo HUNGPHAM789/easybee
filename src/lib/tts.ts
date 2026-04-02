@@ -7,6 +7,12 @@
 const audioCache = new Map<string, AudioBuffer>();
 let audioContext: AudioContext | null = null;
 let currentSource: AudioBufferSourceNode | null = null;
+let authToken: string | null = null;
+
+/** Set the auth token for TTS API calls. Call after login. */
+export function setTTSAuthToken(token: string): void {
+  authToken = token;
+}
 
 function getContext(): AudioContext {
   if (!audioContext || audioContext.state === 'closed') {
@@ -47,9 +53,11 @@ export async function speakPhrase(
     // Fetch from API
     onStart?.();
     try {
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
       const res = await fetch('/api/tts', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({ text, voice }),
       });
 

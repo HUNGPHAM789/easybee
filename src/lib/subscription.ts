@@ -75,7 +75,7 @@ export async function setPremium(isPremium: boolean): Promise<void> {
     if (user) {
       await supabase
         .from('user_profiles')
-        .upsert({ id: user.id, is_premium: isPremium }, { onConflict: 'id' });
+        .upsert({ user_id: user.id, is_premium: isPremium, updated_at: new Date().toISOString() }, { onConflict: 'user_id' });
     }
   } catch (e) {
     console.error('Failed to sync premium status to Supabase:', e);
