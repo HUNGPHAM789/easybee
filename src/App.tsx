@@ -274,8 +274,10 @@ KHONG BAO GIO:
 - Quen dung [PHRASE][/PHRASE][VN][/VN] tags`;
 
   // ── NEW USER vs RETURNING USER ──
+  const greetingNote = '\n\nLUU Y: Loi chao ban dau DA DUOC phat qua audio roi. KHONG noi lai loi chao. Di thang vao noi dung chinh.';
+
   if (isNewUser()) {
-    return `${base}\n\n${personaIntro}`;
+    return `${base}\n\n${personaIntro}${greetingNote}`;
   }
 
   const profile = getProfile();
@@ -287,7 +289,7 @@ KHONG BAO GIO:
     r += `\n\nON TAP DAU BUOI:\nBat dau buoi hoc bang cach on lai ${review.length} cum tu cu: ${review.map(p => `"${p.english}" (${p.vietnamese})`).join(', ')}\nHoi hoc vien doc lai tung cum, khen khi ho nho dung.`;
   }
   r += `\n\nLOI CHAO (HOC VIEN CU):\nChao hoc vien va tom tat ngan buoi hoc truoc.\nGoi y chu de hom nay dua tren ke hoach.\nHoi: "Ban muon hoc chu de nay khong, hay ban muon hoc cai gi khac?"`;
-  return r;
+  return r + greetingNote;
 }
 
 // ── IELTS System Instruction Builder ───────────────────────
@@ -408,7 +410,7 @@ KHONG BAO GIO:
     return `${base}\n\nTHONG TIN HOC VIEN:\n- Trinh do: ${profile.cefrLevel}\n- So buoi da hoc: ${profile.totalSessions}\n- Tong cum tu da hoc: ${profile.totalPhrases}\n\nLOI CHAO:\nChao hoc vien va bat dau Part 1 ngay. Hoi cau hoi IELTS dau tien.`;
   }
 
-  return `${base}\n\nLOI CHAO (HOC VIEN MOI):\nGioi thieu ban la IELTS Speaking examiner-coach cua EasyBee.\nHoi trinh do hien tai cua hoc vien (da thi IELTS chua, muc tieu band bao nhieu).\nSau do bat dau Part 1 voi cau hoi don gian.`;
+  return `${base}\n\nLOI CHAO (HOC VIEN MOI):\nGioi thieu ban la IELTS Speaking examiner-coach cua EasyBee.\nHoi trinh do hien tai cua hoc vien (da thi IELTS chua, muc tieu band bao nhieu).\nSau do bat dau Part 1 voi cau hoi don gian.\n\nLUU Y: Loi chao ban dau DA DUOC phat qua audio roi. KHONG noi lai loi chao. Di thang vao noi dung chinh.`;
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -993,6 +995,17 @@ function TutorApp({ session }: { session: Session }) {
     if (phase === 'connecting' || phase === 'lesson') return; // prevent double-click
     if (!checkCanStartSession()) { setShowPaywall(true); return; }
     incrementSessionCount();
+
+    // ── Instant feedback: haptic + visual + greeting audio ──
+    navigator.vibrate?.([50]);
+    setPhase('connecting'); setErrorMsg(null); setLatestTutorMsg(''); setCurrentPhrase(null);
+
+    // Play pre-recorded greeting while WebSocket connects
+    const greetingPersona = getSavedVoice() || 'thay-bee';
+    const greetingState = isNewUser() ? 'new' : 'return';
+    const greetingAudio = new Audio(`/greetings/${greetingPersona}-${greetingState}.wav`);
+    greetingAudio.play().catch(() => {});
+
     try {
       const tokenRes = await fetch('/api/gemini-token', {
         method: 'POST',
@@ -1005,7 +1018,6 @@ function TutorApp({ session }: { session: Session }) {
       const { apiKey } = await tokenRes.json();
       if (!apiKey) throw new Error('API key is missing.');
       const ai = new GoogleGenAI({ apiKey });
-      setPhase('connecting'); setErrorMsg(null); setLatestTutorMsg(''); setCurrentPhrase(null);
       setLearnedPhrases([]); setNextPlan(''); setSessionTopic(''); setAllTutorMessages([]);
       setCurrentCueCard(null); setCurrentBandScore(null);
       knownPhrasesRef.current.clear(); tutorBufferRef.current = '';
