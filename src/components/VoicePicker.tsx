@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Play, Check } from 'lucide-react';
+import { Play, Check, Lock } from 'lucide-react';
 
 // ── Types & Data ────────────────────────────────────────────
 export type Persona = 'thay-bee' | 'co-honey' | 'anh-max' | 'chi-linh';
@@ -96,7 +96,7 @@ const spring = { type: 'spring' as const, damping: 25, stiffness: 200 };
 const ease = [0.25, 0.1, 0.25, 1] as const;
 
 // ── Component ───────────────────────────────────────────────
-export default function VoicePicker({ onSelect, reduced = false }: { onSelect: (persona: Persona) => void; reduced?: boolean }) {
+export default function VoicePicker({ onSelect, reduced = false, isLockedVoice, onLockedTap }: { onSelect: (persona: Persona) => void; reduced?: boolean; isLockedVoice?: (id: Persona) => boolean; onLockedTap?: () => void }) {
   const [selected, setSelected] = useState<Persona>(getSavedVoice() || 'thay-bee');
   const [playing, setPlaying] = useState<Persona | null>(null);
   const [failedImgs, setFailedImgs] = useState<Set<Persona>>(new Set());
@@ -158,6 +158,7 @@ export default function VoicePicker({ onSelect, reduced = false }: { onSelect: (
           const isPlaying = playing === voice.id;
           const avatar = AVATAR_STYLES[voice.id];
           const imgFailed = failedImgs.has(voice.id);
+          const locked = isLockedVoice?.(voice.id) ?? false;
 
           return (
             <motion.div
@@ -170,8 +171,8 @@ export default function VoicePicker({ onSelect, reduced = false }: { onSelect: (
               {/* Avatar with double ring */}
               <button
                 className="relative mb-2 cursor-pointer bg-transparent border-none p-0"
-                onClick={() => setSelected(voice.id)}
-                aria-label={`Chọn ${voice.name}`}
+                onClick={() => { if (locked) { onLockedTap?.(); return; } setSelected(voice.id); }}
+                aria-label={locked ? `${voice.name} — Premium` : `Chọn ${voice.name}`}
               >
                 {/* Outer ring */}
                 <div
@@ -216,10 +217,22 @@ export default function VoicePicker({ onSelect, reduced = false }: { onSelect: (
                   </motion.div>
                 </div>
 
-                {/* Checkmark badge (selected) */}
+                {/* Checkmark badge (selected) or Lock badge (locked) */}
                 <AnimatePresence>
-                  {isSelected && (
+                  {locked ? (
                     <motion.div
+                      key="lock"
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      exit={{ scale: 0 }}
+                      transition={spring}
+                      className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-[#b0b0b0] flex items-center justify-center"
+                    >
+                      <Lock className="w-2.5 h-2.5 text-white" strokeWidth={3} />
+                    </motion.div>
+                  ) : isSelected ? (
+                    <motion.div
+                      key="check"
                       initial={{ scale: 0 }}
                       animate={{ scale: 1 }}
                       exit={{ scale: 0 }}
@@ -228,7 +241,7 @@ export default function VoicePicker({ onSelect, reduced = false }: { onSelect: (
                     >
                       <Check className="w-3 h-3 text-white" strokeWidth={3} />
                     </motion.div>
-                  )}
+                  ) : null}
                 </AnimatePresence>
               </button>
 

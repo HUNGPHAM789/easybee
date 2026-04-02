@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { GoogleGenAI, LiveServerMessage, Modality } from '@google/genai';
-import { Copy, Check, ArrowLeft, Loader2, UserCircle, Search, ChevronDown } from 'lucide-react';
+import { Copy, Check, ArrowLeft, Loader2, UserCircle, Search, ChevronDown, Lock } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { AudioHandler } from './lib/audio';
 import { type Phrase, isNewUser, getProfile, getLastSession, getReviewPhrases } from './lib/profile';
@@ -14,6 +14,8 @@ import VoicePicker, { type Persona, VOICE_MAP, getSavedVoice } from './component
 import CueCard from './components/CueCard';
 import BandScore, { type BandScoreData } from './components/BandScore';
 import CommandPalette from './components/CommandPalette';
+import PaywallScreen from './components/PaywallScreen';
+import { checkCanStartSession, incrementSessionCount, setPremium, getSubscription, isPremiumVoice, isPremiumMode } from './lib/subscription';
 import type { Session } from '@supabase/supabase-js';
 
 // ── Types ────────────────────────────────────────────────────
@@ -902,6 +904,7 @@ function TutorApp({ session }: { session: Session }) {
   const [mode, setMode] = useState<AppMode>(getSavedMode());
   const [currentCueCard, setCurrentCueCard] = useState<string | null>(null);
   const [currentBandScore, setCurrentBandScore] = useState<BandScoreData | null>(null);
+  const [showPaywall, setShowPaywall] = useState(false);
 
   const audioHandlerRef = useRef<AudioHandler | null>(null);
   const sessionRef = useRef<any>(null);
@@ -949,6 +952,8 @@ function TutorApp({ session }: { session: Session }) {
 
   const startSession = async () => {
     if (phase === 'connecting' || phase === 'lesson') return; // prevent double-click
+    if (!checkCanStartSession()) { setShowPaywall(true); return; }
+    incrementSessionCount();
     try {
       const tokenRes = await fetch('/api/gemini-token', {
         method: 'POST',
@@ -1063,7 +1068,10 @@ function TutorApp({ session }: { session: Session }) {
               <VoicePicker onSelect={(persona) => {
                 setShowVoicePicker(false);
                 saveVoicePreference(persona, session.access_token);
-              }} reduced={reduced} />
+              }} reduced={reduced}
+                isLockedVoice={(id) => isPremiumVoice(id) && !getSubscription().isPremium}
+                onLockedTap={() => setShowPaywall(true)}
+              />
             </motion.div>
           ) : phase === 'session-end' ? (
             <motion.div key="end" variants={pv} initial="enter" animate="center" exit="exit" transition={reduced ? { duration: 0 } : transitions.normal} className="flex-1 flex flex-col">
@@ -1097,19 +1105,25 @@ function TutorApp({ session }: { session: Session }) {
                           {[
                             { id: 'conversation' as AppMode, title: 'Học Giao Tiếp', desc: 'Luyện nói tiếng Anh cho công việc hàng ngày' },
                             { id: 'ielts' as AppMode, title: 'Luyện IELTS Speaking', desc: 'Thi thử & luyện band với AI examiner' },
-                          ].map((m, i) => (
+                          ].map((m, i) => {
+                            const locked = isPremiumMode(m.id) && !getSubscription().isPremium;
+                            return (
                             <motion.button
                               key={m.id}
                               initial={reduced ? { opacity: 0 } : { opacity: 0, scale: 0.95, y: 10 }}
                               animate={reduced ? { opacity: 1 } : { opacity: 1, scale: 1, y: 0 }}
                               transition={reduced ? { duration: 0 } : { delay: i * 0.1, duration: 0.4, ease }}
-                              onClick={() => { setMode(m.id); saveMode(m.id); }}
+                              onClick={() => { if (locked) { setShowPaywall(true); return; } setMode(m.id); saveMode(m.id); }}
                               className={`w-full text-left rounded-xl p-4 transition-all duration-200 bg-surface border border-border ${mode === m.id ? 'ring-2 ring-accent' : ''}`}
                             >
-                              <p className="text-[15px] font-semibold text-text">{m.title}</p>
+                              <div className="flex items-center justify-between">
+                                <p className="text-[15px] font-semibold text-text">{m.title}</p>
+                                {locked && <Lock className="w-4 h-4 text-text-muted" />}
+                              </div>
                               <p className="text-[12px] text-text-secondary mt-1 leading-relaxed">{m.desc}</p>
                             </motion.button>
-                          ))}
+                            );
+                          })}
                         </div>
                         {/* Change voice button */}
                         <button
@@ -1210,6 +1224,16 @@ function TutorApp({ session }: { session: Session }) {
         onSignOut={() => supabase.auth.signOut()}
         isInLesson={phase === 'lesson'}
       />
+
+      <AnimatePresence>
+        {showPaywall && (
+          <PaywallScreen
+            onSubscribe={async () => { await setPremium(true); setShowPaywall(false); }}
+            onRestore={async () => { await setPremium(true); setShowPaywall(false); }}
+            onClose={() => setShowPaywall(false)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }
