@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { GoogleGenAI, LiveServerMessage, Modality } from '@google/genai';
-import { Copy, Check, ArrowLeft, Loader2, UserCircle, Search, ChevronDown, Lock } from 'lucide-react';
+import { Copy, Check, ArrowLeft, Loader2, UserCircle, Search, ChevronDown, Lock, Volume2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { AudioHandler } from './lib/audio';
+import { speakPhrase, stopTTS } from './lib/tts';
 import { type Phrase, isNewUser, getProfile, getLastSession, getReviewPhrases } from './lib/profile';
 import { analyzeSession } from './lib/curriculum';
 import { supabase } from './lib/supabase';
@@ -481,20 +482,49 @@ const phraseItemVariants = {
   show: { opacity: 1, y: 0, filter: 'blur(0px)', transition: { duration: 0.35, ease: [0.22, 1, 0.36, 1] } },
 };
 
-const PhraseList = ({ phrases, currentPhrase, reduced = false }: { phrases: Phrase[]; currentPhrase: Phrase | null; reduced?: boolean }) => {
+/** Speaker icon with tap-to-speak */
+const SpeakerButton = ({ text, voiceName, playingKey, setPlayingKey }: {
+  text: string; voiceName: string;
+  playingKey: string | null; setPlayingKey: (k: string | null) => void;
+}) => {
+  const isPlaying = playingKey === text;
+  return (
+    <button
+      onClick={(e) => {
+        e.stopPropagation();
+        if (isPlaying) { stopTTS(); setPlayingKey(null); return; }
+        setPlayingKey(text);
+        speakPhrase(text, voiceName, undefined, () => setPlayingKey(null));
+      }}
+      className="shrink-0 p-1 -m-1 touch-manipulation"
+    >
+      <motion.div animate={isPlaying ? { opacity: [0.4, 1, 0.4] } : { opacity: 1 }}
+        transition={isPlaying ? { duration: 1.2, repeat: Infinity, ease: 'easeInOut' } : { duration: 0.2 }}
+      >
+        <Volume2 className={`w-4 h-4 ${isPlaying ? 'text-[#0a0a0a]' : 'text-[#b0b0b0]'}`} />
+      </motion.div>
+    </button>
+  );
+};
+
+const PhraseList = ({ phrases, currentPhrase, reduced = false, voiceName }: { phrases: Phrase[]; currentPhrase: Phrase | null; reduced?: boolean; voiceName: string }) => {
+  const [playingKey, setPlayingKey] = useState<string | null>(null);
   if (reduced) {
     return (
       <div className="w-full px-8 py-4 space-y-4 overflow-y-auto max-h-[240px]">
         {phrases.map((p) => {
           const isCurrent = currentPhrase?.english === p.english;
           return (
-            <div key={p.english} className="flex flex-col">
-              <p className={`leading-tight ${isCurrent ? 'text-[22px] font-light text-text tracking-tight' : 'text-[15px] font-light text-text-muted'}`}>
-                {p.english}
-              </p>
-              <p className={`mt-0.5 ${isCurrent ? 'text-[14px] text-text-secondary' : 'text-[12px] text-text-muted'}`}>
-                {p.vietnamese}
-              </p>
+            <div key={p.english} className="flex items-start gap-2">
+              <div className="flex-1 flex flex-col">
+                <p className={`leading-tight ${isCurrent ? 'text-[22px] font-light text-text tracking-tight' : 'text-[15px] font-light text-text-muted'}`}>
+                  {p.english}
+                </p>
+                <p className={`mt-0.5 ${isCurrent ? 'text-[14px] text-text-secondary' : 'text-[12px] text-text-muted'}`}>
+                  {p.vietnamese}
+                </p>
+              </div>
+              <SpeakerButton text={p.english} voiceName={voiceName} playingKey={playingKey} setPlayingKey={setPlayingKey} />
             </div>
           );
         })}
@@ -520,30 +550,33 @@ const PhraseList = ({ phrases, currentPhrase, reduced = false }: { phrases: Phra
               initial="hidden"
               animate="show"
               exit={{ opacity: 0, y: -8, filter: 'blur(4px)', transition: { duration: 0.2 } }}
-              className="flex flex-col"
+              className="flex items-start gap-2"
             >
-              <motion.p
-                className="leading-tight font-light"
-                animate={{
-                  fontSize: isCurrent ? '22px' : '15px',
-                  color: isCurrent ? '#0a0a0a' : '#8a8a8a',
-                  letterSpacing: isCurrent ? '-0.025em' : '0em',
-                }}
-                transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-              >
-                {p.english}
-              </motion.p>
-              <motion.p
-                className="mt-0.5"
-                animate={{
-                  fontSize: isCurrent ? '14px' : '12px',
-                  color: isCurrent ? '#8a8a8a' : '#b0b0b0',
-                  opacity: isCurrent ? 1 : 0.7,
-                }}
-                transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-              >
-                {p.vietnamese}
-              </motion.p>
+              <div className="flex-1 flex flex-col">
+                <motion.p
+                  className="leading-tight font-light"
+                  animate={{
+                    fontSize: isCurrent ? '22px' : '15px',
+                    color: isCurrent ? '#0a0a0a' : '#8a8a8a',
+                    letterSpacing: isCurrent ? '-0.025em' : '0em',
+                  }}
+                  transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                >
+                  {p.english}
+                </motion.p>
+                <motion.p
+                  className="mt-0.5"
+                  animate={{
+                    fontSize: isCurrent ? '14px' : '12px',
+                    color: isCurrent ? '#8a8a8a' : '#b0b0b0',
+                    opacity: isCurrent ? 1 : 0.7,
+                  }}
+                  transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                >
+                  {p.vietnamese}
+                </motion.p>
+              </div>
+              <SpeakerButton text={p.english} voiceName={voiceName} playingKey={playingKey} setPlayingKey={setPlayingKey} />
             </motion.div>
           );
         })}
@@ -656,13 +689,14 @@ const AccordionSection = ({
 
 /** Session end screen — monochrome with accordion */
 const SessionEndScreen = ({
-  phrases, isAnalyzing, nextPlan, onViewNotes, onNewSession, reduced,
+  phrases, isAnalyzing, nextPlan, onViewNotes, onNewSession, reduced, voiceName,
 }: {
   phrases: Phrase[]; isAnalyzing: boolean; nextPlan: string;
-  onViewNotes: () => void; onNewSession: () => void; reduced: boolean;
+  onViewNotes: () => void; onNewSession: () => void; reduced: boolean; voiceName: string;
 }) => {
   const profile = getProfile();
   const t = getTransitions(reduced);
+  const [playingKey, setPlayingKey] = useState<string | null>(null);
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     phrases: true,
     plan: false,
@@ -727,10 +761,11 @@ const SessionEndScreen = ({
                   className="flex gap-3 items-start py-3 border-b border-border last:border-b-0"
                 >
                   <span className="text-text-muted font-semibold text-sm min-w-[20px]">{i + 1}</span>
-                  <div>
+                  <div className="flex-1">
                     <p className="text-text font-medium text-[15px]">{p.english}</p>
                     <p className="text-text-secondary text-[13px] mt-0.5">{p.vietnamese}</p>
                   </div>
+                  <SpeakerButton text={p.english} voiceName={voiceName} playingKey={playingKey} setPlayingKey={setPlayingKey} />
                 </motion.div>
               ))}
             </div>
@@ -788,7 +823,8 @@ const SessionEndScreen = ({
 };
 
 /** Notes view */
-const SummaryView = ({ phrases, onBack }: { phrases: Phrase[]; onBack: () => void }) => {
+const SummaryView = ({ phrases, onBack, voiceName }: { phrases: Phrase[]; onBack: () => void; voiceName: string }) => {
+  const [playingKey, setPlayingKey] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const copyNotes = useCallback(() => {
     const profile = getProfile();
@@ -823,10 +859,11 @@ const SummaryView = ({ phrases, onBack }: { phrases: Phrase[]; onBack: () => voi
             className="flex gap-3 items-start py-3 border-b border-border"
           >
             <span className="text-text-muted font-semibold text-sm min-w-[20px]">{idx + 1}</span>
-            <div>
+            <div className="flex-1">
               <p className="text-text font-medium text-[15px]">{p.english}</p>
               <p className="text-text-secondary text-[13px] mt-0.5">{p.vietnamese}</p>
             </div>
+            <SpeakerButton text={p.english} voiceName={voiceName} playingKey={playingKey} setPlayingKey={setPlayingKey} />
           </motion.div>
         ))}
       </div>
@@ -910,6 +947,8 @@ function TutorApp({ session }: { session: Session }) {
   const sessionRef = useRef<any>(null);
   const tutorBufferRef = useRef('');
   const knownPhrasesRef = useRef<Set<string>>(new Set());
+
+  const voiceName = VOICE_MAP[getSavedVoice() || 'thay-bee'];
 
   const isRecording = phase === 'lesson';
   const isConnecting = phase === 'connecting';
@@ -1076,11 +1115,11 @@ function TutorApp({ session }: { session: Session }) {
           ) : phase === 'session-end' ? (
             <motion.div key="end" variants={pv} initial="enter" animate="center" exit="exit" transition={reduced ? { duration: 0 } : transitions.normal} className="flex-1 flex flex-col">
               <SessionEndScreen phrases={learnedPhrases} isAnalyzing={isAnalyzing} nextPlan={nextPlan}
-                onViewNotes={() => setPhase('summary')} onNewSession={() => startSession()} reduced={reduced} />
+                onViewNotes={() => setPhase('summary')} onNewSession={() => startSession()} reduced={reduced} voiceName={voiceName} />
             </motion.div>
           ) : phase === 'summary' ? (
             <motion.div key="summary" variants={pv} initial="enter" animate="center" exit="exit" transition={reduced ? { duration: 0 } : transitions.normal} className="flex-1 flex flex-col">
-              <SummaryView phrases={learnedPhrases} onBack={() => setPhase('session-end')} />
+              <SummaryView phrases={learnedPhrases} onBack={() => setPhase('session-end')} voiceName={voiceName} />
             </motion.div>
           ) : (
             <motion.div key="main" variants={pv} initial="enter" animate="center" exit="exit" transition={reduced ? { duration: 0 } : transitions.normal} className="flex-1 flex flex-col">
@@ -1094,7 +1133,7 @@ function TutorApp({ session }: { session: Session }) {
                     ) : currentBandScore ? (
                       <BandScore key="bandscore" data={currentBandScore} />
                     ) : learnedPhrases.length > 0 && phase === 'lesson' ? (
-                      <PhraseList phrases={learnedPhrases} currentPhrase={currentPhrase} reduced={reduced} />
+                      <PhraseList phrases={learnedPhrases} currentPhrase={currentPhrase} reduced={reduced} voiceName={voiceName} />
                     ) : phase === 'idle' ? (
                       <motion.div key="idle" initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
                         transition={{ duration: 0.6, delay: 0.25, ease }}
