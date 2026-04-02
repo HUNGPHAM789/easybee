@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Play, Check, Lock } from 'lucide-react';
+import { Check, Lock } from 'lucide-react';
 
 // ── Types & Data ────────────────────────────────────────────
 export type Persona = 'thay-bee' | 'co-honey' | 'anh-max' | 'chi-linh';
@@ -75,15 +75,16 @@ const AVATAR_STYLES: Record<Persona, { gradient: string; initials: string }> = {
   'chi-linh': { gradient: 'linear-gradient(135deg, #c9b1d4, #e0d0e8)', initials: 'CL' },
 };
 
-// ── Animated Equalizer (3 bars) ─────────────────────────────
-function Equalizer() {
+// ── Animated Equalizer (on avatar ring) ────────────────────
+function AvatarEqualizer() {
   return (
-    <div className="flex items-end gap-[2px] h-[10px]">
+    <div className="absolute bottom-0 left-1/2 -translate-x-1/2 flex items-end gap-[2px] h-[8px] z-10">
       {[0, 0.15, 0.3].map((delay, i) => (
         <motion.div
           key={i}
-          className="w-[2px] bg-white rounded-full"
-          animate={{ height: ['3px', '10px', '3px'] }}
+          className="w-[2px] rounded-full"
+          style={{ background: 'var(--color-accent)' }}
+          animate={{ height: ['2px', '8px', '2px'] }}
           transition={{ duration: 0.5, repeat: Infinity, delay, ease: 'easeInOut' }}
         />
       ))}
@@ -120,6 +121,17 @@ export default function VoicePicker({ onSelect, reduced = false, isLockedVoice, 
     setPlaying(voice.id);
     audio.play().catch(() => setPlaying(null));
   }, [stopPreview]);
+
+  // Mount: light haptic + brand chime
+  useEffect(() => {
+    const t1 = setTimeout(() => navigator.vibrate?.([30]), 200);
+    const t2 = setTimeout(() => {
+      const chime = new Audio('/chime.wav');
+      chime.volume = 0.4;
+      chime.play().catch(() => {});
+    }, 400);
+    return () => { clearTimeout(t1); clearTimeout(t2); };
+  }, []);
 
   // Cleanup on unmount
   useEffect(() => () => { audioRef.current?.pause(); }, []);
@@ -168,10 +180,15 @@ export default function VoicePicker({ onSelect, reduced = false, isLockedVoice, 
               animate={reduced ? { opacity: 1 } : { opacity: 1, y: 0 }}
               transition={reduced ? { duration: 0 } : { ...spring, delay: 0.1 + i * 0.07 }}
             >
-              {/* Avatar with double ring */}
+              {/* Avatar with double ring — tap to select + preview */}
               <button
                 className="relative mb-2 cursor-pointer bg-transparent border-none p-0"
-                onClick={() => { if (locked) { onLockedTap?.(); return; } setSelected(voice.id); }}
+                onClick={() => {
+                  if (locked) { onLockedTap?.(); return; }
+                  navigator.vibrate?.([20]);
+                  setSelected(voice.id);
+                  playPreview(voice);
+                }}
                 aria-label={locked ? `${voice.name} — Premium` : `Chọn ${voice.name}`}
               >
                 {/* Outer ring */}
@@ -186,7 +203,7 @@ export default function VoicePicker({ onSelect, reduced = false, isLockedVoice, 
                 >
                   {/* Inner ring */}
                   <motion.div
-                    className="rounded-full flex items-center justify-center"
+                    className="rounded-full flex items-center justify-center relative"
                     style={{
                       width: 80,
                       height: 80,
@@ -214,6 +231,11 @@ export default function VoicePicker({ onSelect, reduced = false, isLockedVoice, 
                         />
                       )}
                     </div>
+
+                    {/* Equalizer on avatar ring */}
+                    <AnimatePresence>
+                      {isPlaying && <AvatarEqualizer />}
+                    </AnimatePresence>
                   </motion.div>
                 </div>
 
@@ -257,23 +279,6 @@ export default function VoicePicker({ onSelect, reduced = false, isLockedVoice, 
               <p className="text-[12px] text-text-secondary text-center leading-snug mt-0.5 line-clamp-2">
                 {voice.description}
               </p>
-
-              {/* Play button — 44px touch target */}
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (isPlaying) stopPreview();
-                  else playPreview(voice);
-                }}
-                aria-label={isPlaying ? `Dừng nghe ${voice.name}` : `Nghe thử ${voice.name}`}
-                className="mt-1.5 w-11 h-11 rounded-full flex items-center justify-center transition-colors duration-200"
-                style={{ background: isPlaying ? 'var(--color-accent)' : 'var(--color-surface)' }}
-              >
-                {isPlaying
-                  ? <Equalizer />
-                  : <Play className="w-3.5 h-3.5 text-text-secondary ml-[1px]" />
-                }
-              </button>
             </motion.div>
           );
         })}
