@@ -1131,6 +1131,7 @@ function TutorApp({ session }: { session: Session }) {
               }} reduced={reduced}
                 isLockedVoice={(id) => isPremiumVoice(id) && !getSubscription().isPremium}
                 onLockedTap={() => setShowPaywall(true)}
+                accessToken={session.access_token}
               />
             </motion.div>
           ) : phase === 'session-end' ? (

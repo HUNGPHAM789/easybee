@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Check, Lock } from 'lucide-react';
+import { speakPhrase, stopTTS, setTTSAuthToken } from '../lib/tts';
 
 // ── Types & Data ────────────────────────────────────────────
 export type Persona = 'thay-bee' | 'co-honey' | 'anh-max' | 'chi-linh';
@@ -97,8 +98,12 @@ function AvatarEqualizer() {
 const spring = { type: 'spring' as const, damping: 25, stiffness: 200 };
 const ease = [0.25, 0.1, 0.25, 1] as const;
 
+// ── Voice guide ────────────────────────────────────────────
+const GUIDE_TEXT = 'Xin chào! Đây là EasyBee, gia sư tiếng Anh của bạn. Bạn nhấn vào hình giáo viên để nghe giọng và chọn giáo viên phù hợp cho mình nhé. Bạn có thể đổi giáo viên bất cứ lúc nào.';
+let guidePlayed = false; // module-level — only call TTS once across remounts
+
 // ── Component ───────────────────────────────────────────────
-export default function VoicePicker({ onSelect, reduced = false, isLockedVoice, onLockedTap }: { onSelect: (persona: Persona) => void; reduced?: boolean; isLockedVoice?: (id: Persona) => boolean; onLockedTap?: () => void }) {
+export default function VoicePicker({ onSelect, reduced = false, isLockedVoice, onLockedTap, accessToken }: { onSelect: (persona: Persona) => void; reduced?: boolean; isLockedVoice?: (id: Persona) => boolean; onLockedTap?: () => void; accessToken?: string }) {
   const [selected, setSelected] = useState<Persona>(getSavedVoice() || 'thay-bee');
   const [playing, setPlaying] = useState<Persona | null>(null);
   const [failedImgs, setFailedImgs] = useState<Set<Persona>>(new Set());
@@ -114,6 +119,11 @@ export default function VoicePicker({ onSelect, reduced = false, isLockedVoice, 
   }, []);
 
   const playPreview = useCallback((voice: VoiceOption) => {
+    // Stop guide audio if playing
+    if (guidePlayingRef.current) {
+      stopTTS();
+      guidePlayingRef.current = false;
+    }
     stopPreview();
     const audio = new Audio(`/voices/${voice.id}.wav`);
     audio.onended = () => setPlaying(null);
@@ -123,16 +133,30 @@ export default function VoicePicker({ onSelect, reduced = false, isLockedVoice, 
     audio.play().catch(() => setPlaying(null));
   }, [stopPreview]);
 
-  // Mount: light haptic + brand chime
+  const guidePlayingRef = useRef(false);
+
+  // Mount: light haptic + voice guide (fallback to chime)
   useEffect(() => {
     const t1 = setTimeout(() => navigator.vibrate?.([30]), 200);
-    const t2 = setTimeout(() => {
-      const chime = new Audio('/chime.wav');
-      chime.volume = 0.4;
-      chime.play().catch(() => {});
+    const t2 = setTimeout(async () => {
+      if (guidePlayed) return;
+      guidePlayed = true;
+      guidePlayingRef.current = true;
+      try {
+        if (accessToken) setTTSAuthToken(accessToken);
+        await speakPhrase(GUIDE_TEXT, 'Kore', undefined, () => {
+          guidePlayingRef.current = false;
+        });
+      } catch {
+        // Fallback to chime on any error
+        guidePlayingRef.current = false;
+        const chime = new Audio('/chime.wav');
+        chime.volume = 0.4;
+        chime.play().catch(() => {});
+      }
     }, 400);
     return () => { clearTimeout(t1); clearTimeout(t2); };
-  }, []);
+  }, [accessToken]);
 
   // Cleanup on unmount
   useEffect(() => () => { audioRef.current?.pause(); }, []);
