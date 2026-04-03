@@ -1,15 +1,27 @@
 /**
  * Embeddings helper for smart phrase matching.
  * Uses /api/embed (Gemini Embedding 001, 3072-dim vectors).
- * 
+ *
  * Use cases:
  * - Match user intent to career path phrases
  * - Detect duplicate phrases in the bank
  * - Find semantically similar phrases for review
  */
 
-// In-memory embedding cache: text → vector
+import { CAREER_PATHS, IELTS_PATH } from './career-paths';
+
+// In-memory embedding cache: text → vector (capped to prevent memory leaks)
+const MAX_CACHE_SIZE = 500;
 const cache = new Map<string, number[]>();
+
+function cacheSet(key: string, value: number[]) {
+  if (cache.size >= MAX_CACHE_SIZE) {
+    // Evict oldest entry (first inserted)
+    const firstKey = cache.keys().next().value;
+    if (firstKey !== undefined) cache.delete(firstKey);
+  }
+  cache.set(key, value);
+}
 
 let authToken = '';
 
