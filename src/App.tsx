@@ -101,7 +101,7 @@ import { getRemainingSecondsSync, addUsageSeconds, canStartFreeSession, FREE_SEC
 import PronunciationHint from './components/PronunciationHint';
 import UsageBanner from './components/UsageBanner';
 import FreeLimitDialog from './components/FreeLimitDialog';
-import TranscriptWheel from './components/TranscriptWheel';
+import TutorSpeech from './components/TutorSpeech';
 import type { Session } from '@supabase/supabase-js';
 
 // ── Types ────────────────────────────────────────────────────
@@ -1226,6 +1226,7 @@ function TutorApp({ session }: { session: Session }) {
   const [nextPlan, setNextPlan] = useState('');
   const [sessionTopic, setSessionTopic] = useState('');
   const [allTutorMessages, setAllTutorMessages] = useState<string[]>([]);
+  const [transcriptLines, setTranscriptLines] = useState<string[]>([]);
   const [showVoicePicker, setShowVoicePicker] = useState(!getSavedVoice());
   const [showMenu, setShowMenu] = useState(false);
   const headerRef = useRef<HTMLDivElement>(null);
@@ -1253,6 +1254,8 @@ function TutorApp({ session }: { session: Session }) {
   const sessionRef = useRef<any>(null);
   const greetingAudioRef = useRef<HTMLAudioElement | null>(null);
   const tutorBufferRef = useRef('');
+  const sentenceBufferRef = useRef('');
+  const displayLengthRef = useRef(0);
   const knownPhrasesRef = useRef<Set<string>>(new Set());
 
   const voiceName = VOICE_MAP[getSavedVoice() || 'thay-bee'];
@@ -1274,7 +1277,28 @@ function TutorApp({ session }: { session: Session }) {
     }
     if (cueCard) setCurrentCueCard(cueCard);
     if (bandScore) setCurrentBandScore(bandScore);
-    if (displayText) setLatestTutorMsg(displayText);
+    if (displayText) {
+      setLatestTutorMsg(displayText);
+      // Accumulate new display chars into sentence buffer
+      const newChunk = displayText.slice(displayLengthRef.current);
+      displayLengthRef.current = displayText.length;
+      if (newChunk) {
+        sentenceBufferRef.current += newChunk;
+        // Flush complete sentences
+        let buf = sentenceBufferRef.current;
+        let flushIdx = -1;
+        for (let i = 0; i < buf.length; i++) {
+          if (buf[i] === '.' || buf[i] === '!' || buf[i] === '?' || buf[i] === '\n') {
+            flushIdx = i;
+          }
+        }
+        if (flushIdx >= 0) {
+          const complete = buf.slice(0, flushIdx + 1).trim();
+          sentenceBufferRef.current = buf.slice(flushIdx + 1).trimStart();
+          if (complete) setTranscriptLines(prev => [...prev, complete]);
+        }
+      }
+    }
   }, []);
 
   const finalizeTutorTurn = useCallback(() => {
@@ -1284,9 +1308,14 @@ function TutorApp({ session }: { session: Session }) {
       if (displayText) {
         setLatestTutorMsg(displayText);
         setAllTutorMessages(prev => [...prev, displayText]);
+        // Flush any remaining sentence buffer on turn complete
+        const remaining = (sentenceBufferRef.current + displayText.slice(displayLengthRef.current)).trim();
+        if (remaining) setTranscriptLines(prev => [...prev, remaining]);
       }
     }
     tutorBufferRef.current = '';
+    sentenceBufferRef.current = '';
+    displayLengthRef.current = 0;
   }, []);
 
   const runPostSessionAnalysis = useCallback(async (ph: Phrase[], msgs: string[]) => {
@@ -1348,9 +1377,9 @@ function TutorApp({ session }: { session: Session }) {
       const { apiKey } = await tokenRes.json();
       if (!apiKey) throw new Error('API key is missing.');
       const ai = new GoogleGenAI({ apiKey });
-      setLearnedPhrases([]); setNextPlan(''); setSessionTopic(''); setAllTutorMessages([]);
+      setLearnedPhrases([]); setNextPlan(''); setSessionTopic(''); setAllTutorMessages([]); setTranscriptLines([]);
       setCurrentCueCard(null); setCurrentBandScore(null);
-      knownPhrasesRef.current.clear(); tutorBufferRef.current = '';
+      knownPhrasesRef.current.clear(); tutorBufferRef.current = ''; sentenceBufferRef.current = ''; displayLengthRef.current = 0;
 
       const persona = (getSavedVoice() || 'thay-bee') as Persona;
       const sysInst = mode === 'ielts' ? buildIELTSInstruction(persona) : buildSystemInstruction(persona);
@@ -1573,18 +1602,10 @@ function TutorApp({ session }: { session: Session }) {
                   </AnimatePresence>
                 </div>
 
-                {/* Tutor transcript wheel — finalized turns + current streaming line */}
-                {phase === 'lesson' && (allTutorMessages.length > 0 || latestTutorMsg) && (
+                {/* Tutor transcript — shows most recent complete sentence */}
+                {phase === 'lesson' && transcriptLines.length > 0 && (
                   <div className="mb-4 max-w-full">
-                    <TranscriptWheel
-                      lines={[
-                        ...allTutorMessages,
-                        // Show in-progress streaming line only if not yet finalized
-                        ...(latestTutorMsg && latestTutorMsg !== allTutorMessages[allTutorMessages.length - 1]
-                          ? [latestTutorMsg]
-                          : []),
-                      ]}
-                    />
+                    <TutorSpeech lines={transcriptLines} />
                   </div>
                 )}
               </div>
