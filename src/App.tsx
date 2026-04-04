@@ -184,6 +184,14 @@ function hasIncompleteMarker(buf: string): boolean {
   return false;
 }
 
+// ── Persona opening greetings ─────────────────────────────────
+const PERSONA_GREETINGS: Record<Persona, string> = {
+  'thay-bee': 'Thầy Bee đây.',
+  'co-honey': 'Cô Honey đây.',
+  'anh-max': "Anh Max đây, let's go!",
+  'chi-linh': 'Chị Linh đây.',
+};
+
 // ── System Instruction Builder ──────────────────────────────
 function buildSystemInstruction(persona: Persona = 'thay-bee'): string {
   // ── PERSONA-SPECIFIC SECTIONS ──
@@ -382,23 +390,27 @@ KHONG BAO GIO:
 - Gia dinh hoc vien hieu tieng Anh
 - Quen dung [PHRASE][/PHRASE][VN][/VN] tags`;
 
-  // ── NEW USER vs RETURNING USER ──
-  const greetingNote = '\n\nLUU Y: Loi chao ban dau DA DUOC phat qua audio roi. KHONG noi lai loi chao. Di thang vao noi dung chinh.';
+  // ── KHAI MAC: tutor greets first on session start ──
+  const greeting = PERSONA_GREETINGS[persona];
+  const khaiMac = `KHAI MAC BUOI HOC (chi noi 1 lan dau tien):
+Khi buoi hoc bat dau, NGAY LAP TUC chao hoc vien va hoi chu de:
+"Chào bạn! ${greeting} Hôm nay bạn muốn học về chủ đề gì? Ví dụ: làm nail, mua sắm, hay chủ đề khác?"
+Sau do doi hoc vien tra loi. KHONG noi gi them truoc khi hoc vien chon chu de.`;
 
+  // ── NEW USER vs RETURNING USER ──
   if (isNewUser()) {
-    return `${base}\n\n${personaIntro}${greetingNote}`;
+    return `${khaiMac}\n\n${base}\n\n${personaIntro}`;
   }
 
   const profile = getProfile();
   const last = getLastSession();
   const review = getReviewPhrases(3);
-  let r = `${base}\n\nTHONG TIN HOC VIEN (DA HOC TRUOC):\n- Trinh do: ${profile.cefrLevel}\n- Muc tieu: ${profile.goals || 'chua ro'}\n- So buoi da hoc: ${profile.totalSessions}\n- Tong cum tu da hoc: ${profile.totalPhrases}\n- Chuoi hoc lien tiep: ${profile.streak} ngay`;
+  let r = `${khaiMac}\n\n${base}\n\nTHONG TIN HOC VIEN (DA HOC TRUOC):\n- Trinh do: ${profile.cefrLevel}\n- Muc tieu: ${profile.goals || 'chua ro'}\n- So buoi da hoc: ${profile.totalSessions}\n- Tong cum tu da hoc: ${profile.totalPhrases}\n- Chuoi hoc lien tiep: ${profile.streak} ngay`;
   if (last) r += `\n\nBUOI HOC TRUOC:\n- Chu de: ${last.topic}\n- Tom tat: ${last.summary}\n- Ke hoach hom nay: ${last.nextPlan}`;
   if (review.length > 0) {
     r += `\n\nON TAP DAU BUOI:\nBat dau buoi hoc bang cach on lai ${review.length} cum tu cu: ${review.map(p => `"${p.english}" (${p.vietnamese})`).join(', ')}\nHoi hoc vien doc lai tung cum, khen khi ho nho dung.`;
   }
-  r += `\n\nLOI CHAO (HOC VIEN CU):\nChao hoc vien va tom tat ngan buoi hoc truoc.\nGoi y chu de hom nay dua tren ke hoach.\nHoi: "Ban muon hoc chu de nay khong, hay ban muon hoc cai gi khac?"`;
-  return r + greetingNote;
+  return r;
 }
 
 // ── IELTS System Instruction Builder ───────────────────────
@@ -535,13 +547,20 @@ KHONG BAO GIO:
 - Quen dung [BAND][/BAND][FC][/FC][LR][/LR][GRA][/GRA][P][/P] khi cham diem
 - Quen dung [CUECARD][/CUECARD] khi cho cue card Part 2`;
 
+  // ── KHAI MAC IELTS: tutor greets first on session start ──
+  const greeting = PERSONA_GREETINGS[persona];
+  const khaiMacIELTS = `KHAI MAC BUOI HOC (chi noi 1 lan dau tien):
+Khi buoi hoc bat dau, NGAY LAP TUC chao hoc vien:
+"Chào bạn! ${greeting} Hôm nay mình luyện phần nào — Part 1, 2, hay 3? Hay mình bắt đầu từ đầu?"
+Sau do doi hoc vien tra loi. KHONG noi gi them truoc khi hoc vien chon phan.`;
+
   // For returning users, inject context
   if (!isNewUser()) {
     const profile = getProfile();
-    return `${base}\n\nTHONG TIN HOC VIEN:\n- Trinh do: ${profile.cefrLevel}\n- So buoi da hoc: ${profile.totalSessions}\n- Tong cum tu da hoc: ${profile.totalPhrases}\n\nLOI CHAO:\nChao hoc vien va bat dau Part 1 ngay. Hoi cau hoi IELTS dau tien.`;
+    return `${khaiMacIELTS}\n\n${base}\n\nTHONG TIN HOC VIEN:\n- Trinh do: ${profile.cefrLevel}\n- So buoi da hoc: ${profile.totalSessions}\n- Tong cum tu da hoc: ${profile.totalPhrases}`;
   }
 
-  return `${base}\n\nLOI CHAO (HOC VIEN MOI):\nGioi thieu ban la IELTS Speaking examiner-coach cua EasyBee.\nHoi trinh do hien tai cua hoc vien (da thi IELTS chua, muc tieu band bao nhieu).\nSau do bat dau Part 1 voi cau hoi don gian.\n\nLUU Y: Loi chao ban dau DA DUOC phat qua audio roi. KHONG noi lai loi chao. Di thang vao noi dung chinh.`;
+  return `${khaiMacIELTS}\n\n${base}\n\nLOI CHAO (HOC VIEN MOI):\nGioi thieu ban la IELTS Speaking examiner-coach cua EasyBee.\nHoi trinh do hien tai cua hoc vien (da thi IELTS chua, muc tieu band bao nhieu).\nSau do bat dau Part 1 voi cau hoi don gian.`;
 }
 
 // ═══════════════════════════════════════════════════════════

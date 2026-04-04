@@ -98,64 +98,58 @@ function AvatarEqualizer() {
 const spring = { type: 'spring' as const, damping: 25, stiffness: 200 };
 const ease = [0.25, 0.1, 0.25, 1] as const;
 
-// ── Voice guide ────────────────────────────────────────────
-const GUIDE_TEXT = 'Xin chào! Đây là EasyBee, gia sư tiếng Anh của bạn. Bạn nhấn vào hình giáo viên để nghe giọng và chọn giáo viên phù hợp cho mình nhé. Bạn có thể đổi giáo viên bất cứ lúc nào.';
-let guidePlayed = false; // module-level — only call TTS once across remounts
+// ── Tutor preview texts ─────────────────────────────────────
+const TUTOR_PREVIEWS: Record<Persona, string> = {
+  'thay-bee': 'Chào em! Thầy Bee đây.',
+  'co-honey': 'Xin chào! Cô Honey đây.',
+  'anh-max': 'Hey! Anh Max đây, sẵn sàng chưa?',
+  'chi-linh': 'Chào bạn. Chị Linh đây.',
+};
 
 // ── Component ───────────────────────────────────────────────
 export default function VoicePicker({ onSelect, reduced = false, isLockedVoice, onLockedTap, accessToken }: { onSelect: (persona: Persona) => void; reduced?: boolean; isLockedVoice?: (id: Persona) => boolean; onLockedTap?: () => void; accessToken?: string }) {
   const [selected, setSelected] = useState<Persona>(getSavedVoice() || 'thay-bee');
   const [playing, setPlaying] = useState<Persona | null>(null);
   const [failedImgs, setFailedImgs] = useState<Set<Persona>>(new Set());
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  // Set TTS auth token whenever accessToken changes
+  useEffect(() => {
+    if (accessToken) setTTSAuthToken(accessToken);
+  }, [accessToken]);
 
   const stopPreview = useCallback(() => {
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.currentTime = 0;
-      audioRef.current = null;
-    }
+    stopTTS();
     setPlaying(null);
   }, []);
 
   const playPreview = useCallback((voice: VoiceOption) => {
-    // Stop guide audio if playing
-    if (guidePlayingRef.current && guideAudioRef.current) {
-      guideAudioRef.current.pause();
-      guideAudioRef.current.currentTime = 0;
-      guidePlayingRef.current = false;
-    }
-    stopPreview();
-    const audio = new Audio(`/voices/${voice.id}.wav`);
-    audio.onended = () => setPlaying(null);
-    audio.onerror = () => setPlaying(null);
-    audioRef.current = audio;
+    stopTTS();
     setPlaying(voice.id);
-    audio.play().catch(() => setPlaying(null));
-  }, [stopPreview]);
+    speakPhrase(
+      TUTOR_PREVIEWS[voice.id],
+      VOICE_MAP[voice.id],
+      undefined,
+      () => setPlaying(null),
+    );
+  }, []);
 
-  const guidePlayingRef = useRef(false);
-  const guideAudioRef = useRef<HTMLAudioElement | null>(null);
-
-  // Mount: light haptic + pre-recorded voice guide
+  // Mount: light haptic + auto-play preview for currently selected tutor
   useEffect(() => {
-    const t1 = setTimeout(() => navigator.vibrate?.([30]), 200);
-    const t2 = setTimeout(() => {
-      if (guidePlayed) return;
-      guidePlayed = true;
-      guidePlayingRef.current = true;
-      const guide = new Audio('/voice-picker-guide.wav');
-      guide.volume = 0.9;
-      guide.onended = () => { guidePlayingRef.current = false; };
-      guide.onerror = () => { guidePlayingRef.current = false; };
-      guideAudioRef.current = guide;
-      guide.play().catch(() => { guidePlayingRef.current = false; });
+    navigator.vibrate?.([30]);
+    const savedPersona = getSavedVoice() || 'thay-bee';
+    const defaultVoice = VOICES.find(v => v.id === savedPersona);
+    const t = setTimeout(() => {
+      if (defaultVoice) playPreview(defaultVoice);
     }, 400);
-    return () => { clearTimeout(t1); clearTimeout(t2); guideAudioRef.current?.pause(); };
+    return () => {
+      clearTimeout(t);
+      stopTTS();
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Cleanup on unmount
-  useEffect(() => () => { audioRef.current?.pause(); }, []);
+  useEffect(() => () => { stopTTS(); }, []);
 
   const handleConfirm = useCallback(() => {
     stopPreview();
