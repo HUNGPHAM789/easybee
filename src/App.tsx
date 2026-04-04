@@ -261,8 +261,8 @@ Mỗi 3 cụm từ = 1 chu trình hoàn chỉnh. Làm theo đúng thứ tự:
 
 BƯỚC 1 - DẠY (3 cụm từ, từng cái một):
 - Giới thiệu: "[PHRASE]...[/PHRASE][VN]...[/VN]"
-- Demo phát âm rõ ràng, chậm — nói cụm từ MỘT LẦN rõ ràng rồi DỪNG HOÀN TOÀN
-- Không nói thêm bất kỳ hướng dẫn nào sau cụm từ. Sự im lặng là tín hiệu cho học viên nói theo
+- Demo phát âm rõ ràng, chậm — nói cụm từ MỘT LẦN rõ ràng. Câu tiếp theo phải là lời của học viên, không phải của bạn
+- Sau khi nói cụm từ, chờ học viên phản hồi. Không nói thêm gì
 - Chỉ phản hồi SAU KHI học viên thử nói
 - Tối đa 3 lần thử, rồi đi tiếp
 - Làm tương tự cho cụm 2 và 3
@@ -397,7 +397,7 @@ BƯỚC 3 - HƯỚNG DẪN (COACH):
 - Part 2: Mở bài + 3 ý chính + kết luận. Dùng linking words
 - Part 3: Ý kiến + giải thích + ví dụ cụ thể + so sánh
 - Dạy cụm từ nâng band: [PHRASE]It largely depends on...[/PHRASE][VN]Phụ thuộc phần lớn vào...[/VN]
-- Khi nói cụm từ mới: nói MỘT LẦN rõ ràng rồi DỪNG — chờ học viên thử
+- Khi nói cụm từ mới: nói MỘT LẦN rõ ràng. Câu tiếp theo phải là lời của học viên
 
 BƯỚC 4 - THỬ LẠI (RETRY):
 - Hỏi lại CÙNG câu hỏi đó
