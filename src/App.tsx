@@ -362,6 +362,19 @@ BUOC 3 - HUONG DAN (COACH):
   [PHRASE]From my perspective...[/PHRASE][VN]Theo quan diem cua toi...[/VN]
 - Chi mot MAU cau tra loi Band 7+ (ngan thoi, khong doc bai van)
 
+QUY TAC LAP LAI CUM TU KHI DAY (BAT BUOC):
+Sau khi noi cum tu moi, PHAI noi lai lan thu hai truoc khi cho hoc vien noi:
+- Cum ngan (1-2 tu): noi 2 lan lien tiep. VD: "By and large. By and large."
+- Cum dai hon: noi 1 lan day du, roi lap lai phan chinh. VD: "It largely depends on... Largely depends on."
+- Sau do IM LANG HOAN TOAN — cho hoc vien thu. KHONG noi them gi.
+
+PHAN HOI THU LAI — TIENG VIET (3 MUC, BAT BUOC):
+Khi hoc vien thu noi lai nhung chua dat:
+- Gan dung (phat am gan dung, chi sai nho): "Gần đúng rồi, thử lại nhé!"
+- Qua nhe / khong ro: "To hơn một chút, thử lại nhé!"
+- Sai nhieu: "Chưa đúng, nghe lại nhé!" + noi lai cum tu day du de hoc vien nghe lai
+CHI dung 3 cau nay khi phan hoi thu lai.
+
 BUOC 4 - THU LAI (RETRY):
 - Hoi lai CUNG cau hoi do
 - Hoc vien tra loi lai voi ky thuat vua hoc
@@ -489,6 +502,123 @@ const Flashcard = ({ phrase, reduced = false }: { phrase: Phrase; reduced?: bool
         {phrase.vietnamese}
       </motion.p>
     </motion.div>
+  );
+};
+
+/** Drum/wheel phrase picker — scrollable iOS-style */
+const PhraseWheel = ({ phrases, currentPhrase, reduced = false, voiceName }: { phrases: Phrase[]; currentPhrase: Phrase | null; reduced?: boolean; voiceName: string }) => {
+  const [playingKey, setPlayingKey] = useState<string | null>(null);
+  const [focusedIdx, setFocusedIdx] = useState(0);
+  const dragStartY = useRef(0);
+  const [dragOffset, setDragOffset] = useState(0);
+  const isDragging = useRef(false);
+  const ITEM_HEIGHT = 80;
+
+  // When currentPhrase changes (new phrase taught), auto-scroll to it
+  useEffect(() => {
+    if (!currentPhrase) return;
+    const idx = phrases.findIndex(p => p.english === currentPhrase.english);
+    if (idx >= 0) setFocusedIdx(idx);
+  }, [currentPhrase, phrases]);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    dragStartY.current = e.touches[0].clientY;
+    isDragging.current = true;
+    setDragOffset(0);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging.current) return;
+    setDragOffset(e.touches[0].clientY - dragStartY.current);
+  };
+
+  const handleTouchEnd = () => {
+    isDragging.current = false;
+    const threshold = ITEM_HEIGHT / 3;
+    if (dragOffset > threshold) {
+      setFocusedIdx(prev => Math.max(0, prev - 1));
+    } else if (dragOffset < -threshold) {
+      setFocusedIdx(prev => Math.min(phrases.length - 1, prev + 1));
+    }
+    setDragOffset(0);
+  };
+
+  const handleWheel = (e: React.WheelEvent) => {
+    e.preventDefault();
+    if (e.deltaY > 0) setFocusedIdx(prev => Math.min(phrases.length - 1, prev + 1));
+    else setFocusedIdx(prev => Math.max(0, prev - 1));
+  };
+
+  const liveOffset = isDragging.current ? dragOffset : 0;
+  const targetY = -focusedIdx * ITEM_HEIGHT + liveOffset;
+
+  return (
+    <div
+      className="relative w-full overflow-hidden select-none"
+      style={{ height: ITEM_HEIGHT * 3 }}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+      onWheel={handleWheel}
+    >
+      {/* Center highlight slot */}
+      <div
+        className="absolute inset-x-6 rounded-2xl pointer-events-none z-0"
+        style={{ top: ITEM_HEIGHT, height: ITEM_HEIGHT, background: '#f5f5f5', border: '1px solid #ebebeb' }}
+      />
+      {/* Top fade */}
+      <div className="absolute inset-x-0 top-0 z-10 pointer-events-none"
+        style={{ height: ITEM_HEIGHT, background: 'linear-gradient(to bottom, rgba(255,255,255,1) 40%, transparent)' }} />
+      {/* Bottom fade */}
+      <div className="absolute inset-x-0 bottom-0 z-10 pointer-events-none"
+        style={{ height: ITEM_HEIGHT, background: 'linear-gradient(to top, rgba(255,255,255,1) 40%, transparent)' }} />
+
+      {/* Items track */}
+      <motion.div
+        className="absolute w-full"
+        style={{ top: ITEM_HEIGHT }}
+        animate={{ y: targetY }}
+        transition={isDragging.current ? { duration: 0 } : (reduced ? { duration: 0.15 } : { type: 'spring', damping: 32, stiffness: 420 })}
+      >
+        {phrases.map((p, i) => {
+          const isFocused = i === focusedIdx;
+          return (
+            <div
+              key={p.english}
+              style={{ height: ITEM_HEIGHT }}
+              className="flex flex-col items-center justify-center px-8 cursor-pointer"
+              onClick={() => setFocusedIdx(i)}
+            >
+              <motion.p
+                animate={{
+                  fontSize: isFocused ? '20px' : '14px',
+                  color: isFocused ? '#0a0a0a' : '#c0c0c0',
+                  fontWeight: isFocused ? 400 : 300,
+                }}
+                transition={reduced ? { duration: 0 } : { duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+                className="text-center leading-tight"
+              >
+                {p.english}
+              </motion.p>
+              <AnimatePresence>
+                {isFocused && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: reduced ? 0 : 0.2 }}
+                    className="flex items-center gap-2 mt-1"
+                  >
+                    <p className="text-[12px] text-text-secondary text-center">{p.vietnamese}</p>
+                    <SpeakerButton text={p.english} voiceName={voiceName} playingKey={playingKey} setPlayingKey={setPlayingKey} />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          );
+        })}
+      </motion.div>
+    </div>
   );
 };
 
@@ -1228,7 +1358,7 @@ function TutorApp({ session }: { session: Session }) {
                     ) : currentBandScore ? (
                       <BandScore key="bandscore" data={currentBandScore} />
                     ) : learnedPhrases.length > 0 && phase === 'lesson' ? (
-                      <PhraseList phrases={learnedPhrases} currentPhrase={currentPhrase} reduced={reduced} voiceName={voiceName} micActive={isRecording} />
+                      <PhraseWheel phrases={learnedPhrases} currentPhrase={currentPhrase} reduced={reduced} voiceName={voiceName} />
                     ) : phase === 'idle' ? (
                       <motion.div key="idle" initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
                         transition={{ duration: 0.6, delay: 0.25, ease }}
