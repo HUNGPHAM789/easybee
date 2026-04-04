@@ -1,54 +1,73 @@
 /**
- * TutorSpeech — clean single-sentence display with crossfade animation.
- * Shows only the most recent complete sentence from `lines[]`.
- * Fades in/out with blur on each new sentence.
+ * TutorSpeech — Scrollable conversation transcript.
+ * Appends lines as they arrive, auto-scrolls to bottom.
+ * English words/phrases are bolded automatically.
  */
-import { AnimatePresence, motion } from 'motion/react';
+import { useEffect, useRef } from 'react';
 
 interface TutorSpeechProps {
   lines: string[];
 }
 
-export default function TutorSpeech({ lines }: TutorSpeechProps) {
-  if (!lines.length) return null;
+/** Returns true if a word is English (ASCII letters only, length > 1) */
+function isEnglishWord(word: string): boolean {
+  return /^[a-zA-Z][a-zA-Z\-']*[a-zA-Z]$/.test(word) || /^[A-Z][a-zA-Z]+$/.test(word);
+}
 
-  const latest = lines[lines.length - 1];
+/** Render a line with English words bolded */
+function renderLine(text: string): React.ReactNode[] {
+  // Split by spaces but preserve punctuation attached to words
+  const tokens = text.split(/(\s+)/);
+  return tokens.map((token, i) => {
+    const clean = token.replace(/[^a-zA-Z\-']/g, '');
+    if (clean.length > 1 && isEnglishWord(clean)) {
+      return <strong key={i} style={{ fontWeight: 600, color: '#0a0a0a' }}>{token}</strong>;
+    }
+    return <span key={i}>{token}</span>;
+  });
+}
+
+export default function TutorSpeech({ lines }: TutorSpeechProps) {
+  const bottomRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll to bottom when new lines arrive
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [lines]);
+
+  if (!lines.length) return (
+    <div style={{ height: '80px' }} />
+  );
 
   return (
     <div
+      ref={containerRef}
       style={{
-        height: '80px',
-        overflow: 'hidden',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
+        maxHeight: '200px',
+        overflowY: 'auto',
         width: '100%',
+        padding: '0 1.5rem',
+        boxSizing: 'border-box',
       }}
+      className="scrollbar-hide"
     >
-      <AnimatePresence mode="wait">
-        <motion.p
-          key={latest}
-          initial={{ opacity: 0, y: 6, filter: 'blur(4px)' }}
-          animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-          exit={{ opacity: 0, y: -6, filter: 'blur(4px)' }}
-          transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+      {lines.map((line, i) => (
+        <p
+          key={i}
           style={{
-            fontSize: '17px',
-            color: '#0a0a0a',
-            fontWeight: 400,
+            fontSize: '15px',
             lineHeight: 1.6,
-            textAlign: 'center',
-            paddingLeft: '1.5rem',
-            paddingRight: '1.5rem',
+            color: '#0a0a0a',
+            marginBottom: '0.5rem',
             wordWrap: 'break-word',
             overflowWrap: 'break-word',
-            maxWidth: '100%',
-            margin: 0,
           }}
         >
-          {latest}
-        </motion.p>
-      </AnimatePresence>
+          {renderLine(line)}
+        </p>
+      ))}
+      <div ref={bottomRef} />
     </div>
   );
 }
