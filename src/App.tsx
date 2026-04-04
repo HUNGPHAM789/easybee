@@ -675,17 +675,15 @@ const PhraseList = ({ phrases, currentPhrase, reduced = false, voiceName, micAct
       initial="hidden"
       animate="show"
     >
-      <AnimatePresence mode="popLayout">
+      <AnimatePresence mode="sync">
         {phrases.map((p) => {
           const isCurrent = currentPhrase?.english === p.english;
           return (
             <motion.div
               key={p.english}
-              layout
               variants={phraseItemVariants}
               initial="hidden"
               animate="show"
-              exit={{ opacity: 0, y: -8, filter: 'blur(4px)', transition: { duration: 0.2 } }}
               className="flex items-start gap-2"
             >
               <div className="flex-1 flex flex-col">
