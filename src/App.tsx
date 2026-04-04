@@ -192,6 +192,14 @@ const PERSONA_GREETINGS: Record<Persona, string> = {
   'chi-linh': 'Chị Linh đây.',
 };
 
+// ── Hint texts shown after mic tap (first turn only) ──────────
+const PERSONA_HINTS: Record<Persona, string> = {
+  'thay-bee': "Hãy nói 'Xin chào Thầy Bee' để bắt đầu",
+  'co-honey': "Hãy nói 'Xin chào Cô Honey' để bắt đầu",
+  'anh-max': "Hãy nói 'Hey Anh Max' để bắt đầu",
+  'chi-linh': "Hãy nói 'Xin chào Chị Linh' để bắt đầu",
+};
+
 // ── System Instruction Builder ──────────────────────────────
 function buildSystemInstruction(persona: Persona = 'thay-bee'): string {
   // ── PERSONA-SPECIFIC SECTIONS ──
@@ -206,12 +214,7 @@ function buildSystemInstruction(persona: Persona = 'thay-bee'): string {
 - Khi sua: "Chua dung lam — nghe minh nha: *seat*. Chu 'ea' keo dai hon. Thu lai nha."
 - Lich su, nhe nhang nhung nghiem tuc khi can
 - Giong nhu mot anh lon biet cach, kien nhan, khong bao gio lam hoc vien thay ngu`,
-      intro: `LOI CHAO (HOC VIEN MOI):
-Cau dau tien ban noi PHAI la: "Chao ban! Minh la Thay Bee. Minh se giup ban luyen noi tieng Anh — tu tu thoi, khong voi dau. Ready?"
-Sau do hoi: "Ban hoc tieng Anh de lam gi? Cong viec, di bac si, hay giao tiep hang ngay?"
-CHO hoc vien tra loi muc tieu truoc khi bat dau day.
-Sau khi biet muc tieu, hoi: "OK, hom nay ban muon hoc ve chu de gi?"
-Roi bat dau day theo chu de ho chon.`,
+      intro: `KHOI DAU: Doi hoc vien chao truoc. Khi nghe bat ky loi chao, tra loi tu nhien theo phong cach Thay Bee: am ap, nhe nhang. Hoi chu de hoc ngay sau loi chao. Chi chao MOT LAN duy nhat.`,
     },
     'co-honey': {
       style: `PHONG CACH — CO HONEY:
@@ -220,12 +223,7 @@ Roi bat dau day theo chu de ho chon.`,
 - Khi sua: "Gan roi — nhung khach se khong hieu dau. Nghe minh nha—"
 - Hay dung vi du tu salon, tiep khach, giao tiep cong viec thuc
 - Giong nhu chi em lam nail 10 nam o My, biet chinh xac hoc vien can gi`,
-      intro: `LOI CHAO (HOC VIEN MOI):
-Cau dau tien ban noi PHAI la: "Hi ban! Minh la Co Honey — minh lam nail 10 nam o My. Minh biet ban can gi. Ready?"
-Sau do hoi: "Ban dang lam gi o My? Nail, toc, hay gi khac?"
-CHO hoc vien tra loi truoc khi bat dau day.
-Sau khi biet, hoi: "OK hom nay minh hoc noi gi truoc nha?"
-Roi bat dau day theo nhu cau ho.`,
+      intro: `KHOI DAU: Doi hoc vien chao truoc. Khi nghe bat ky loi chao, tra loi tu nhien theo phong cach Co Honey: than thiet, kinh nghiem thuc te. Hoi chu de hoc ngay sau loi chao. Chi chao MOT LAN duy nhat.`,
     },
     'anh-max': {
       style: `PHONG CACH — ANH MAX:
@@ -234,12 +232,7 @@ Roi bat dau day theo nhu cau ho.`,
 - Khi sua: "Close! Noi lai nhanh hon di — speed round! Go!"
 - Hay tao mini challenges, speed rounds, canh tranh vui
 - Giong Gen Z, moi thu la game, high five qua man hinh`,
-      intro: `LOI CHAO (HOC VIEN MOI):
-Cau dau tien ban noi PHAI la: "What's up! Anh Max day. Hom nay minh luyen cho ban noi nghe pro luon. Let's get it!"
-Sau do hoi: "Ban muon hoc noi tieng Anh ve gi? Travel, work, hay daily life?"
-CHO hoc vien tra loi truoc.
-Sau khi biet, noi: "Bet! Let's go!"
-Roi bat dau day.`,
+      intro: `KHOI DAU: Doi hoc vien chao truoc. Khi nghe bat ky loi chao, tra loi tu nhien theo phong cach Anh Max: nang dong, high energy. Hoi chu de hoc ngay sau loi chao. Chi chao MOT LAN duy nhat.`,
     },
     'chi-linh': {
       style: `PHONG CACH — CHI LINH:
@@ -248,12 +241,7 @@ Roi bat dau day.`,
 - Khi sua: "Chu 'please' — P bat hoi nhe. Dat tay truoc mieng, noi lai."
 - Hay giang van hoa, phep lich su, tai sao cum tu nay quan trong
 - Giong co giao piano — calm precision, lam nguoi ta muon hoc tot hon`,
-      intro: `LOI CHAO (HOC VIEN MOI):
-Cau dau tien ban noi PHAI la: "Chao ban, minh la Chi Linh. Minh giup ban noi tieng Anh ro rang, tu nhien. Shall we begin?"
-Sau do hoi: "Ban hoc tieng Anh de lam gi nhi?"
-CHO hoc vien tra loi.
-Hoi tiep: "Hom nay ban muon bat dau voi chu de gi?"
-Roi bat dau day theo chu de ho chon.`,
+      intro: `KHOI DAU: Doi hoc vien chao truoc. Khi nghe bat ky loi chao, tra loi tu nhien theo phong cach Chi Linh: binh tinh, thanh lich. Hoi chu de hoc ngay sau loi chao. Chi chao MOT LAN duy nhat.`,
     },
   };
 
@@ -393,9 +381,7 @@ KHONG BAO GIO:
   // ── KHAI MAC: tutor greets first on session start ──
   const greeting = PERSONA_GREETINGS[persona];
   const khaiMac = `KHAI MAC BUOI HOC (chi noi 1 lan dau tien):
-Khi buoi hoc bat dau, NGAY LAP TUC chao hoc vien va hoi chu de:
-"Chào bạn! ${greeting} Hôm nay bạn muốn học về chủ đề gì? Ví dụ: làm nail, mua sắm, hay chủ đề khác?"
-Sau do doi hoc vien tra loi. KHONG noi gi them truoc khi hoc vien chon chu de.`;
+Khi hoc vien chao ban (bat ky loi chao nao), NGAY LAP TUC tra loi bang loi chao cua persona + hoi chu de. KHONG noi truoc khi hoc vien noi.`;
 
   // ── NEW USER vs RETURNING USER ──
   if (isNewUser()) {
@@ -560,7 +546,7 @@ Sau do doi hoc vien tra loi. KHONG noi gi them truoc khi hoc vien chon phan.`;
     return `${khaiMacIELTS}\n\n${base}\n\nTHONG TIN HOC VIEN:\n- Trinh do: ${profile.cefrLevel}\n- So buoi da hoc: ${profile.totalSessions}\n- Tong cum tu da hoc: ${profile.totalPhrases}`;
   }
 
-  return `${khaiMacIELTS}\n\n${base}\n\nLOI CHAO (HOC VIEN MOI):\nGioi thieu ban la IELTS Speaking examiner-coach cua EasyBee.\nHoi trinh do hien tai cua hoc vien (da thi IELTS chua, muc tieu band bao nhieu).\nSau do bat dau Part 1 voi cau hoi don gian.`;
+  return `${khaiMacIELTS}\n\n${base}\n\nKHOI DAU: Doi hoc vien chao truoc. Khi nghe bat ky loi chao, chao lai tu nhien + hoi trinh do/muc tieu IELTS. Chi chao MOT LAN duy nhat.`;
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -1237,6 +1223,7 @@ function TutorApp({ session }: { session: Session }) {
   const [currentBandScore, setCurrentBandScore] = useState<BandScoreData | null>(null);
   const [showPaywall, setShowPaywall] = useState(false);
   const [showPricingScreen, setShowPricingScreen] = useState(false);
+  const [showHint, setShowHint] = useState(true);
   const [showFreeLimit, setShowFreeLimit] = useState(false);
   const [remainingSeconds, setRemainingSeconds] = useState(getRemainingSecondsSync());
   const [showUsageBanner, setShowUsageBanner] = useState(true);
@@ -1265,6 +1252,8 @@ function TutorApp({ session }: { session: Session }) {
 
   const processTutorText = useCallback((newText: string) => {
     tutorBufferRef.current += newText;
+    // Hide hint on first tutor speech (means student already spoke)
+    setShowHint(false);
     if (hasIncompleteMarker(tutorBufferRef.current)) return;
     const { displayText, phrases, cueCard, bandScore } = parseAIOutput(tutorBufferRef.current);
     for (const p of phrases) {
@@ -1354,16 +1343,11 @@ function TutorApp({ session }: { session: Session }) {
 
     // ── Instant feedback: haptic + visual + greeting audio ──
     navigator.vibrate?.([50]);
-    setPhase('connecting'); setErrorMsg(null); setLatestTutorMsg(''); setCurrentPhrase(null);
+    setPhase('connecting'); setErrorMsg(null); setLatestTutorMsg(''); setCurrentPhrase(null); setShowHint(true);
 
-    // Play pre-recorded greeting while WebSocket connects
-    const greetingPersona = getSavedVoice() || 'thay-bee';
-    const greetingState = isNewUser() ? 'new' : 'return';
+    // No pre-recorded greeting — AI greets after student says hello (KHAI MAC rule)
     greetingAudioRef.current?.pause();
-    const greetingAudio = new Audio(`/greetings/${greetingPersona}-${greetingState}.wav`);
-    greetingAudioRef.current = greetingAudio;
-    greetingAudio.onended = () => { greetingAudioRef.current = null; };
-    greetingAudio.play().catch(() => {});
+    greetingAudioRef.current = null;
 
     try {
       const tokenRes = await fetch('/api/gemini-token', {
@@ -1509,7 +1493,6 @@ function TutorApp({ session }: { session: Session }) {
               }} reduced={reduced}
                 isLockedVoice={() => false}
                 onLockedTap={() => setShowPaywall(true)}
-                accessToken={session.access_token}
               />
             </motion.div>
           ) : phase === 'session-end' ? (
@@ -1634,6 +1617,20 @@ function TutorApp({ session }: { session: Session }) {
                 )}
 
                 <MicOrb volume={volume} isActive={isRecording} isConnecting={isConnecting} onClick={toggleSession} reduced={reduced} />
+
+                <AnimatePresence>
+                  {isRecording && showHint && (
+                    <motion.p
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.5 }}
+                      className="mt-3 text-[13px] text-[#8a8a8a] text-center italic"
+                    >
+                      {PERSONA_HINTS[getSavedVoice() || 'thay-bee']}
+                    </motion.p>
+                  )}
+                </AnimatePresence>
 
                 <AnimatePresence>
                   {isRecording && (

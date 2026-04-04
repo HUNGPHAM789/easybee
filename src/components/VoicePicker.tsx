@@ -1,7 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Check, Lock } from 'lucide-react';
-import { speakPhrase, stopTTS, setTTSAuthToken } from '../lib/tts';
+import { Check, Lock, Play } from 'lucide-react';
 
 // ── Types & Data ────────────────────────────────────────────
 export type Persona = 'thay-bee' | 'co-honey' | 'anh-max' | 'chi-linh';
@@ -77,6 +76,14 @@ const AVATAR_STYLES: Record<Persona, { gradient: string; initials: string }> = {
   'chi-linh': { gradient: 'linear-gradient(135deg, #c9b1d4, #e0d0e8)', initials: 'CL' },
 };
 
+// ── Audio file paths ────────────────────────────────────────
+const VOICE_AUDIO: Record<Persona, string> = {
+  'thay-bee': '/voices/thay-bee.wav',
+  'co-honey': '/voices/co-honey.wav',
+  'anh-max': '/voices/anh-max.wav',
+  'chi-linh': '/voices/chi-linh.wav',
+};
+
 // ── Animated Equalizer (on avatar ring) ────────────────────
 function AvatarEqualizer() {
   return (
@@ -98,64 +105,41 @@ function AvatarEqualizer() {
 const spring = { type: 'spring' as const, damping: 25, stiffness: 200 };
 const ease = [0.25, 0.1, 0.25, 1] as const;
 
-// ── Tutor preview texts ─────────────────────────────────────
-const TUTOR_PREVIEWS: Record<Persona, string> = {
-  'thay-bee': 'Chào em! Thầy Bee đây.',
-  'co-honey': 'Xin chào! Cô Honey đây.',
-  'anh-max': 'Hey! Anh Max đây, sẵn sàng chưa?',
-  'chi-linh': 'Chào bạn. Chị Linh đây.',
-};
-
 // ── Component ───────────────────────────────────────────────
-export default function VoicePicker({ onSelect, reduced = false, isLockedVoice, onLockedTap, accessToken }: { onSelect: (persona: Persona) => void; reduced?: boolean; isLockedVoice?: (id: Persona) => boolean; onLockedTap?: () => void; accessToken?: string }) {
+export default function VoicePicker({ onSelect, reduced = false, isLockedVoice, onLockedTap }: { onSelect: (persona: Persona) => void; reduced?: boolean; isLockedVoice?: (id: Persona) => boolean; onLockedTap?: () => void }) {
   const [selected, setSelected] = useState<Persona>(getSavedVoice() || 'thay-bee');
   const [playing, setPlaying] = useState<Persona | null>(null);
   const [failedImgs, setFailedImgs] = useState<Set<Persona>>(new Set());
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  // Set TTS auth token whenever accessToken changes
-  useEffect(() => {
-    if (accessToken) setTTSAuthToken(accessToken);
-  }, [accessToken]);
-
-  const stopPreview = useCallback(() => {
-    stopTTS();
-    setPlaying(null);
-  }, []);
-
-  const playPreview = useCallback((voice: VoiceOption) => {
-    stopTTS();
-    setPlaying(voice.id);
-    speakPhrase(
-      TUTOR_PREVIEWS[voice.id],
-      VOICE_MAP[voice.id],
-      undefined,
-      () => setPlaying(null),
-    );
-  }, []);
-
-  // Mount: light haptic + auto-play preview for currently selected tutor
+  // Mount: light haptic
   useEffect(() => {
     navigator.vibrate?.([30]);
-    const savedPersona = getSavedVoice() || 'thay-bee';
-    const defaultVoice = VOICES.find(v => v.id === savedPersona);
-    const t = setTimeout(() => {
-      if (defaultVoice) playPreview(defaultVoice);
-    }, 400);
-    return () => {
-      clearTimeout(t);
-      stopTTS();
-    };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Cleanup on unmount
-  useEffect(() => () => { stopTTS(); }, []);
+  useEffect(() => () => {
+    if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
+  }, []);
+
+  const playPreview = useCallback((persona: Persona, e: React.MouseEvent) => {
+    e.stopPropagation(); // Don't trigger card selection
+    // Stop previous audio
+    if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
+    setPlaying(persona);
+    const audio = new Audio(VOICE_AUDIO[persona]);
+    audioRef.current = audio;
+    audio.addEventListener('ended', () => setPlaying(null));
+    audio.addEventListener('error', () => setPlaying(null));
+    audio.play().catch(() => setPlaying(null));
+  }, []);
 
   const handleConfirm = useCallback(() => {
-    stopPreview();
+    if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
+    setPlaying(null);
     saveVoice(selected);
     onSelect(selected);
-  }, [selected, onSelect, stopPreview]);
+  }, [selected, onSelect]);
 
   const selectedVoice = VOICES.find(v => v.id === selected)!;
 
@@ -195,14 +179,13 @@ export default function VoicePicker({ onSelect, reduced = false, isLockedVoice, 
               animate={reduced ? { opacity: 1 } : { opacity: 1, y: 0 }}
               transition={reduced ? { duration: 0 } : { ...spring, delay: 0.1 + i * 0.07 }}
             >
-              {/* Avatar with double ring — tap to select + preview */}
+              {/* Avatar — tap to select (no audio) */}
               <button
                 className="relative mb-2 cursor-pointer bg-transparent border-none p-0"
                 onClick={() => {
                   if (locked) { onLockedTap?.(); return; }
                   navigator.vibrate?.([20]);
                   setSelected(voice.id);
-                  playPreview(voice);
                 }}
                 aria-label={locked ? `${voice.name} — Premium` : `Chọn ${voice.name}`}
               >
@@ -282,13 +265,24 @@ export default function VoicePicker({ onSelect, reduced = false, isLockedVoice, 
                 </AnimatePresence>
               </button>
 
-              {/* Name */}
-              <p
-                className="text-[14px] text-text text-center leading-tight"
-                style={{ fontWeight: isSelected ? 700 : 600 }}
-              >
-                {voice.name}
-              </p>
+              {/* Name + play button */}
+              <div className="flex items-center gap-1.5">
+                <p
+                  className="text-[14px] text-text text-center leading-tight"
+                  style={{ fontWeight: isSelected ? 700 : 600 }}
+                >
+                  {voice.name}
+                </p>
+                {!locked && (
+                  <button
+                    onClick={(e) => playPreview(voice.id, e)}
+                    className="flex items-center justify-center w-5 h-5 rounded-full bg-[#f0f0f0] border-none cursor-pointer hover:bg-[#e0e0e0] transition-colors"
+                    aria-label={`Nghe ${voice.name}`}
+                  >
+                    <Play className="w-2.5 h-2.5 text-[#555]" strokeWidth={3} />
+                  </button>
+                )}
+              </div>
 
               {/* Description */}
               <p className="text-[12px] text-text-secondary text-center leading-snug mt-0.5 line-clamp-2">
