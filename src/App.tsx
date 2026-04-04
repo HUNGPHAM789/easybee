@@ -1321,14 +1321,6 @@ function TutorApp({ session }: { session: Session }) {
         >
           <div className="absolute right-6 top-14 flex items-center gap-3">
             <button
-              onClick={() => setShowCommandPalette(true)}
-              className="text-text-muted hover:text-text transition-colors"
-              title="Hành động nhanh"
-              aria-label="Hành động nhanh"
-            >
-              <Search className="w-4 h-4" />
-            </button>
-            <button
               onClick={() => setShowVoicePicker(true)}
               className="text-text-muted hover:text-text transition-colors"
               title="Đổi giáo viên"
@@ -1343,7 +1335,15 @@ function TutorApp({ session }: { session: Session }) {
               Đăng xuất
             </button>
           </div>
-          <h1 className="text-[20px] font-bold tracking-tight text-text" style={{ fontFamily: "'Comfortaa', sans-serif" }}>
+          <h1 className="text-[20px] font-bold tracking-tight text-text flex items-center justify-center gap-2" style={{ fontFamily: "'Comfortaa', sans-serif" }}>
+            <button
+              onClick={() => setShowCommandPalette(true)}
+              className="text-text-muted hover:text-text transition-colors"
+              title="Hành động nhanh"
+              aria-label="Hành động nhanh"
+            >
+              <Search className="w-4 h-4" />
+            </button>
             EasyBee
           </h1>
           <p className="text-[12px] text-text-secondary mt-1 tracking-[0.15em] uppercase font-semibold">{mode === 'ielts' ? 'IELTS Speaking' : 'Gia sư tiếng Anh'}</p>

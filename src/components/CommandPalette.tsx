@@ -82,14 +82,14 @@ export default function CommandPalette({
             onClick={e => e.stopPropagation()}
           >
             {/* Search input */}
-            <div className="flex items-center gap-2 px-4 border-b border-[#e0e0e0]">
+            <div className="flex items-center gap-2 px-4 py-4 border-b border-[#e8e8e8]">
               <Search className="w-4 h-4 text-[#8a8a8a] shrink-0" />
               <input
                 ref={inputRef}
                 value={query}
                 onChange={e => setQuery(e.target.value)}
                 placeholder="Tìm hành động..."
-                className="w-full py-3 text-[15px] text-[#0a0a0a] placeholder:text-[#8a8a8a] outline-none bg-transparent"
+                className="w-full text-[16px] text-[#0a0a0a] placeholder:text-[#8a8a8a] outline-none border-0 ring-0 focus:ring-0 focus:outline-none bg-transparent"
                 onKeyDown={e => {
                   if (e.key === 'Enter' && filtered.length > 0) execute(filtered[0]);
                 }}
