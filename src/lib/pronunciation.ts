@@ -253,8 +253,16 @@ const VOWEL_MAP: [RegExp, string][] = [
  * Split a single English word into rough phonetic syllables.
  * Good enough for ESL learners — not a full G2P system.
  */
+/** Returns true if the string contains Vietnamese diacritic characters. */
+function hasVietnameseDiacritics(s: string): boolean {
+  // Covers tonal marks (á à ả ã ạ ă ắ ặ … ư ứ ừ …) and đ
+  return /[àáảãạăắằẳẵặâấầẩẫậèéẻẽẹêếềểễệìíỉĩịòóỏõọôốồổỗộơớờởỡợùúủũụưứừửữựỳýỷỹỵđÀÁẢÃẠĂẮẰẲẴẶÂẤẦẨẪẬÈÉẺẼẸÊẾỀỂỄỆÌÍỈĨỊÒÓỎÕỌÔỐỒỔỖỘƠỚỜỞỠỢÙÚỦŨỤƯỨỪỬỮỰỲÝỶỸỴĐ]/.test(s);
+}
+
 function wordToPhonetic(word: string): string {
   if (!word) return word;
+  // If the word already contains Vietnamese diacritics, return as-is — don't mangle.
+  if (hasVietnameseDiacritics(word)) return word;
   // Very short words — just capitalise
   if (word.length <= 2) return word.toUpperCase();
 
@@ -302,9 +310,16 @@ export function getPronunciation(text: string): string | null {
   // Direct lookup
   if (PRONUNCIATION_DICT[lower]) return PRONUNCIATION_DICT[lower];
 
+  // If the whole phrase is Vietnamese (contains diacritics), don't phonetize it
+  if (hasVietnameseDiacritics(text)) return null;
+
   const words = lower.split(/\s+/);
 
   // Word-by-word: use dict entry where available, fallback for the rest
-  const parts = words.map(w => PRONUNCIATION_DICT[w] || wordToPhonetic(w));
+  // Skip phonetizing any word that already has Vietnamese diacritics
+  const parts = words.map(w => {
+    if (hasVietnameseDiacritics(w)) return w;
+    return PRONUNCIATION_DICT[w] || wordToPhonetic(w);
+  });
   return parts.join(' ');
 }

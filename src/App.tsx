@@ -101,6 +101,7 @@ import { getRemainingSecondsSync, addUsageSeconds, canStartFreeSession, FREE_SEC
 import PronunciationHint from './components/PronunciationHint';
 import UsageBanner from './components/UsageBanner';
 import FreeLimitDialog from './components/FreeLimitDialog';
+import TranscriptWheel from './components/TranscriptWheel';
 import type { Session } from '@supabase/supabase-js';
 
 // ── Types ────────────────────────────────────────────────────
@@ -1558,21 +1559,20 @@ function TutorApp({ session }: { session: Session }) {
                   </AnimatePresence>
                 </div>
 
-                {/* Latest tutor message — single line, not a list */}
-                <AnimatePresence mode="wait">
-                  {latestTutorMsg && phase === 'lesson' && (
-                    <motion.div
-                      key={latestTutorMsg.slice(0, 30)}
-                      initial={{ opacity: 0, y: 8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -4 }}
-                      transition={{ duration: 0.3, ease }}
-                      className="px-8 mb-4 max-w-full"
-                    >
-                      <BlurredStagger key={latestTutorMsg.slice(0, 30)} text={latestTutorMsg} />
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                {/* Tutor transcript wheel — finalized turns + current streaming line */}
+                {phase === 'lesson' && (allTutorMessages.length > 0 || latestTutorMsg) && (
+                  <div className="mb-4 max-w-full">
+                    <TranscriptWheel
+                      lines={[
+                        ...allTutorMessages,
+                        // Show in-progress streaming line only if not yet finalized
+                        ...(latestTutorMsg && latestTutorMsg !== allTutorMessages[allTutorMessages.length - 1]
+                          ? [latestTutorMsg]
+                          : []),
+                      ]}
+                    />
+                  </div>
+                )}
               </div>
 
               {/* Controls */}
