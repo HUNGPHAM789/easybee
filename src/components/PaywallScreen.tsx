@@ -3,7 +3,7 @@ import { X, Infinity, Users, GraduationCap } from 'lucide-react';
 import { usePrefersReducedMotion, transitions, ease } from '../lib/motion';
 
 interface PaywallScreenProps {
-  onSubscribe: () => void;
+  onViewPlans: () => void;
   onRestore: () => void;
   onClose: () => void;
 }
@@ -14,7 +14,7 @@ const benefits = [
   { Icon: GraduationCap, text: 'Luyện IELTS Speaking — thi thử & luyện band' },
 ];
 
-export default function PaywallScreen({ onSubscribe, onRestore, onClose }: PaywallScreenProps) {
+export default function PaywallScreen({ onViewPlans, onRestore, onClose }: PaywallScreenProps) {
   const reduced = usePrefersReducedMotion();
 
   const item = reduced
@@ -78,12 +78,12 @@ export default function PaywallScreen({ onSubscribe, onRestore, onClose }: Paywa
           animate="visible"
           transition={reduced ? { duration: 0 } : { duration: 0.5, delay: 0.4, ease }}
         >
-          1.500.000đ / tháng
+          $9.99 / tháng
         </motion.p>
 
         {/* CTA */}
         <motion.button
-          onClick={onSubscribe}
+          onClick={onViewPlans}
           className="w-full bg-[#0a0a0a] text-white rounded-xl py-4 text-[15px] font-semibold"
           variants={item}
           initial="hidden"
@@ -92,7 +92,7 @@ export default function PaywallScreen({ onSubscribe, onRestore, onClose }: Paywa
           whileTap={{ scale: 0.98 }}
           style={{ boxShadow: '0 2px 12px rgba(10,10,10,0.15)' }}
         >
-          Dùng thử miễn phí 7 ngày
+          Xem các gói Premium →
         </motion.button>
 
         {/* Restore */}
@@ -115,7 +115,7 @@ export default function PaywallScreen({ onSubscribe, onRestore, onClose }: Paywa
           animate="visible"
           transition={reduced ? { duration: 0 } : { duration: 0.5, delay: 0.65, ease }}
         >
-          Sau 7 ngày sẽ tự động gia hạn. Hủy bất cứ lúc nào.
+          Thanh toán qua App Store. Hủy bất cứ lúc nào.
         </motion.p>
       </div>
     </motion.div>

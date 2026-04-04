@@ -16,6 +16,7 @@ import CueCard from './components/CueCard';
 import BandScore, { type BandScoreData } from './components/BandScore';
 import CommandPalette from './components/CommandPalette';
 import PaywallScreen from './components/PaywallScreen';
+import PricingScreen from './components/PricingScreen';
 import { checkCanStartSession, incrementSessionCount, setPremium, getSubscription, isPremiumVoice, isPremiumMode } from './lib/subscription';
 import { getRemainingSecondsSync, addUsageSeconds, canStartFreeSession, FREE_SECONDS } from './lib/usage';
 import PronunciationHint from './components/PronunciationHint';
@@ -1125,6 +1126,7 @@ function TutorApp({ session }: { session: Session }) {
   const [currentCueCard, setCurrentCueCard] = useState<string | null>(null);
   const [currentBandScore, setCurrentBandScore] = useState<BandScoreData | null>(null);
   const [showPaywall, setShowPaywall] = useState(false);
+  const [showPricingScreen, setShowPricingScreen] = useState(false);
   const [showFreeLimit, setShowFreeLimit] = useState(false);
   const [remainingSeconds, setRemainingSeconds] = useState(getRemainingSecondsSync());
   const [showUsageBanner, setShowUsageBanner] = useState(true);
@@ -1529,9 +1531,19 @@ function TutorApp({ session }: { session: Session }) {
       <AnimatePresence>
         {showPaywall && (
           <PaywallScreen
-            onSubscribe={async () => { await setPremium(true); setShowPaywall(false); setRemainingSeconds(getRemainingSecondsSync()); }}
+            onViewPlans={() => setShowPricingScreen(true)}
             onRestore={async () => { await setPremium(true); setShowPaywall(false); setRemainingSeconds(getRemainingSecondsSync()); }}
             onClose={() => setShowPaywall(false)}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showPricingScreen && (
+          <PricingScreen
+            onSubscribe={async (_plan) => { await setPremium(true); setShowPricingScreen(false); setShowPaywall(false); setRemainingSeconds(getRemainingSecondsSync()); }}
+            onRestore={async () => { await setPremium(true); setShowPricingScreen(false); setShowPaywall(false); setRemainingSeconds(getRemainingSecondsSync()); }}
+            onClose={() => setShowPricingScreen(false)}
           />
         )}
       </AnimatePresence>
