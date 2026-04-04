@@ -503,9 +503,10 @@ const phraseItemVariants = {
 };
 
 /** Speaker icon with tap-to-speak */
-const SpeakerButton = ({ text, voiceName, playingKey, setPlayingKey }: {
+const SpeakerButton = ({ text, voiceName, playingKey, setPlayingKey, micActive = false }: {
   text: string; voiceName: string;
   playingKey: string | null; setPlayingKey: (k: string | null) => void;
+  micActive?: boolean;
 }) => {
   const isPlaying = playingKey === text;
   return (
@@ -516,7 +517,7 @@ const SpeakerButton = ({ text, voiceName, playingKey, setPlayingKey }: {
         setPlayingKey(text);
         speakPhrase(text, voiceName, undefined, () => setPlayingKey(null));
       }}
-      className="shrink-0 p-1 -m-1 touch-manipulation"
+      className={`shrink-0 p-1 -m-1 touch-manipulation${micActive ? ' invisible' : ''}`}
     >
       <motion.div animate={isPlaying ? { opacity: [0.4, 1, 0.4] } : { opacity: 1 }}
         transition={isPlaying ? { duration: 1.2, repeat: Infinity, ease: 'easeInOut' } : { duration: 0.2 }}
@@ -527,7 +528,7 @@ const SpeakerButton = ({ text, voiceName, playingKey, setPlayingKey }: {
   );
 };
 
-const PhraseList = ({ phrases, currentPhrase, reduced = false, voiceName }: { phrases: Phrase[]; currentPhrase: Phrase | null; reduced?: boolean; voiceName: string }) => {
+const PhraseList = ({ phrases, currentPhrase, reduced = false, voiceName, micActive = false }: { phrases: Phrase[]; currentPhrase: Phrase | null; reduced?: boolean; voiceName: string; micActive?: boolean }) => {
   const [playingKey, setPlayingKey] = useState<string | null>(null);
   if (reduced) {
     return (
@@ -545,7 +546,7 @@ const PhraseList = ({ phrases, currentPhrase, reduced = false, voiceName }: { ph
                   {p.vietnamese}
                 </p>
               </div>
-              <SpeakerButton text={p.english} voiceName={voiceName} playingKey={playingKey} setPlayingKey={setPlayingKey} />
+              <SpeakerButton text={p.english} voiceName={voiceName} playingKey={playingKey} setPlayingKey={setPlayingKey} micActive={micActive} />
             </div>
           );
         })}
@@ -598,7 +599,7 @@ const PhraseList = ({ phrases, currentPhrase, reduced = false, voiceName }: { ph
                   {p.vietnamese}
                 </motion.p>
               </div>
-              <SpeakerButton text={p.english} voiceName={voiceName} playingKey={playingKey} setPlayingKey={setPlayingKey} />
+              <SpeakerButton text={p.english} voiceName={voiceName} playingKey={playingKey} setPlayingKey={setPlayingKey} micActive={micActive} />
             </motion.div>
           );
         })}
@@ -1227,7 +1228,7 @@ function TutorApp({ session }: { session: Session }) {
                     ) : currentBandScore ? (
                       <BandScore key="bandscore" data={currentBandScore} />
                     ) : learnedPhrases.length > 0 && phase === 'lesson' ? (
-                      <PhraseList phrases={learnedPhrases} currentPhrase={currentPhrase} reduced={reduced} voiceName={voiceName} />
+                      <PhraseList phrases={learnedPhrases} currentPhrase={currentPhrase} reduced={reduced} voiceName={voiceName} micActive={isRecording} />
                     ) : phase === 'idle' ? (
                       <motion.div key="idle" initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
                         transition={{ duration: 0.6, delay: 0.25, ease }}
