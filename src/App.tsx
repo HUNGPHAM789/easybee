@@ -17,6 +17,10 @@ import BandScore, { type BandScoreData } from './components/BandScore';
 import CommandPalette from './components/CommandPalette';
 import PaywallScreen from './components/PaywallScreen';
 import { checkCanStartSession, incrementSessionCount, setPremium, getSubscription, isPremiumVoice, isPremiumMode } from './lib/subscription';
+import { getRemainingSecondsSync, addUsageSeconds, canStartFreeSession, FREE_SECONDS } from './lib/usage';
+import PronunciationHint from './components/PronunciationHint';
+import UsageBanner from './components/UsageBanner';
+import FreeLimitDialog from './components/FreeLimitDialog';
 import type { Session } from '@supabase/supabase-js';
 
 // ── Types ────────────────────────────────────────────────────
@@ -463,8 +467,9 @@ const Flashcard = ({ phrase, reduced = false }: { phrase: Phrase; reduced?: bool
         reduced={reduced}
         className="text-[28px] font-light text-text text-center leading-tight tracking-tight"
       />
+      <PronunciationHint text={phrase.english} reduced={reduced} className="text-center" />
       <motion.p
-        className="text-[15px] text-text-secondary mt-4 text-center"
+        className="text-[15px] text-text-secondary mt-3 text-center"
         initial={reduced ? { opacity: 0 } : { opacity: 0, y: 12, filter: 'blur(4px)' }}
         animate={reduced ? { opacity: 1 } : { opacity: 1, y: 0, filter: 'blur(0px)' }}
         transition={reduced ? { duration: 0 } : { duration: 0.6, delay: vnDelay, ease }}
@@ -523,6 +528,7 @@ const PhraseList = ({ phrases, currentPhrase, reduced = false, voiceName }: { ph
                 <p className={`leading-tight ${isCurrent ? 'text-[22px] font-light text-text tracking-tight' : 'text-[15px] font-light text-text-muted'}`}>
                   {p.english}
                 </p>
+                {isCurrent && <PronunciationHint text={p.english} reduced className="!text-[11px]" />}
                 <p className={`mt-0.5 ${isCurrent ? 'text-[14px] text-text-secondary' : 'text-[12px] text-text-muted'}`}>
                   {p.vietnamese}
                 </p>
@@ -567,6 +573,7 @@ const PhraseList = ({ phrases, currentPhrase, reduced = false, voiceName }: { ph
                 >
                   {p.english}
                 </motion.p>
+                {isCurrent && <PronunciationHint text={p.english} className="!text-[11px]" />}
                 <motion.p
                   className="mt-0.5"
                   animate={{
@@ -766,6 +773,7 @@ const SessionEndScreen = ({
                   <span className="text-text-muted font-semibold text-sm min-w-[20px]">{i + 1}</span>
                   <div className="flex-1">
                     <p className="text-text font-medium text-[15px]">{p.english}</p>
+                    <PronunciationHint text={p.english} reduced={reduced} className="!text-[10px]" />
                     <p className="text-text-secondary text-[13px] mt-0.5">{p.vietnamese}</p>
                   </div>
                   <SpeakerButton text={p.english} voiceName={voiceName} playingKey={playingKey} setPlayingKey={setPlayingKey} />
@@ -864,6 +872,7 @@ const SummaryView = ({ phrases, onBack, voiceName }: { phrases: Phrase[]; onBack
             <span className="text-text-muted font-semibold text-sm min-w-[20px]">{idx + 1}</span>
             <div className="flex-1">
               <p className="text-text font-medium text-[15px]">{p.english}</p>
+              <PronunciationHint text={p.english} reduced className="!text-[10px]" />
               <p className="text-text-secondary text-[13px] mt-0.5">{p.vietnamese}</p>
             </div>
             <SpeakerButton text={p.english} voiceName={voiceName} playingKey={playingKey} setPlayingKey={setPlayingKey} />
@@ -948,6 +957,18 @@ function TutorApp({ session }: { session: Session }) {
   const [currentCueCard, setCurrentCueCard] = useState<string | null>(null);
   const [currentBandScore, setCurrentBandScore] = useState<BandScoreData | null>(null);
   const [showPaywall, setShowPaywall] = useState(false);
+  const [showFreeLimit, setShowFreeLimit] = useState(false);
+  const [remainingSeconds, setRemainingSeconds] = useState(getRemainingSecondsSync());
+  const [showUsageBanner, setShowUsageBanner] = useState(true);
+  const sessionStartTimeRef = useRef<number | null>(null);
+
+  // Refresh remaining time every 10s
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setRemainingSeconds(getRemainingSecondsSync());
+    }, 10_000);
+    return () => clearInterval(timer);
+  }, []);
 
   const audioHandlerRef = useRef<AudioHandler | null>(null);
   const sessionRef = useRef<any>(null);
@@ -998,7 +1019,30 @@ function TutorApp({ session }: { session: Session }) {
 
   const startSession = async () => {
     if (phase === 'connecting' || phase === 'lesson') return; // prevent double-click
-    if (!checkCanStartSession()) { setShowPaywall(true); return; }
+
+    // Check subscription first
+    if (!checkCanStartSession()) {
+      // If they have no subscription, show paywall
+      if (!getSubscription().isPremium) {
+        // Check if it's a time limit issue
+        if (!canStartFreeSession()) {
+          setShowFreeLimit(true);
+          return;
+        }
+        setShowPaywall(true);
+        return;
+      }
+      setShowPaywall(true);
+      return;
+    }
+    // Free tier time check
+    if (!getSubscription().isPremium && !canStartFreeSession()) {
+      setShowFreeLimit(true);
+      return;
+    }
+
+    // Track session start time
+    sessionStartTimeRef.current = Date.now();
 
     // ── Instant feedback: haptic + visual + greeting audio ──
     navigator.vibrate?.([50]);
@@ -1076,7 +1120,23 @@ function TutorApp({ session }: { session: Session }) {
     setVolume(0);
   };
 
-  const endSession = () => { if (phase !== 'lesson' && phase !== 'connecting') return; cleanup(); setPhase('session-end'); runPostSessionAnalysis(learnedPhrases, allTutorMessages); };
+  const endSession = () => {
+    if (phase !== 'lesson' && phase !== 'connecting') return;
+    // Track usage time
+    if (sessionStartTimeRef.current && !getSubscription().isPremium) {
+      const elapsed = Math.round((Date.now() - sessionStartTimeRef.current) / 1000);
+      sessionStartTimeRef.current = null;
+      const userId = session.user.id;
+      addUsageSeconds(elapsed, userId).then(() => {
+        setRemainingSeconds(getRemainingSecondsSync());
+      });
+    } else {
+      sessionStartTimeRef.current = null;
+    }
+    cleanup();
+    setPhase('session-end');
+    runPostSessionAnalysis(learnedPhrases, allTutorMessages);
+  };
   const toggleSession = () => { setErrorMsg(null); if (isRecording) endSession(); else startSession(); };
 
   // ── Render ──
@@ -1200,6 +1260,18 @@ function TutorApp({ session }: { session: Session }) {
                             ? 'Nhấn vào micro để bắt đầu'
                             : `Chào mừng bạn quay lại! Bạn đã học ${getProfile().totalPhrases} cụm từ.`}
                         </p>
+
+                        {/* Free tier usage banner */}
+                        {!getSubscription().isPremium && showUsageBanner && (
+                          <AnimatePresence>
+                            <UsageBanner
+                              remainingSeconds={remainingSeconds}
+                              onUpgrade={() => setShowPaywall(true)}
+                              onDismiss={() => setShowUsageBanner(false)}
+                              className="mt-4 w-full"
+                            />
+                          </AnimatePresence>
+                        )}
                       </motion.div>
                     ) : phase === 'lesson' && !currentPhrase && !currentCueCard && !currentBandScore ? (
                       <motion.div key="dots" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
@@ -1289,9 +1361,18 @@ function TutorApp({ session }: { session: Session }) {
       <AnimatePresence>
         {showPaywall && (
           <PaywallScreen
-            onSubscribe={async () => { await setPremium(true); setShowPaywall(false); }}
-            onRestore={async () => { await setPremium(true); setShowPaywall(false); }}
+            onSubscribe={async () => { await setPremium(true); setShowPaywall(false); setRemainingSeconds(getRemainingSecondsSync()); }}
+            onRestore={async () => { await setPremium(true); setShowPaywall(false); setRemainingSeconds(getRemainingSecondsSync()); }}
             onClose={() => setShowPaywall(false)}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showFreeLimit && (
+          <FreeLimitDialog
+            onUpgrade={() => { setShowFreeLimit(false); setShowPaywall(true); }}
+            onClose={() => setShowFreeLimit(false)}
           />
         )}
       </AnimatePresence>
