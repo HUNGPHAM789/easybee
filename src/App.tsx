@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { GoogleGenAI, LiveServerMessage, Modality } from '@google/genai';
-import { Copy, Check, ArrowLeft, Loader2, UserCircle, Search, ChevronDown, Lock, Volume2, X } from 'lucide-react';
+import { Copy, Check, ArrowLeft, Loader2, UserCircle, Menu, ChevronDown, Lock, Volume2, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { AudioHandler } from './lib/audio';
 import { speakPhrase, stopTTS, setTTSAuthToken } from './lib/tts';
@@ -1189,6 +1189,18 @@ function TutorApp({ session }: { session: Session }) {
 
   // Set TTS auth token whenever session changes
   useEffect(() => { setTTSAuthToken(session.access_token); }, [session.access_token]);
+
+  // Measure header height for dropdown positioning
+  useEffect(() => {
+    const update = () => {
+      if (headerRef.current) {
+        setHeaderBottom(headerRef.current.getBoundingClientRect().bottom);
+      }
+    };
+    update();
+    window.addEventListener('resize', update);
+    return () => window.removeEventListener('resize', update);
+  }, []);
   const [phase, setPhase] = useState<Phase>('idle');
   const [volume, setVolume] = useState(0);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -1200,7 +1212,9 @@ function TutorApp({ session }: { session: Session }) {
   const [sessionTopic, setSessionTopic] = useState('');
   const [allTutorMessages, setAllTutorMessages] = useState<string[]>([]);
   const [showVoicePicker, setShowVoicePicker] = useState(!getSavedVoice());
-  const [showCommandPalette, setShowCommandPalette] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
+  const headerRef = useRef<HTMLDivElement>(null);
+  const [headerBottom, setHeaderBottom] = useState(120);
   const [showAccount, setShowAccount] = useState(false);
   const [mode, setMode] = useState<AppMode>(getSavedMode());
   const [currentCueCard, setCurrentCueCard] = useState<string | null>(null);
@@ -1396,6 +1410,7 @@ function TutorApp({ session }: { session: Session }) {
 
         {/* Header */}
         <motion.div
+          ref={headerRef}
           className="pt-14 pb-5 px-6 text-center z-10 relative"
           initial={{ opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
@@ -1419,12 +1434,36 @@ function TutorApp({ session }: { session: Session }) {
           </div>
           <h1 className="text-[20px] font-bold tracking-tight text-text flex items-center justify-center gap-1.5" style={{ fontFamily: "'Comfortaa', sans-serif" }}>
             <button
-              onClick={() => setShowCommandPalette(true)}
-              className="text-text-muted hover:text-text transition-colors"
-              title="Hành động nhanh"
-              aria-label="Hành động nhanh"
+              onClick={() => setShowMenu(prev => !prev)}
+              className="relative w-5 h-5 flex items-center justify-center text-text-muted hover:text-text transition-colors"
+              title="Menu"
+              aria-label="Menu"
             >
-              <Search className="w-4 h-4" />
+              <AnimatePresence mode="wait">
+                {showMenu ? (
+                  <motion.span
+                    key="x"
+                    className="absolute"
+                    initial={{ opacity: 0, rotate: -90 }}
+                    animate={{ opacity: 1, rotate: 0 }}
+                    exit={{ opacity: 0, rotate: 90 }}
+                    transition={{ duration: 0.18 }}
+                  >
+                    <X className="w-4 h-4" />
+                  </motion.span>
+                ) : (
+                  <motion.span
+                    key="menu"
+                    className="absolute"
+                    initial={{ opacity: 0, rotate: 90 }}
+                    animate={{ opacity: 1, rotate: 0 }}
+                    exit={{ opacity: 0, rotate: -90 }}
+                    transition={{ duration: 0.18 }}
+                  >
+                    <Menu className="w-4 h-4" />
+                  </motion.span>
+                )}
+              </AnimatePresence>
             </button>
             EasyBee
           </h1>
@@ -1598,15 +1637,16 @@ function TutorApp({ session }: { session: Session }) {
       </div>
 
       <CommandPalette
-        open={showCommandPalette}
-        onClose={() => setShowCommandPalette(false)}
-        onChangeVoice={() => setShowVoicePicker(true)}
-        onSetMode={(m) => { setMode(m); saveMode(m); }}
-        onShowProgress={() => setPhase('summary')}
-        onEndSession={endSession}
+        open={showMenu}
+        onClose={() => setShowMenu(false)}
+        onChangeVoice={() => { setShowMenu(false); setShowVoicePicker(true); }}
+        onSetMode={(m) => { setMode(m); saveMode(m); setShowMenu(false); }}
+        onShowProgress={() => { setPhase('summary'); setShowMenu(false); }}
+        onEndSession={() => { endSession(); setShowMenu(false); }}
         onSignOut={() => supabase.auth.signOut()}
-        onShowAccount={() => setShowAccount(true)}
+        onShowAccount={() => { setShowAccount(true); setShowMenu(false); }}
         isInLesson={phase === 'lesson'}
+        headerBottom={headerBottom}
       />
 
       <AnimatePresence>

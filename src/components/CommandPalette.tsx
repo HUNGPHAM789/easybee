@@ -21,21 +21,22 @@ interface CommandPaletteProps {
   onSignOut: () => void;
   onShowAccount: () => void;
   isInLesson: boolean;
+  headerBottom?: number;
 }
 
 export default function CommandPalette({
-  open, onClose, onChangeVoice, onSetMode, onShowProgress, onEndSession, onSignOut, onShowAccount, isInLesson,
+  open, onClose, onChangeVoice, onSetMode, onShowProgress, onEndSession, onSignOut, onShowAccount, isInLesson, headerBottom = 120,
 }: CommandPaletteProps) {
   const [query, setQuery] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
 
   const actions: Action[] = [
+    { id: 'account', label: 'Tài khoản', icon: User, onExecute: onShowAccount },
     { id: 'voice', label: 'Đổi giáo viên', icon: UserCircle, onExecute: onChangeVoice },
     { id: 'conversation', label: 'Học Giao Tiếp', icon: MessageCircle, onExecute: () => onSetMode('conversation') },
     { id: 'ielts', label: 'Luyện IELTS', icon: GraduationCap, onExecute: () => onSetMode('ielts') },
     { id: 'progress', label: 'Xem tiến trình', icon: BarChart3, onExecute: onShowProgress },
     { id: 'end', label: 'Kết thúc buổi học', icon: Square, onExecute: onEndSession, lessonOnly: true },
-    { id: 'account', label: 'Tài khoản', icon: User, onExecute: onShowAccount },
     { id: 'signout', label: 'Đăng xuất', icon: LogOut, onExecute: onSignOut },
   ];
 
@@ -67,31 +68,36 @@ export default function CommandPalette({
   return (
     <AnimatePresence>
       {open && (
-        <motion.div
-          className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.2 }}
-          onClick={onClose}
-        >
+        <>
+          {/* Backdrop */}
           <motion.div
-            className="bg-white rounded-2xl shadow-2xl max-w-sm mx-auto mt-[20vh] overflow-hidden"
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
+            className="fixed inset-0 z-40 bg-black"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 0.3 }}
+            exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
+            onClick={onClose}
+          />
+
+          {/* Dropdown panel — slides from below header */}
+          <motion.div
+            className="fixed left-1/2 -translate-x-1/2 w-full max-w-md z-50 bg-white rounded-b-2xl shadow-[0_8px_32px_rgba(0,0,0,0.12)] overflow-hidden"
+            style={{ top: headerBottom }}
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 30 }}
             onClick={e => e.stopPropagation()}
           >
-            {/* Search input */}
-            <div className="flex items-center gap-2 px-4 py-4 border-b border-[#e8e8e8]">
-              <Search className="w-4 h-4 text-[#8a8a8a] shrink-0" />
+            {/* Search bar */}
+            <div className="flex items-center border-b border-[#f0f0f0]">
+              <Search className="w-4 h-4 text-[#8a8a8a] shrink-0 ml-4" />
               <input
                 ref={inputRef}
                 value={query}
                 onChange={e => setQuery(e.target.value)}
                 placeholder="Tìm hành động..."
-                className="w-full text-[16px] text-[#0a0a0a] placeholder:text-[#8a8a8a] outline-none border-0 ring-0 focus:ring-0 focus:outline-none bg-transparent"
+                className="w-full text-[16px] text-[#0a0a0a] placeholder:text-[#8a8a8a] outline-none border-0 ring-0 focus:ring-0 focus:outline-none bg-transparent py-3 px-4"
                 onKeyDown={e => {
                   if (e.key === 'Enter' && filtered.length > 0) execute(filtered[0]);
                 }}
@@ -105,10 +111,10 @@ export default function CommandPalette({
                 return (
                   <motion.button
                     key={action.id}
-                    className="w-full px-4 py-3 hover:bg-[#f2f2f2] flex items-center gap-3 transition-colors"
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.2, delay: i * 0.04 }}
+                    className="w-full px-4 py-3 hover:bg-[#f5f5f5] active:bg-[#f5f5f5] flex items-center gap-3 transition-colors duration-150"
+                    initial={{ opacity: 0, y: 8, filter: 'blur(4px)' }}
+                    animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                    transition={{ duration: 0.25, delay: i * 0.04 }}
                     onClick={() => execute(action)}
                   >
                     <Icon className="w-5 h-5 text-[#8a8a8a]" />
@@ -121,7 +127,7 @@ export default function CommandPalette({
               )}
             </div>
           </motion.div>
-        </motion.div>
+        </>
       )}
     </AnimatePresence>
   );
