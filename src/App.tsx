@@ -1170,15 +1170,14 @@ function TutorApp({ session }: { session: Session }) {
 
   const finalizeTutorTurn = useCallback(() => {
     const buf = tutorBufferRef.current;
-    if (buf) {
-      const { displayText } = parseAIOutput(buf);
-      if (displayText) {
-        setLatestTutorMsg(displayText);
-        setAllTutorMessages(prev => [...prev, displayText]);
-        // Flush any remaining sentence buffer on turn complete
-        const remaining = (sentenceBufferRef.current + displayText.slice(displayLengthRef.current)).trim();
-        if (remaining) setTranscriptLines(prev => [...prev, remaining]);
-      }
+    if (!buf) return; // Guard against double-fire
+    const { displayText } = parseAIOutput(buf);
+    if (displayText) {
+      setLatestTutorMsg(displayText);
+      setAllTutorMessages(prev => [...prev, displayText]);
+      // Only flush remaining buffer — don't re-add already-flushed sentences
+      const remaining = sentenceBufferRef.current.trim();
+      if (remaining) setTranscriptLines(prev => [...prev, remaining]);
     }
     tutorBufferRef.current = '';
     sentenceBufferRef.current = '';
