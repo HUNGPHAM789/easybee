@@ -220,9 +220,80 @@ const PRONUNCIATION_DICT: Record<string, string> = {
   'impossible': 'im-POS-ih-bul',
 };
 
+// ── Vowel-group phoneme map ──────────────────────────────────
+const VOWEL_MAP: [RegExp, string][] = [
+  [/tion|sion/, 'shun'],
+  [/ough(?=t)/, 'awt'],
+  [/ough/, 'oh'],
+  [/augh/, 'aw'],
+  [/igh/, 'y'],
+  [/oo/, 'oo'],
+  [/ee|ea/, 'ee'],
+  [/oa|ow/, 'oh'],
+  [/ou|ow/, 'ow'],
+  [/ai|ay/, 'ay'],
+  [/ie|igh/, 'y'],
+  [/au|aw/, 'aw'],
+  [/ew/, 'yoo'],
+  [/ue/, 'yoo'],
+  [/ui/, 'oo'],
+  [/a(?=[^aeiou]e)/, 'ay'],
+  [/e(?=[^aeiou]e)/, 'ee'],
+  [/i(?=[^aeiou]e)/, 'y'],
+  [/o(?=[^aeiou]e)/, 'oh'],
+  [/u(?=[^aeiou]e)/, 'yoo'],
+  [/a/, 'a'],
+  [/e/, 'eh'],
+  [/i/, 'ih'],
+  [/o/, 'o'],
+  [/u/, 'uh'],
+];
+
+/**
+ * Split a single English word into rough phonetic syllables.
+ * Good enough for ESL learners — not a full G2P system.
+ */
+function wordToPhonetic(word: string): string {
+  if (!word) return word;
+  // Very short words — just capitalise
+  if (word.length <= 2) return word.toUpperCase();
+
+  // Remove silent trailing 'e'
+  let w = word.toLowerCase();
+
+  // Split on consonant clusters to approximate syllables
+  // Strategy: insert hyphens before each vowel cluster that follows a consonant
+  const syllables: string[] = [];
+  let current = '';
+  const vowels = new Set(['a', 'e', 'i', 'o', 'u']);
+  let inVowel = false;
+  for (let i = 0; i < w.length; i++) {
+    const ch = w[i];
+    const isV = vowels.has(ch);
+    if (isV && !inVowel && current.length > 1) {
+      // Transition into vowel group — look back: keep one consonant with new syllable
+      const last = current.slice(-1);
+      syllables.push(current.slice(0, -1));
+      current = last + ch;
+    } else {
+      current += ch;
+    }
+    inVowel = isV;
+  }
+  if (current) syllables.push(current);
+
+  // Stress heuristic: stress second-to-last syllable for ≥2 syllables, else first
+  const stressIdx = syllables.length >= 2 ? syllables.length - 2 : 0;
+  return syllables
+    .map((s, i) => (i === stressIdx ? s.toUpperCase() : s))
+    .filter(s => s.length > 0)
+    .join('-');
+}
+
 /**
  * Look up pronunciation for a phrase or word.
- * Returns the pronunciation string or null if not found.
+ * Always returns a string (never null) — falls back to a simple
+ * phonetic syllable split so the hint shows for every phrase.
  */
 export function getPronunciation(text: string): string | null {
   if (!text) return null;
@@ -231,19 +302,9 @@ export function getPronunciation(text: string): string | null {
   // Direct lookup
   if (PRONUNCIATION_DICT[lower]) return PRONUNCIATION_DICT[lower];
 
-  // Try each word individually for single words
   const words = lower.split(/\s+/);
-  if (words.length === 1) {
-    return PRONUNCIATION_DICT[lower] || null;
-  }
 
-  // For multi-word phrases, try exact lookup first, then word-by-word
-  const wordPronunciations = words.map(w => PRONUNCIATION_DICT[w] || w);
-  // If at least one word has a lookup, return combined
-  const hasAnyLookup = words.some(w => PRONUNCIATION_DICT[w]);
-  if (hasAnyLookup) {
-    return wordPronunciations.join(' ');
-  }
-
-  return null;
+  // Word-by-word: use dict entry where available, fallback for the rest
+  const parts = words.map(w => PRONUNCIATION_DICT[w] || wordToPhonetic(w));
+  return parts.join(' ');
 }

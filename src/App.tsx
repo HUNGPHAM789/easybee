@@ -190,8 +190,11 @@ Moi 3 cum tu = 1 chu trinh hoan chinh. Lam theo dung thu tu:
 BUOC 1 - DAY (3 cum tu, tung cai mot):
 - Noi: "Cum dau tien: [PHRASE]...[/PHRASE][VN]...[/VN]" (chi lan dau day cum nay)
 - Demo phat am ro rang, cham
-- SAU KHI NOI CUM TU, DUNG NGAY LAP TUC. KHONG noi them bat ky huong dan nao sau cum tu (khong "ban noi lai", khong "thu di", khong "bây giờ bạn nói lại"). Su im lang la tin hieu cho hoc vien. Chi phan hoi SAU KHI hoc vien thu noi.
-- Bao hoc vien noi lai
+- LAP LAI CUM TU HAI LAN TRUOC KHI CHO HOC VIEN NOI:
+  * Cum ngan (1-2 tu): noi hai lan lien tiep. Vi du: "Thank you. Thank you."
+  * Cum dai hon: noi mot lan day du, roi lap lai phan chinh. Vi du: "Can I have the bill? — the bill."
+  * Sau lan thu hai: DUNG HOAN TOAN. Im lang = tin hieu cho hoc vien noi theo.
+- SAU KHI NOI CUM TU, DUNG NGAY LAP TUC. KHONG noi them bat ky huong dan nao sau cum tu. Su im lang la tin hieu cho hoc vien. Chi phan hoi SAU KHI hoc vien thu noi.
 - Neu phat am chua dung: sua cu the (mieng tron hon, luoi cong len, bat hoi nhe)
 - Toi da 3 lan thu, roi di tiep
 - Lam tuong tu cho cum 2 va 3
@@ -228,6 +231,13 @@ PHAN HOI THEO MUC DO:
 - Tam duoc: "OK — *Welcome* — nghe chu 'wel' hoi nhan manh khong? Nice though."
 - Can sua: "Minh cung thu lai nha — *Wel-come* — mieng tron o chu 'come'. One more time."
 - Sai nhieu: "Chu nay trick lam — ai moi hoc cung vay. *Water* — Wah-ter. Ban thu?"
+
+PHAN HOI THU LAI — TIENG VIET (3 MUC, BAT BUOC):
+Khi hoc vien thu noi lai nhung chua dat:
+- Gan dung (phat am gan dung, chi sai nho): "Gần đúng rồi, thử lại nhé!"
+- Qua nhe / khong ro (giong too small, mic yeu, khong nghe ro): "To hơn một chút, thử lại nhé!"
+- Sai nhieu (sai am chinh, sai cau truc): "Chưa đúng, nghe lại nhé!" ROI lap lai cum tu day du mot lan nua.
+CHI dung 3 cau nay cho phan hoi thu lai — khong dung cac cau khac.
 
 POOL KHEN (XOAY VONG, KHONG LAP LAI):
 Tieng Anh — CHI DUNG 4 CAU NAY, KHONG DUNG CAU KHAC:
@@ -640,13 +650,13 @@ const BlurredStagger = ({ text }: { text: string }) => {
   const reduced = usePrefersReducedMotion();
   if (reduced) {
     return (
-      <p className="text-[13px] text-text-secondary text-center leading-relaxed line-clamp-2">
+      <p className="text-[13px] text-text-secondary text-center leading-relaxed">
         {text}
       </p>
     );
   }
   return (
-    <motion.p variants={blurredContainer} initial="hidden" animate="show" className="text-[13px] text-text-secondary text-center leading-relaxed line-clamp-2">
+    <motion.p variants={blurredContainer} initial="hidden" animate="show" className="text-[13px] text-text-secondary text-center leading-relaxed">
       {text.split('').map((char, i) => (
         <motion.span key={i} variants={blurredLetter} transition={{ duration: 0.3 }} className="inline-block">
           {char === ' ' ? '\u00A0' : char}
