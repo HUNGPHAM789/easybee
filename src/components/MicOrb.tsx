@@ -38,11 +38,11 @@ export default function MicOrb({ volume, isActive, isConnecting, onClick, reduce
 
     const cx = SIZE / 2;
     const cy = SIZE / 2;
-    const barWidth = 2.5;
-    const barGap = 2;
+    const barWidth = 3.5;
+    const barGap = 2.5;
     const totalWidth = BAR_COUNT * (barWidth + barGap) - barGap;
     const startX = (SIZE - totalWidth) / 2;
-    const maxBarH = SIZE * 0.35;
+    const maxBarH = SIZE * 0.5;
 
     const draw = () => {
       smoothVol.current += (volume - smoothVol.current) * 0.15;
@@ -65,7 +65,7 @@ export default function MicOrb({ volume, isActive, isConnecting, onClick, reduce
         const y = cy - h / 2;
         const alpha = 0.15 + v * 0.6;
 
-        ctx.fillStyle = `rgba(10, 10, 10, ${alpha})`;
+        ctx.fillStyle = `rgba(37, 99, 235, ${alpha + 0.3})`; // blue-600
         ctx.beginPath();
         ctx.roundRect(x, y, barWidth, h, barWidth / 2);
         ctx.fill();

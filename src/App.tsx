@@ -340,6 +340,7 @@ ${personaStyle}`;
   if (review.length > 0) {
     r += `\n\nÔN TẬP ĐẦU BUỔI:\nBắt đầu bằng cách ôn lại ${review.length} cụm từ cũ: ${review.map(p => `"${p.english}" (${p.vietnamese})`).join(', ')}\nHỏi học viên đọc lại từng cụm, khen khi họ nhớ đúng.`;
   }
+  r += `\n\nLỜI CHÀO TRỞ LẠI (BẮT BUỘC):\nKhi học viên chào, PHẢI:\n1. Chào lại bằng tên tutor ("Chào bạn! Thầy Bee đây.")\n2. Nhắc lại buổi học trước nếu có: "Buổi trước mình học về ${last?.topic || 'tiếng Anh cơ bản'} rồi nha."\n3. Gợi ý 2-3 chủ đề cụ thể: "Hôm nay bạn muốn học về làm nail, đi mua sắm, hay chủ đề khác?"\nKhông được chỉ nói "Hôm nay bạn muốn học gì?" — phải gợi ý chủ đề cụ thể.`;
   return r;
 }
 
@@ -1304,7 +1305,15 @@ function TutorApp({ session }: { session: Session }) {
     setPhase('session-end');
     runPostSessionAnalysis(learnedPhrases, allTutorMessages);
   };
-  const toggleSession = () => { setErrorMsg(null); if (isRecording) endSession(); else startSession(); };
+  const toggleSession = () => {
+    setErrorMsg(null);
+    if (isRecording) {
+      // Confirm before ending to prevent accidental taps
+      if (window.confirm('Kết thúc buổi học?')) endSession();
+    } else {
+      startSession();
+    }
+  };
 
   // ── Render ──
   return (
