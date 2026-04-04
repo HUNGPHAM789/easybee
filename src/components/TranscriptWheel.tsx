@@ -97,6 +97,7 @@ export default function TranscriptWheel({ lines }: TranscriptWheelProps) {
       style={{
         height: `${LINE_HEIGHT * 3}px`,
         overflow: 'hidden',
+        width: '100%',
         WebkitMaskImage: 'linear-gradient(transparent, #fff 30%, #fff 70%, transparent)',
         maskImage: 'linear-gradient(transparent, #fff 30%, #fff 70%, transparent)',
       }}
@@ -123,20 +124,21 @@ export default function TranscriptWheel({ lines }: TranscriptWheelProps) {
             <div
               key={i}
               style={{
-                height: `${LINE_HEIGHT}px`,
+                minHeight: `${LINE_HEIGHT}px`,
                 display: 'flex',
                 alignItems: 'center',
-                paddingLeft: '2rem',
-                paddingRight: '2rem',
+                paddingLeft: '1.5rem',
+                paddingRight: '1.5rem',
                 fontSize: isFocused ? '15px' : '13px',
                 color: isFocused ? '#0a0a0a' : '#aaa',
                 opacity: isFocused ? 1 : isAdjacent ? 0.7 : 0.3,
                 fontWeight: isFocused ? 400 : 300,
                 transition: 'font-size 0.2s ease, color 0.2s ease, opacity 0.2s ease',
-                lineHeight: 1.3,
-                overflow: 'hidden',
-                whiteSpace: 'nowrap',
-                textOverflow: 'ellipsis',
+                lineHeight: 1.4,
+                wordWrap: 'break-word',
+                overflowWrap: 'break-word',
+                whiteSpace: 'pre-wrap',
+                width: '100%',
               }}
             >
               {line}

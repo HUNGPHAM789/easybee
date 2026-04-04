@@ -274,11 +274,9 @@ Moi 3 cum tu = 1 chu trinh hoan chinh. Lam theo dung thu tu:
 BUOC 1 - DAY (3 cum tu, tung cai mot):
 - Noi: "Cum dau tien: [PHRASE]...[/PHRASE][VN]...[/VN]" (chi lan dau day cum nay)
 - Demo phat am ro rang, cham
-- LAP LAI CUM TU HAI LAN TRUOC KHI CHO HOC VIEN NOI:
-  * Cum ngan (1-2 tu): noi hai lan lien tiep. Vi du: "Thank you. Thank you."
-  * Cum dai hon: noi mot lan day du, roi lap lai phan chinh. Vi du: "Can I have the bill? — the bill."
-  * Sau lan thu hai: DUNG HOAN TOAN. Im lang = tin hieu cho hoc vien noi theo.
-- SAU KHI NOI CUM TU, DUNG NGAY LAP TUC. KHONG noi them bat ky huong dan nao sau cum tu. Su im lang la tin hieu cho hoc vien. Chi phan hoi SAU KHI hoc vien thu noi.
+- SAU KHI DEMO PHAT AM, NOI CUM TU MOT LAN RO RANG, CHAM. Sau do DUNG HOAN TOAN.
+- KHONG noi them bat ky huong dan nao sau cum tu. Su im lang la tin hieu cho hoc vien noi theo.
+- Chi phan hoi SAU KHI hoc vien thu noi.
 - Neu phat am chua dung: sua cu the (mieng tron hon, luoi cong len, bat hoi nhe)
 - Toi da 3 lan thu, roi di tiep
 - Lam tuong tu cho cum 2 va 3
@@ -461,11 +459,8 @@ BUOC 3 - HUONG DAN (COACH):
   [PHRASE]From my perspective...[/PHRASE][VN]Theo quan diem cua toi...[/VN]
 - Chi mot MAU cau tra loi Band 7+ (ngan thoi, khong doc bai van)
 
-QUY TAC LAP LAI CUM TU KHI DAY (BAT BUOC):
-Sau khi noi cum tu moi, PHAI noi lai lan thu hai truoc khi cho hoc vien noi:
-- Cum ngan (1-2 tu): noi 2 lan lien tiep. VD: "By and large. By and large."
-- Cum dai hon: noi 1 lan day du, roi lap lai phan chinh. VD: "It largely depends on... Largely depends on."
-- Sau do IM LANG HOAN TOAN — cho hoc vien thu. KHONG noi them gi.
+QUY TAC NOI CUM TU KHI DAY (BAT BUOC):
+Sau khi noi cum tu moi, noi ro rang MOT LAN DUY NHAT, cham va cu the. Sau do IM LANG HOAN TOAN — cho hoc vien thu. KHONG noi them gi. KHONG lap lai lan thu hai.
 
 PHAN HOI THU LAI — TIENG VIET (3 MUC, BAT BUOC):
 Khi hoc vien thu noi lai nhung chua dat:
@@ -1490,7 +1485,7 @@ function TutorApp({ session }: { session: Session }) {
                     ) : currentBandScore ? (
                       <BandScore key="bandscore" data={currentBandScore} />
                     ) : learnedPhrases.length > 0 && phase === 'lesson' ? (
-                      <PhraseWheel phrases={learnedPhrases} currentPhrase={currentPhrase} reduced={reduced} voiceName={voiceName} />
+                      <PhraseList phrases={learnedPhrases} currentPhrase={currentPhrase} reduced={reduced} voiceName={voiceName} />
                     ) : phase === 'idle' ? (
                       <motion.div key="idle" initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
                         transition={{ duration: 0.6, delay: 0.25, ease }}
