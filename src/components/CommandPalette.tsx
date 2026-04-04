@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { UserCircle, MessageCircle, GraduationCap, BarChart3, Square, LogOut, Search } from 'lucide-react';
+import { UserCircle, User, MessageCircle, GraduationCap, BarChart3, Square, LogOut, Search } from 'lucide-react';
 
 interface Action {
   id: string;
@@ -19,11 +19,12 @@ interface CommandPaletteProps {
   onShowProgress: () => void;
   onEndSession: () => void;
   onSignOut: () => void;
+  onShowAccount: () => void;
   isInLesson: boolean;
 }
 
 export default function CommandPalette({
-  open, onClose, onChangeVoice, onSetMode, onShowProgress, onEndSession, onSignOut, isInLesson,
+  open, onClose, onChangeVoice, onSetMode, onShowProgress, onEndSession, onSignOut, onShowAccount, isInLesson,
 }: CommandPaletteProps) {
   const [query, setQuery] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
@@ -34,6 +35,7 @@ export default function CommandPalette({
     { id: 'ielts', label: 'Luyện IELTS', icon: GraduationCap, onExecute: () => onSetMode('ielts') },
     { id: 'progress', label: 'Xem tiến trình', icon: BarChart3, onExecute: onShowProgress },
     { id: 'end', label: 'Kết thúc buổi học', icon: Square, onExecute: onEndSession, lessonOnly: true },
+    { id: 'account', label: 'Tài khoản', icon: User, onExecute: onShowAccount },
     { id: 'signout', label: 'Đăng xuất', icon: LogOut, onExecute: onSignOut },
   ];
 

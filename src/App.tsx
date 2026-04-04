@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { GoogleGenAI, LiveServerMessage, Modality } from '@google/genai';
-import { Copy, Check, ArrowLeft, Loader2, UserCircle, Search, ChevronDown, Lock, Volume2 } from 'lucide-react';
+import { Copy, Check, ArrowLeft, Loader2, UserCircle, Search, ChevronDown, Lock, Volume2, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { AudioHandler } from './lib/audio';
 import { speakPhrase, stopTTS, setTTSAuthToken } from './lib/tts';
@@ -10,6 +10,85 @@ import { supabase } from './lib/supabase';
 import { syncProfileFromSupabase, saveVoicePreference } from './lib/profile';
 import { transitions, ease, getFadeUp, getPhaseVariants, getTransitions, usePrefersReducedMotion } from './lib/motion';
 import LoginScreen from './components/LoginScreen';
+
+// ── Account Screen ───────────────────────────────────────────
+function AccountScreen({ session, onClose, onUpgrade, onSignOut, remainingSeconds }: {
+  session: Session;
+  onClose: () => void;
+  onUpgrade: () => void;
+  onSignOut: () => void;
+  remainingSeconds: number;
+}) {
+  const isPremium = getSubscription().isPremium;
+  const usedSeconds = FREE_SECONDS - remainingSeconds;
+  const usedMinutes = Math.round(usedSeconds / 60);
+  const totalMinutes = Math.round(FREE_SECONDS / 60);
+  const remainingMinutes = Math.round(remainingSeconds / 60);
+  const progress = Math.min(1, usedSeconds / FREE_SECONDS);
+
+  return (
+    <motion.div
+      className="fixed inset-0 z-50 bg-white flex flex-col"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 20 }}
+      transition={{ duration: 0.3 }}
+    >
+      <div className="relative pt-14 pb-5 px-6">
+        <button
+          onClick={onClose}
+          className="absolute right-6 top-14 text-text-muted hover:text-text transition-colors"
+        >
+          <X className="w-5 h-5" />
+        </button>
+        <h1 className="text-[22px] font-light text-text" style={{ letterSpacing: '-0.5px' }}>Tài khoản</h1>
+      </div>
+
+      <div className="flex-1 px-6 space-y-6 overflow-y-auto">
+        <div className="py-4 border-b border-[#e8e8e8]">
+          <p className="text-[12px] text-[#8a8a8a] uppercase tracking-wider font-semibold mb-1">Email</p>
+          <p className="text-[15px] text-[#0a0a0a]">{session.user.email}</p>
+        </div>
+
+        <div className="py-4 border-b border-[#e8e8e8]">
+          <p className="text-[12px] text-[#8a8a8a] uppercase tracking-wider font-semibold mb-1">Gói</p>
+          {isPremium ? (
+            <p className="text-[15px] text-[#0a0a0a] font-semibold">✨ Premium</p>
+          ) : (
+            <>
+              <p className="text-[15px] text-[#0a0a0a]">Free — {remainingMinutes} phút còn lại tháng này</p>
+              <div className="mt-3 h-2 rounded-full bg-[#f2f2f2] overflow-hidden border border-[#e8e8e8]">
+                <div
+                  className="h-full rounded-full bg-[#0a0a0a] transition-all duration-500"
+                  style={{ width: `${progress * 100}%` }}
+                />
+              </div>
+              <p className="text-[12px] text-[#8a8a8a] mt-1.5">{usedMinutes} / {totalMinutes} phút đã dùng</p>
+            </>
+          )}
+        </div>
+      </div>
+
+      <div className="px-6 pb-10 space-y-3">
+        {!isPremium && (
+          <button
+            onClick={onUpgrade}
+            className="w-full py-4 rounded-xl bg-[#0a0a0a] text-white text-[15px] font-semibold"
+            style={{ boxShadow: '0 2px 12px rgba(10,10,10,0.15)' }}
+          >
+            Nâng cấp lên Premium →
+          </button>
+        )}
+        <button
+          onClick={onSignOut}
+          className="w-full py-4 rounded-xl text-[#0a0a0a] text-[15px] font-semibold bg-[#f9f9f9] border border-[#e8e8e8]"
+        >
+          Đăng xuất
+        </button>
+      </div>
+    </motion.div>
+  );
+}
 import MicOrb from './components/MicOrb';
 import VoicePicker, { type Persona, VOICE_MAP, getSavedVoice } from './components/VoicePicker';
 import CueCard from './components/CueCard';
@@ -1122,6 +1201,7 @@ function TutorApp({ session }: { session: Session }) {
   const [allTutorMessages, setAllTutorMessages] = useState<string[]>([]);
   const [showVoicePicker, setShowVoicePicker] = useState(!getSavedVoice());
   const [showCommandPalette, setShowCommandPalette] = useState(false);
+  const [showAccount, setShowAccount] = useState(false);
   const [mode, setMode] = useState<AppMode>(getSavedMode());
   const [currentCueCard, setCurrentCueCard] = useState<string | null>(null);
   const [currentBandScore, setCurrentBandScore] = useState<BandScoreData | null>(null);
@@ -1337,7 +1417,7 @@ function TutorApp({ session }: { session: Session }) {
               Đăng xuất
             </button>
           </div>
-          <h1 className="text-[20px] font-bold tracking-tight text-text flex items-center justify-center gap-2" style={{ fontFamily: "'Comfortaa', sans-serif" }}>
+          <h1 className="text-[20px] font-bold tracking-tight text-text flex items-center justify-center gap-1.5" style={{ fontFamily: "'Comfortaa', sans-serif" }}>
             <button
               onClick={() => setShowCommandPalette(true)}
               className="text-text-muted hover:text-text transition-colors"
@@ -1525,6 +1605,7 @@ function TutorApp({ session }: { session: Session }) {
         onShowProgress={() => setPhase('summary')}
         onEndSession={endSession}
         onSignOut={() => supabase.auth.signOut()}
+        onShowAccount={() => setShowAccount(true)}
         isInLesson={phase === 'lesson'}
       />
 
@@ -1544,6 +1625,18 @@ function TutorApp({ session }: { session: Session }) {
             onSubscribe={async (_plan) => { await setPremium(true); setShowPricingScreen(false); setShowPaywall(false); setRemainingSeconds(getRemainingSecondsSync()); }}
             onRestore={async () => { await setPremium(true); setShowPricingScreen(false); setShowPaywall(false); setRemainingSeconds(getRemainingSecondsSync()); }}
             onClose={() => setShowPricingScreen(false)}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showAccount && (
+          <AccountScreen
+            session={session}
+            onClose={() => setShowAccount(false)}
+            onUpgrade={() => { setShowPaywall(true); setShowAccount(false); }}
+            onSignOut={() => supabase.auth.signOut()}
+            remainingSeconds={remainingSeconds}
           />
         )}
       </AnimatePresence>
