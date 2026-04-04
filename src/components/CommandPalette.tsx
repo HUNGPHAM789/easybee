@@ -98,6 +98,7 @@ export default function CommandPalette({
                 onChange={e => setQuery(e.target.value)}
                 placeholder="Tìm hành động..."
                 className="w-full text-[16px] text-[#0a0a0a] placeholder:text-[#8a8a8a] outline-none border-0 ring-0 focus:ring-0 focus:outline-none bg-transparent py-3 px-4"
+                style={{ boxShadow: 'none', WebkitAppearance: 'none' }}
                 onKeyDown={e => {
                   if (e.key === 'Enter' && filtered.length > 0) execute(filtered[0]);
                 }}

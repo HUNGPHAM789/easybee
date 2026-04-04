@@ -1416,22 +1416,7 @@ function TutorApp({ session }: { session: Session }) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease }}
         >
-          <div className="absolute right-6 top-14 flex items-center gap-3">
-            <button
-              onClick={() => setShowVoicePicker(true)}
-              className="text-text-muted hover:text-text transition-colors"
-              title="Đổi giáo viên"
-              aria-label="Đổi giáo viên"
-            >
-              <UserCircle className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => supabase.auth.signOut()}
-              className="text-[12px] text-text-muted hover:text-text transition-colors"
-            >
-              Đăng xuất
-            </button>
-          </div>
+
           <h1 className="text-[20px] font-bold tracking-tight text-text flex items-center justify-center gap-1.5" style={{ fontFamily: "'Comfortaa', sans-serif" }}>
             <button
               onClick={() => setShowMenu(prev => !prev)}
@@ -1478,7 +1463,7 @@ function TutorApp({ session }: { session: Session }) {
                 setShowVoicePicker(false);
                 saveVoicePreference(persona, session.access_token);
               }} reduced={reduced}
-                isLockedVoice={(id) => isPremiumVoice(id) && !getSubscription().isPremium}
+                isLockedVoice={() => false}
                 onLockedTap={() => setShowPaywall(true)}
                 accessToken={session.access_token}
               />
