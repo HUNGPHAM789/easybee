@@ -32,6 +32,8 @@ body {
   background: var(--color-bg);
   color: var(--color-text);
   overscroll-behavior: none;
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
 }
 
 ::selection {
