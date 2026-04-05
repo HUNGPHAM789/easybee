@@ -8,8 +8,11 @@ import { type Phrase, isNewUser, getProfile, getLastSession, getReviewPhrases } 
 import { analyzeSession } from './lib/curriculum';
 import { supabase } from './lib/supabase';
 import { syncProfileFromSupabase, saveVoicePreference } from './lib/profile';
+import { getMainCurriculum, getActiveSideQuest, getCurrentLesson, getModuleForLesson, getLessonProgress, generateCurriculum, type Curriculum } from './lib/curriculum-path';
+import { CAREER_PATHS } from './lib/career-paths';
 import { transitions, ease, getFadeUp, getPhaseVariants, getTransitions, usePrefersReducedMotion } from './lib/motion';
 import LoginScreen from './components/LoginScreen';
+import ProgressScreen from './components/ProgressScreen';
 
 // ── Account Screen ───────────────────────────────────────────
 function AccountScreen({ session, onClose, onUpgrade, onSignOut, remainingSeconds }: {
@@ -105,7 +108,7 @@ import TutorSpeech from './components/TutorSpeech';
 import type { Session } from '@supabase/supabase-js';
 
 // ── Types ────────────────────────────────────────────────────
-type Phase = 'idle' | 'connecting' | 'lesson' | 'session-end' | 'summary';
+type Phase = 'idle' | 'connecting' | 'lesson' | 'session-end' | 'summary' | 'progress';
 type AppMode = 'conversation' | 'ielts';
 
 const MODE_STORAGE_KEY = 'easybee_mode';
@@ -340,6 +343,23 @@ ${personaStyle}`;
   if (review.length > 0) {
     r += `\n\nÔN TẬP ĐẦU BUỔI:\nBắt đầu bằng cách ôn lại ${review.length} cụm từ cũ: ${review.map(p => `"${p.english}" (${p.vietnamese})`).join(', ')}\nHỏi học viên đọc lại từng cụm, khen khi họ nhớ đúng.`;
   }
+  // Curriculum context
+  const sideQuest = getActiveSideQuest();
+  const mainCurr = getMainCurriculum();
+  const activeCurr = sideQuest ?? mainCurr; // prioritize side quest
+  if (activeCurr) {
+    const lesson = getCurrentLesson(activeCurr);
+    const mod = lesson ? getModuleForLesson(activeCurr, lesson.id) : null;
+    if (lesson && mod) {
+      r += `\n\nBÀI HỌC HÔM NAY (TỪ GIÁO TRÌNH${sideQuest ? ' — NHIỆM VỤ PHỤ' : ''}):`;
+      r += `\n- Lộ trình: ${activeCurr.emoji} ${activeCurr.titleEn}`;
+      r += `\n- Module: ${mod.titleEn} (${mod.title})`;
+      r += `\n- Bài: ${lesson.titleEn} (${lesson.title})`;
+      r += `\n- Mục tiêu: ${lesson.objectives}`;
+      r += `\nDạy 3 cụm từ liên quan đến bài học này. Nhưng nếu học viên muốn học cái gì khác, LINH HOẠT chuyển theo. Không ép họ học theo giáo trình.`;
+    }
+  }
+
   r += `\n\nLỜI CHÀO TRỞ LẠI (BẮT BUỘC):\nKhi học viên chào, PHẢI:\n1. Chào lại bằng tên tutor ("Chào bạn! Thầy Bee đây.")\n2. Nhắc lại buổi học trước nếu có: "Buổi trước mình học về ${last?.topic || 'tiếng Anh cơ bản'} rồi nha."\n3. Gợi ý 2-3 chủ đề cụ thể: "Hôm nay bạn muốn học về làm nail, đi mua sắm, hay chủ đề khác?"\nKhông được chỉ nói "Hôm nay bạn muốn học gì?" — phải gợi ý chủ đề cụ thể.`;
   return r;
 }
@@ -1105,6 +1125,8 @@ function TutorApp({ session }: { session: Session }) {
   const [remainingSeconds, setRemainingSeconds] = useState(getRemainingSecondsSync());
   const [showUsageBanner, setShowUsageBanner] = useState(true);
   const sessionStartTimeRef = useRef<number | null>(null);
+  const [curriculum, setCurriculum] = useState<Curriculum | null>(() => getActiveSideQuest() ?? getMainCurriculum());
+  const [isGeneratingCurriculum, setIsGeneratingCurriculum] = useState(false);
 
   // Refresh remaining time every 10s
   useEffect(() => {
@@ -1183,9 +1205,15 @@ function TutorApp({ session }: { session: Session }) {
     displayLengthRef.current = 0;
   }, []);
 
-  const runPostSessionAnalysis = useCallback(async (ph: Phrase[], msgs: string[]) => {
+  const runPostSessionAnalysis = useCallback(async (ph: Phrase[], msgs: string[], durationSeconds?: number) => {
     setIsAnalyzing(true);
-    try { const r = await analyzeSession(ph, msgs, sessionTopic, session.access_token, mode); if (r?.nextPlan) setNextPlan(r.nextPlan); }
+    const voice = getSavedVoice() || 'thay-bee';
+    try {
+      const r = await analyzeSession(ph, msgs, sessionTopic, session.access_token, mode, voice, durationSeconds);
+      if (r?.nextPlan) setNextPlan(r.nextPlan);
+      // Refresh curriculum state (may have advanced lesson or created side quest)
+      setCurriculum(getActiveSideQuest() ?? getMainCurriculum());
+    }
     catch (e) { console.error('Post-session analysis failed:', e); }
     finally { setIsAnalyzing(false); }
   }, [sessionTopic, session.access_token, mode]);
@@ -1290,12 +1318,15 @@ function TutorApp({ session }: { session: Session }) {
 
   const endSession = () => {
     if (phase !== 'lesson' && phase !== 'connecting') return;
-    // Track usage time
+    // Compute duration for all sessions
+    const durationSeconds = sessionStartTimeRef.current
+      ? Math.round((Date.now() - sessionStartTimeRef.current) / 1000)
+      : undefined;
+    // Track usage time for free tier
     if (sessionStartTimeRef.current && !getSubscription().isPremium) {
-      const elapsed = Math.round((Date.now() - sessionStartTimeRef.current) / 1000);
       sessionStartTimeRef.current = null;
       const userId = session.user.id;
-      addUsageSeconds(elapsed, userId).then(() => {
+      addUsageSeconds(durationSeconds!, userId).then(() => {
         setRemainingSeconds(getRemainingSecondsSync());
       });
     } else {
@@ -1303,7 +1334,7 @@ function TutorApp({ session }: { session: Session }) {
     }
     cleanup();
     setPhase('session-end');
-    runPostSessionAnalysis(learnedPhrases, allTutorMessages);
+    runPostSessionAnalysis(learnedPhrases, allTutorMessages, durationSeconds);
   };
   const toggleSession = () => {
     setErrorMsg(null);
@@ -1388,6 +1419,10 @@ function TutorApp({ session }: { session: Session }) {
             <motion.div key="summary" variants={pv} initial="enter" animate="center" exit="exit" transition={reduced ? { duration: 0 } : transitions.normal} className="flex-1 flex flex-col">
               <SummaryView phrases={learnedPhrases} onBack={() => setPhase('session-end')} voiceName={voiceName} />
             </motion.div>
+          ) : phase === 'progress' ? (
+            <motion.div key="progress" variants={pv} initial="enter" animate="center" exit="exit" transition={reduced ? { duration: 0 } : transitions.normal} className="flex-1 flex flex-col">
+              <ProgressScreen onBack={() => setPhase('idle')} />
+            </motion.div>
           ) : (
             <motion.div key="main" variants={pv} initial="enter" animate="center" exit="exit" transition={reduced ? { duration: 0 } : transitions.normal} className="flex-1 flex flex-col">
               <div className="flex-1 flex flex-col items-center justify-center pb-56">
@@ -1440,11 +1475,84 @@ function TutorApp({ session }: { session: Session }) {
                           Đổi giáo viên
                         </button>
 
-                        <p className="text-center text-[13px] text-text-secondary max-w-[260px] leading-relaxed">
-                          {isNewUser()
-                            ? 'Nhấn vào micro để bắt đầu'
-                            : `Chào mừng bạn quay lại! Bạn đã học ${getProfile().totalPhrases} cụm từ.`}
-                        </p>
+                        {/* Curriculum: current lesson or path picker */}
+                        {curriculum && getCurrentLesson(curriculum) ? (
+                          <motion.button
+                            onClick={() => setPhase('progress')}
+                            initial={{ opacity: 0, y: 8 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.3, duration: 0.4, ease }}
+                            className="w-full text-left rounded-xl p-4 bg-surface border border-accent mb-4"
+                          >
+                            <p className="text-[11px] text-text-secondary font-semibold tracking-[0.1em] uppercase mb-1">
+                              {curriculum.emoji} {curriculum.titleEn} — {getLessonProgress(curriculum).completed}/{getLessonProgress(curriculum).total} bài
+                            </p>
+                            <p className="text-[14px] text-text font-medium">
+                              {getCurrentLesson(curriculum)!.titleEn}
+                            </p>
+                            <p className="text-[12px] text-text-secondary mt-0.5">
+                              {getCurrentLesson(curriculum)!.objectives}
+                            </p>
+                          </motion.button>
+                        ) : curriculum?.completedAt ? (
+                          <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            className="text-center mb-4"
+                          >
+                            <p className="text-[14px] text-text font-medium mb-1">{curriculum.emoji} Hoàn thành lộ trình!</p>
+                            <button
+                              onClick={() => { setCurriculum(null); }}
+                              className="text-[12px] text-text-secondary underline"
+                            >
+                              Chọn lộ trình mới
+                            </button>
+                          </motion.div>
+                        ) : !curriculum && !isNewUser() ? (
+                          <motion.div
+                            initial={{ opacity: 0, y: 8 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.3, duration: 0.4, ease }}
+                            className="w-full mb-4"
+                          >
+                            <p className="text-[12px] text-text-secondary font-semibold tracking-[0.1em] uppercase mb-2 text-center">
+                              Chọn lộ trình
+                            </p>
+                            {isGeneratingCurriculum ? (
+                              <div className="flex items-center justify-center gap-2 py-4">
+                                <Loader2 className="w-4 h-4 animate-spin text-text-secondary" />
+                                <span className="text-[13px] text-text-secondary">Đang tạo lộ trình...</span>
+                              </div>
+                            ) : (
+                              <div className="grid grid-cols-2 gap-2">
+                                {CAREER_PATHS.map(path => (
+                                  <button
+                                    key={path.id}
+                                    onClick={async () => {
+                                      setIsGeneratingCurriculum(true);
+                                      try {
+                                        const c = await generateCurriculum(path.id, session.access_token);
+                                        setCurriculum(c);
+                                      } catch (e) { console.error('Curriculum generation failed:', e); }
+                                      finally { setIsGeneratingCurriculum(false); }
+                                    }}
+                                    className="text-left rounded-xl p-3 bg-surface border border-border hover:border-accent transition-colors"
+                                  >
+                                    <span className="text-lg">{path.emoji}</span>
+                                    <p className="text-[13px] text-text font-medium mt-1">{path.titleEn}</p>
+                                    <p className="text-[11px] text-text-secondary">{path.description}</p>
+                                  </button>
+                                ))}
+                              </div>
+                            )}
+                          </motion.div>
+                        ) : (
+                          <p className="text-center text-[13px] text-text-secondary max-w-[260px] leading-relaxed">
+                            {isNewUser()
+                              ? 'Nhấn vào micro để bắt đầu'
+                              : `Chào mừng bạn quay lại! Bạn đã học ${getProfile().totalPhrases} cụm từ.`}
+                          </p>
+                        )}
 
                         {/* Free tier usage banner */}
                         {!getSubscription().isPremium && showUsageBanner && (
@@ -1542,7 +1650,7 @@ function TutorApp({ session }: { session: Session }) {
         onClose={() => setShowMenu(false)}
         onChangeVoice={() => { setShowMenu(false); setShowVoicePicker(true); }}
         onSetMode={(m) => { setMode(m); saveMode(m); setShowMenu(false); }}
-        onShowProgress={() => { setPhase('summary'); setShowMenu(false); }}
+        onShowProgress={() => { setPhase('progress'); setShowMenu(false); }}
         onEndSession={() => { endSession(); setShowMenu(false); }}
         onSignOut={() => supabase.auth.signOut()}
         onShowAccount={() => { setShowAccount(true); setShowMenu(false); }}

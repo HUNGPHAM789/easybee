@@ -13,6 +13,9 @@ export interface SessionRecord {
   summary: string;
   nextPlan: string;
   cefrAssessment: CEFRLevel;
+  voice?: string;           // tutor persona id e.g. "thay-bee"
+  mode?: 'conversation' | 'ielts';
+  durationSeconds?: number; // session length in seconds
 }
 
 export interface UserProfile {

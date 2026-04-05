@@ -7,6 +7,15 @@ import {
   saveSessionResult,
   updatePhraseMappings,
 } from './profile';
+import {
+  getMainCurriculum,
+  getActiveSideQuest,
+  getCurrentLesson,
+  getModuleForLesson,
+  markLessonComplete,
+  advanceToNextLesson,
+  generateSideQuest,
+} from './curriculum-path';
 
 /**
  * Post-session analysis agent.
@@ -17,7 +26,9 @@ export async function analyzeSession(
   tutorTranscript: string[],
   sessionTopic: string,
   accessToken: string,
-  mode: 'conversation' | 'ielts' = 'conversation'
+  mode: 'conversation' | 'ielts' = 'conversation',
+  voice?: string,
+  durationSeconds?: number
 ): Promise<SessionRecord | null> {
   if (learnedPhrases.length === 0 && tutorTranscript.length === 0) return null;
 
@@ -32,6 +43,22 @@ export async function analyzeSession(
     .filter(t => t.trim())
     .slice(-15)
     .join('\n---\n');
+
+  // Build curriculum context for prompt
+  const sideQuest = getActiveSideQuest();
+  const mainCurr = getMainCurriculum();
+  const activeCurr = sideQuest ?? mainCurr;
+  let curriculumContext = '';
+  if (activeCurr) {
+    const lesson = getCurrentLesson(activeCurr);
+    const mod = lesson ? getModuleForLesson(activeCurr, lesson.id) : null;
+    if (lesson && mod) {
+      curriculumContext = `\nCURRICULUM CONTEXT:
+- Active path: ${activeCurr.titleEn}${sideQuest ? ' (side quest)' : ''}
+- Current lesson: ${lesson.titleEn} — ${lesson.objectives}
+- Module: ${mod.titleEn}`;
+    }
+  }
 
   const prompt = mode === 'ielts'
     ? `You are a curriculum analyst for EasyBee IELTS Speaking mode.
@@ -82,7 +109,9 @@ Analyze this tutoring session and respond in EXACTLY this JSON format (no markdo
   "nextPlan": "2-3 sentence Vietnamese description of what to teach next session",
   "phraseMapping": [
     { "english": "exact phrase text", "careerPathId": "nail-salon", "categoryId": "greeting" }
-  ]
+  ]${activeCurr ? `,
+  "lessonCompleted": true,
+  "offTopic": { "detected": false, "topic": "", "scope": "single" }` : ''}
 }
 
 CAREER PATH CATEGORIES (for phraseMapping):
@@ -99,7 +128,7 @@ CONTEXT:
 - User goals: ${profile.goals || 'not set yet'}
 - Total sessions completed: ${profile.totalSessions}
 - Last session topic: ${lastSession?.topic || 'first session'}
-- This session topic: ${sessionTopic || 'unknown'}
+- This session topic: ${sessionTopic || 'unknown'}${curriculumContext}
 
 PHRASES LEARNED THIS SESSION:
 ${phrasesText || 'No structured phrases detected'}
@@ -113,7 +142,9 @@ RULES:
 - CEFR assessment should be based on the complexity of phrases the student could handle
 - nextTopic should logically follow from current topic and user goals
 - For beginners, suggest simple practical topics: greetings, self-intro, numbers, food, directions, shopping
-- Keep nextPlan encouraging and specific`;
+- Keep nextPlan encouraging and specific${activeCurr ? `
+- "lessonCompleted": set to true if the student practiced the curriculum lesson topic and learned relevant phrases. false if the session was mostly off-topic.
+- "offTopic": if student spent most time on a topic OUTSIDE the curriculum lesson, set detected=true, topic=the topic they discussed, scope="multi" if it needs 2+ lessons to cover properly or "single" if one session was enough` : ''}`;
 
   try {
     const res = await fetch('/api/curriculum', {
@@ -141,6 +172,9 @@ RULES:
       summary: result.summary || '',
       nextPlan: result.nextPlan || '',
       cefrAssessment: (result.cefrLevel as CEFRLevel) || profile.cefrLevel,
+      voice,
+      mode,
+      durationSeconds,
     };
 
     saveSessionResult(sessionRecord, {
@@ -150,6 +184,21 @@ RULES:
     // Update phrase bank with career path mappings
     if (result.phraseMapping && Array.isArray(result.phraseMapping)) {
       updatePhraseMappings(result.phraseMapping);
+    }
+
+    // ── Curriculum progression ──
+    if (activeCurr && activeCurr.currentLessonId) {
+      if (result.lessonCompleted) {
+        markLessonComplete(activeCurr.id, activeCurr.currentLessonId, learnedPhrases.length);
+        advanceToNextLesson(activeCurr.id);
+      }
+
+      // Side quest generation (fire-and-forget)
+      if (result.offTopic?.detected && result.offTopic.scope === 'multi' && !getActiveSideQuest()) {
+        generateSideQuest(result.offTopic.topic, accessToken).catch(err =>
+          console.error('Side quest generation failed:', err)
+        );
+      }
     }
 
     return sessionRecord;
@@ -164,6 +213,9 @@ RULES:
       summary: `Da hoc ${learnedPhrases.length} cum tu moi.`,
       nextPlan: 'Tiep tuc luyen tap va hoc them cum tu moi.',
       cefrAssessment: profile.cefrLevel,
+      voice,
+      mode,
+      durationSeconds,
     };
 
     saveSessionResult(fallbackRecord, {});
