@@ -18,7 +18,7 @@ import { Capacitor } from '@capacitor/core';
 import { setPremium, getSubscription } from './subscription';
 
 // RevenueCat API key — set after creating RevenueCat account
-const REVENUECAT_API_KEY = ''; // TODO: Add after RevenueCat setup on Mac
+const REVENUECAT_API_KEY = 'test_GZjgHpVUYiGLFZVOFpwcvoAkqbG';
 
 
 /**
