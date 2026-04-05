@@ -4,7 +4,7 @@ import { Copy, Check, ArrowLeft, Loader2, UserCircle, Menu, ChevronDown, Lock, V
 import { motion, AnimatePresence } from 'motion/react';
 import { AudioHandler } from './lib/audio';
 import { speakPhrase, stopTTS, setTTSAuthToken } from './lib/tts';
-import { type Phrase, isNewUser, getProfile, getLastSession, getReviewPhrases } from './lib/profile';
+import { type Phrase, isNewUser, getProfile, getLastSession, getReviewPhrases, loadPhraseBank } from './lib/profile';
 import { analyzeSession } from './lib/curriculum';
 import { supabase } from './lib/supabase';
 import { syncProfileFromSupabase, saveVoicePreference } from './lib/profile';
@@ -93,7 +93,7 @@ function AccountScreen({ session, onClose, onUpgrade, onSignOut, remainingSecond
   );
 }
 import MicOrb from './components/MicOrb';
-import VoicePicker, { type Persona, VOICE_MAP, getSavedVoice } from './components/VoicePicker';
+import VoicePicker, { type Persona, VOICE_MAP, VOICES, getSavedVoice } from './components/VoicePicker';
 import CueCard from './components/CueCard';
 import BandScore, { type BandScoreData } from './components/BandScore';
 import CommandPalette from './components/CommandPalette';
@@ -874,28 +874,64 @@ const SessionEndScreen = ({
         Bài học hôm nay
       </motion.h2>
 
-      {/* Stats — animated counters */}
-      <div className="flex gap-3 mb-6">
-        {[
-          { value: phrases.length, label: 'cụm từ mới' },
-          { value: profile.streak || 1, label: 'ngày liên tiếp' },
-          { value: profile.totalPhrases + phrases.length, label: 'tổng cụm từ' },
-        ].map((stat, i) => (
+      {/* Session summary lines */}
+      {(() => {
+        const savedVoice = getSavedVoice() || 'thay-bee';
+        const voiceInfo = VOICES.find(v => v.id === savedVoice);
+        const mainCurr = getMainCurriculum();
+        const sideQuest = getActiveSideQuest();
+        const allPhrases = loadPhraseBank();
+        const mainCount = mainCurr ? allPhrases.filter(p => p.careerPathId === mainCurr.careerPathId).length : 0;
+        const mainTarget = mainCurr?.careerPathId ? (CAREER_PATHS.find(cp => cp.id === mainCurr.careerPathId)?.targetPhraseCount ?? 0) : 0;
+
+        return (
           <motion.div
-            key={i}
-            initial={reduced ? { opacity: 0 } : { opacity: 0, y: 20 }}
-            animate={reduced ? { opacity: 1 } : { opacity: 1, y: 0 }}
-            transition={{ ...t.spring, delay: reduced ? 0 : 0.15 + i * 0.1 }}
-            className="flex-1 rounded-xl p-4 text-center"
-            style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: reduced ? 0 : 0.4, delay: reduced ? 0 : 0.2, ease }}
+            className="mb-6 space-y-2"
           >
-            <p className="text-[22px] font-semibold text-text">
-              <AnimatedNumber value={stat.value} duration={0.8 + i * 0.2} reduced={reduced} />
+            <p className="text-[14px] text-text">
+              Hôm nay bạn học được <span className="font-semibold">{phrases.length} cụm từ</span> mới
             </p>
-            <p className="text-[12px] text-text-secondary mt-1.5 tracking-wider uppercase font-semibold">{stat.label}</p>
+            <p className="text-[13px] text-text-secondary">
+              🔥 {profile.streak || 1} ngày liên tiếp · Trình độ {profile.cefrLevel}
+            </p>
+
+            {mainCurr && (
+              <p className="text-[13px] text-text-secondary">
+                {mainCurr.emoji} {mainCurr.titleEn} — {mainCount}/{mainTarget} cụm từ
+              </p>
+            )}
+            {sideQuest && (
+              <p className="text-[13px] text-text-secondary">
+                {sideQuest.emoji} Nhiệm vụ phụ: {sideQuest.titleEn}
+              </p>
+            )}
+
+            <p className="text-[13px] text-text-secondary">
+              {voiceInfo ? `${voiceInfo.emoji} Giáo viên: ${voiceInfo.name}` : '🎓 Giáo viên: Thầy Bee'}
+            </p>
+            <a
+              href="https://forms.gle/easybee-feedback"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[13px] text-text-secondary hover:text-text transition-colors inline-block"
+            >
+              💬 Góp ý cho EasyBee
+            </a>
+
+            <div className="flex items-center gap-4 pt-2">
+              <button onClick={onShowProgress} className="text-[13px] text-text-secondary hover:text-text transition-colors underline">
+                Tiến trình
+              </button>
+              <button onClick={onChangeVoice} className="text-[13px] text-text-secondary hover:text-text transition-colors underline">
+                Đổi giáo viên
+              </button>
+            </div>
           </motion.div>
-        ))}
-      </div>
+        );
+      })()}
 
       {/* Accordion sections */}
       <div className="mb-6">
@@ -974,19 +1010,6 @@ const SessionEndScreen = ({
         >
           Học tiếp
         </motion.button>
-        <motion.div
-          initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-          transition={{ delay: 1.1 }}
-          className="flex items-center justify-center gap-6 pt-2"
-        >
-          <button onClick={onShowProgress} className="text-[13px] text-text-secondary hover:text-text transition-colors">
-            Tiến trình
-          </button>
-          <span className="text-border">·</span>
-          <button onClick={onChangeVoice} className="text-[13px] text-text-secondary hover:text-text transition-colors">
-            Đổi giáo viên
-          </button>
-        </motion.div>
       </div>
     </motion.div>
   );
