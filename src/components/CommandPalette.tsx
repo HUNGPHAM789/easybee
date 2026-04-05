@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { UserCircle, User, MessageCircle, GraduationCap, BarChart3, Square, LogOut, Search } from 'lucide-react';
+import { UserCircle, User, MessageCircle, GraduationCap, BarChart3, Square, LogOut, Search, MessageSquare, Shield } from 'lucide-react';
 
 interface Action {
   id: string;
@@ -20,12 +20,15 @@ interface CommandPaletteProps {
   onEndSession: () => void;
   onSignOut: () => void;
   onShowAccount: () => void;
+  onFeedback: () => void;
+  onShowAdmin?: () => void;
   isInLesson: boolean;
+  isAdmin?: boolean;
   headerBottom?: number;
 }
 
 export default function CommandPalette({
-  open, onClose, onChangeVoice, onSetMode, onShowProgress, onEndSession, onSignOut, onShowAccount, isInLesson, headerBottom = 120,
+  open, onClose, onChangeVoice, onSetMode, onShowProgress, onEndSession, onSignOut, onShowAccount, onFeedback, onShowAdmin, isInLesson, isAdmin, headerBottom = 120,
 }: CommandPaletteProps) {
   const [query, setQuery] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
@@ -36,7 +39,9 @@ export default function CommandPalette({
     { id: 'conversation', label: 'Học Giao Tiếp', icon: MessageCircle, onExecute: () => onSetMode('conversation') },
     { id: 'ielts', label: 'Luyện IELTS', icon: GraduationCap, onExecute: () => onSetMode('ielts') },
     { id: 'progress', label: 'Xem tiến trình', icon: BarChart3, onExecute: onShowProgress },
+    { id: 'feedback', label: 'Góp ý', icon: MessageSquare, onExecute: onFeedback },
     { id: 'end', label: 'Kết thúc buổi học', icon: Square, onExecute: onEndSession, lessonOnly: true },
+    ...(isAdmin && onShowAdmin ? [{ id: 'admin', label: 'Admin', icon: Shield, onExecute: onShowAdmin }] : []),
     { id: 'signout', label: 'Đăng xuất', icon: LogOut, onExecute: onSignOut },
   ];
 

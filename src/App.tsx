@@ -13,6 +13,8 @@ import { CAREER_PATHS } from './lib/career-paths';
 import { transitions, ease, getFadeUp, getPhaseVariants, getTransitions, usePrefersReducedMotion } from './lib/motion';
 import LoginScreen from './components/LoginScreen';
 import ProgressScreen from './components/ProgressScreen';
+import FeedbackModal from './components/FeedbackModal';
+import AdminScreen from './components/AdminScreen';
 
 // ── Account Screen ───────────────────────────────────────────
 function AccountScreen({ session, onClose, onUpgrade, onSignOut, remainingSeconds }: {
@@ -845,10 +847,10 @@ const AccordionSection = ({
 
 /** Session end screen — monochrome with accordion */
 const SessionEndScreen = ({
-  phrases, isAnalyzing, nextPlan, onViewNotes, onNewSession, onShowProgress, onChangeVoice, reduced, voiceName,
+  phrases, isAnalyzing, nextPlan, onViewNotes, onNewSession, onShowProgress, onChangeVoice, onFeedback, reduced, voiceName,
 }: {
   phrases: Phrase[]; isAnalyzing: boolean; nextPlan: string;
-  onViewNotes: () => void; onNewSession: () => void; onShowProgress: () => void; onChangeVoice: () => void; reduced: boolean; voiceName: string;
+  onViewNotes: () => void; onNewSession: () => void; onShowProgress: () => void; onChangeVoice: () => void; onFeedback: () => void; reduced: boolean; voiceName: string;
 }) => {
   const profile = getProfile();
   const t = getTransitions(reduced);
@@ -912,14 +914,12 @@ const SessionEndScreen = ({
             <p className="text-[13px] text-text-secondary">
               {voiceInfo ? `${voiceInfo.emoji} Giáo viên: ${voiceInfo.name}` : '🎓 Giáo viên: Thầy Bee'}
             </p>
-            <a
-              href="https://forms.gle/easybee-feedback"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-[13px] text-text-secondary hover:text-text transition-colors inline-block"
+            <button
+              onClick={onFeedback}
+              className="text-[13px] text-text-secondary hover:text-text transition-colors"
             >
               💬 Góp ý cho EasyBee
-            </a>
+            </button>
 
             <div className="flex items-center gap-4 pt-2">
               <button onClick={onShowProgress} className="text-[13px] text-text-secondary hover:text-text transition-colors underline">
@@ -1163,6 +1163,9 @@ function TutorApp({ session }: { session: Session }) {
   const sessionStartTimeRef = useRef<number | null>(null);
   const [curriculum, setCurriculum] = useState<Curriculum | null>(() => getActiveSideQuest() ?? getMainCurriculum());
   const [isGeneratingCurriculum, setIsGeneratingCurriculum] = useState(false);
+  const [showFeedback, setShowFeedback] = useState(false);
+  const [showAdmin, setShowAdmin] = useState(false);
+  const isAdmin = session.user.email === 'henrypham0310@gmail.com';
 
   // Refresh remaining time every 10s
   useEffect(() => {
@@ -1451,6 +1454,7 @@ function TutorApp({ session }: { session: Session }) {
               <SessionEndScreen phrases={learnedPhrases} isAnalyzing={isAnalyzing} nextPlan={nextPlan}
                 onViewNotes={() => setPhase('summary')} onNewSession={() => startSession()}
                 onShowProgress={() => setPhase('progress')} onChangeVoice={() => setShowVoicePicker(true)}
+                onFeedback={() => setShowFeedback(true)}
                 reduced={reduced} voiceName={voiceName} />
             </motion.div>
           ) : phase === 'summary' ? (
@@ -1692,7 +1696,10 @@ function TutorApp({ session }: { session: Session }) {
         onEndSession={() => { endSession(); setShowMenu(false); }}
         onSignOut={() => supabase.auth.signOut()}
         onShowAccount={() => { setShowAccount(true); setShowMenu(false); }}
+        onFeedback={() => { setShowFeedback(true); setShowMenu(false); }}
+        onShowAdmin={isAdmin ? () => { setShowAdmin(true); setShowMenu(false); } : undefined}
         isInLesson={phase === 'lesson'}
+        isAdmin={isAdmin}
         headerBottom={headerBottom}
       />
 
@@ -1734,6 +1741,18 @@ function TutorApp({ session }: { session: Session }) {
             onUpgrade={() => { setShowFreeLimit(false); setShowPaywall(true); }}
             onClose={() => setShowFreeLimit(false)}
           />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showFeedback && (
+          <FeedbackModal session={session} onClose={() => setShowFeedback(false)} />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showAdmin && isAdmin && (
+          <AdminScreen session={session} onClose={() => setShowAdmin(false)} />
         )}
       </AnimatePresence>
     </div>
