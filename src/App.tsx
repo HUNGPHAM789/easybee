@@ -845,10 +845,10 @@ const AccordionSection = ({
 
 /** Session end screen — monochrome with accordion */
 const SessionEndScreen = ({
-  phrases, isAnalyzing, nextPlan, onViewNotes, onNewSession, reduced, voiceName,
+  phrases, isAnalyzing, nextPlan, onViewNotes, onNewSession, onShowProgress, onChangeVoice, reduced, voiceName,
 }: {
   phrases: Phrase[]; isAnalyzing: boolean; nextPlan: string;
-  onViewNotes: () => void; onNewSession: () => void; reduced: boolean; voiceName: string;
+  onViewNotes: () => void; onNewSession: () => void; onShowProgress: () => void; onChangeVoice: () => void; reduced: boolean; voiceName: string;
 }) => {
   const profile = getProfile();
   const t = getTransitions(reduced);
@@ -974,6 +974,19 @@ const SessionEndScreen = ({
         >
           Học tiếp
         </motion.button>
+        <motion.div
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+          transition={{ delay: 1.1 }}
+          className="flex items-center justify-center gap-6 pt-2"
+        >
+          <button onClick={onShowProgress} className="text-[13px] text-text-secondary hover:text-text transition-colors">
+            Tiến trình
+          </button>
+          <span className="text-border">·</span>
+          <button onClick={onChangeVoice} className="text-[13px] text-text-secondary hover:text-text transition-colors">
+            Đổi giáo viên
+          </button>
+        </motion.div>
       </div>
     </motion.div>
   );
@@ -1413,7 +1426,9 @@ function TutorApp({ session }: { session: Session }) {
           ) : phase === 'session-end' ? (
             <motion.div key="end" variants={pv} initial="enter" animate="center" exit="exit" transition={reduced ? { duration: 0 } : transitions.normal} className="flex-1 flex flex-col">
               <SessionEndScreen phrases={learnedPhrases} isAnalyzing={isAnalyzing} nextPlan={nextPlan}
-                onViewNotes={() => setPhase('summary')} onNewSession={() => startSession()} reduced={reduced} voiceName={voiceName} />
+                onViewNotes={() => setPhase('summary')} onNewSession={() => startSession()}
+                onShowProgress={() => setPhase('progress')} onChangeVoice={() => setShowVoicePicker(true)}
+                reduced={reduced} voiceName={voiceName} />
             </motion.div>
           ) : phase === 'summary' ? (
             <motion.div key="summary" variants={pv} initial="enter" animate="center" exit="exit" transition={reduced ? { duration: 0 } : transitions.normal} className="flex-1 flex flex-col">
