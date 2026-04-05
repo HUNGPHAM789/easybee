@@ -1,52 +1,45 @@
 /**
  * RevenueCat integration for EasyBee Premium subscriptions.
- * 
- * This module wraps RevenueCat's Capacitor plugin.
- * On web (development), it falls back to local subscription state.
- * On iOS (production), it connects to real StoreKit via RevenueCat.
- * 
- * Setup on Mac:
- * 1. Create RevenueCat account at https://app.revenuecat.com
- * 2. Create project "EasyBee"
- * 3. Add iOS app with bundle ID: com.easybee.english
- * 4. Create product: easybee_premium_monthly (auto-renewable, 7-day trial)
- * 5. Copy API key below
- * 6. Connect to App Store Connect
+ *
+ * Uses @revenuecat/purchases-capacitor for IAP.
+ * On web, falls back to local subscription state.
+ * On iOS/Android, connects to real StoreKit/Google Play via RevenueCat.
+ *
+ * RevenueCat Dashboard Setup:
+ * 1. Entitlement: "EasyBee Pro"
+ * 2. Products: monthly ($9.99), 6-month ($34.99), annual ($59.99)
+ * 3. Offering: "default" with all 3 products
  */
 
 import { Capacitor } from '@capacitor/core';
 import { setPremium, getSubscription } from './subscription';
 
-// RevenueCat API key — set after creating RevenueCat account
 const REVENUECAT_API_KEY = 'test_GZjgHpVUYiGLFZVOFpwcvoAkqbG';
+const ENTITLEMENT_ID = 'EasyBee Pro';
 
+function isNative(): boolean {
+  return Capacitor.isNativePlatform() && !!REVENUECAT_API_KEY;
+}
 
 /**
- * Initialize RevenueCat SDK.
- * Call once on app startup.
+ * Initialize RevenueCat SDK. Call once on app startup.
  */
 export async function initRevenueCat(userId?: string): Promise<void> {
-  if (!Capacitor.isNativePlatform()) {
-    console.log('[RevenueCat] Skipping init — not native platform (web dev mode)');
-    return;
-  }
-
-  if (!REVENUECAT_API_KEY) {
-    console.warn('[RevenueCat] No API key set. Subscription features disabled.');
+  if (!isNative()) {
+    console.log('[RevenueCat] Skipping init — web mode');
     return;
   }
 
   try {
-    const { Purchases } = await import('@revenuecat/purchases-capacitor');
-    
+    const { Purchases, LOG_LEVEL } = await import('@revenuecat/purchases-capacitor');
+
+    await Purchases.setLogLevel({ level: LOG_LEVEL.DEBUG });
     await Purchases.configure({
       apiKey: REVENUECAT_API_KEY,
       appUserID: userId || undefined,
     });
 
     console.log('[RevenueCat] Initialized');
-    
-    // Check current subscription status
     await syncSubscriptionStatus();
   } catch (e) {
     console.error('[RevenueCat] Init failed:', e);
@@ -57,15 +50,13 @@ export async function initRevenueCat(userId?: string): Promise<void> {
  * Check and sync subscription status from RevenueCat.
  */
 export async function syncSubscriptionStatus(): Promise<boolean> {
-  if (!Capacitor.isNativePlatform() || !REVENUECAT_API_KEY) {
-    return getSubscription().isPremium;
-  }
+  if (!isNative()) return getSubscription().isPremium;
 
   try {
     const { Purchases } = await import('@revenuecat/purchases-capacitor');
     const { customerInfo } = await Purchases.getCustomerInfo();
-    
-    const isPremium = customerInfo.entitlements.active['premium'] !== undefined;
+
+    const isPremium = customerInfo.entitlements.active[ENTITLEMENT_ID] !== undefined;
     setPremium(isPremium);
     return isPremium;
   } catch (e) {
@@ -75,31 +66,63 @@ export async function syncSubscriptionStatus(): Promise<boolean> {
 }
 
 /**
- * Purchase the premium subscription.
- * Shows the native StoreKit payment sheet.
+ * Present the native RevenueCat paywall (designed in dashboard).
+ * Falls back to purchasePackage if paywall UI not available.
  */
-export async function purchasePremium(): Promise<boolean> {
-  if (!Capacitor.isNativePlatform() || !REVENUECAT_API_KEY) {
-    // Web fallback: just set premium locally (for testing)
+export async function presentNativePaywall(): Promise<boolean> {
+  if (!isNative()) {
+    setPremium(true);
+    return true;
+  }
+
+  try {
+    const { RevenueCatUI, PAYWALL_RESULT } = await import('@revenuecat/purchases-capacitor-ui');
+    const { result } = await RevenueCatUI.presentPaywall();
+
+    switch (result) {
+      case PAYWALL_RESULT.PURCHASED:
+      case PAYWALL_RESULT.RESTORED:
+        await syncSubscriptionStatus();
+        return true;
+      default:
+        return false;
+    }
+  } catch (e) {
+    console.warn('[RevenueCat] Native paywall failed, falling back to package purchase:', e);
+    return purchasePremium();
+  }
+}
+
+/**
+ * Purchase the premium subscription via package selection.
+ */
+export async function purchasePremium(packageType?: 'monthly' | 'annual' | 'sixMonth'): Promise<boolean> {
+  if (!isNative()) {
     setPremium(true);
     return true;
   }
 
   try {
     const { Purchases } = await import('@revenuecat/purchases-capacitor');
-    
-    // Get available packages
     const { offerings } = await Purchases.getOfferings();
-    const monthlyPackage = offerings.current?.monthly;
-    
-    if (!monthlyPackage) {
-      console.error('[RevenueCat] No monthly package found');
+
+    if (!offerings.current) {
+      console.error('[RevenueCat] No current offering');
       return false;
     }
 
-    // Purchase
-    const { customerInfo } = await Purchases.purchasePackage({ aPackage: monthlyPackage });
-    const isPremium = customerInfo.entitlements.active['premium'] !== undefined;
+    // Select package based on type
+    const pkg = packageType === 'annual' ? offerings.current.annual
+      : packageType === 'sixMonth' ? offerings.current.sixMonth
+      : offerings.current.monthly;
+
+    if (!pkg) {
+      console.error(`[RevenueCat] No ${packageType || 'monthly'} package found`);
+      return false;
+    }
+
+    const { customerInfo } = await Purchases.purchasePackage({ aPackage: pkg });
+    const isPremium = customerInfo.entitlements.active[ENTITLEMENT_ID] !== undefined;
     setPremium(isPremium);
     return isPremium;
   } catch (e: any) {
@@ -116,15 +139,13 @@ export async function purchasePremium(): Promise<boolean> {
  * Restore previous purchases (e.g., after reinstall).
  */
 export async function restorePurchases(): Promise<boolean> {
-  if (!Capacitor.isNativePlatform() || !REVENUECAT_API_KEY) {
-    return getSubscription().isPremium;
-  }
+  if (!isNative()) return getSubscription().isPremium;
 
   try {
     const { Purchases } = await import('@revenuecat/purchases-capacitor');
     const { customerInfo } = await Purchases.restorePurchases();
-    
-    const isPremium = customerInfo.entitlements.active['premium'] !== undefined;
+
+    const isPremium = customerInfo.entitlements.active[ENTITLEMENT_ID] !== undefined;
     setPremium(isPremium);
     return isPremium;
   } catch (e) {
@@ -137,7 +158,7 @@ export async function restorePurchases(): Promise<boolean> {
  * Identify user with RevenueCat (call after login).
  */
 export async function identifyUser(userId: string): Promise<void> {
-  if (!Capacitor.isNativePlatform() || !REVENUECAT_API_KEY) return;
+  if (!isNative()) return;
 
   try {
     const { Purchases } = await import('@revenuecat/purchases-capacitor');
@@ -152,7 +173,7 @@ export async function identifyUser(userId: string): Promise<void> {
  * Log out from RevenueCat (call on sign out).
  */
 export async function logOutRevenueCat(): Promise<void> {
-  if (!Capacitor.isNativePlatform() || !REVENUECAT_API_KEY) return;
+  if (!isNative()) return;
 
   try {
     const { Purchases } = await import('@revenuecat/purchases-capacitor');

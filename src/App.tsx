@@ -109,7 +109,7 @@ import CommandPalette from './components/CommandPalette';
 import PaywallScreen from './components/PaywallScreen';
 import PricingScreen from './components/PricingScreen';
 import { checkCanStartSession, incrementSessionCount, setPremium, getSubscription, isPremiumVoice, isPremiumMode } from './lib/subscription';
-import { initRevenueCat, identifyUser, logOutRevenueCat, purchasePremium, restorePurchases } from './lib/revenuecat';
+import { initRevenueCat, identifyUser, logOutRevenueCat, purchasePremium, restorePurchases, presentNativePaywall } from './lib/revenuecat';
 import { getRemainingSecondsSync, addUsageSeconds, canStartFreeSession, FREE_SECONDS } from './lib/usage';
 import PronunciationHint from './components/PronunciationHint';
 import UsageBanner from './components/UsageBanner';
