@@ -1,5 +1,5 @@
 {
-  "name": "VietTutor AI",
-  "description": "An English tutor for Vietnamese learners using Gemini Live API.",
+  "name": "EasyBee",
+  "description": "AI English tutor for Vietnamese speakers — voice-first learning for nail salon, PMU, restaurant, and daily life in America.",
   "requestFramePermissions": ["microphone"]
 }
