@@ -2,6 +2,6 @@
 <resources>
     <string name="app_name">EasyBee</string>
     <string name="title_activity_main">EasyBee</string>
-    <string name="package_name">com.easybee.app</string>
-    <string name="custom_url_scheme">com.easybee.app</string>
+    <string name="package_name">com.easybee.english</string>
+    <string name="custom_url_scheme">com.easybee.english</string>
 </resources>

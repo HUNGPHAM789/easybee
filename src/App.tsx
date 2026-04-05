@@ -17,11 +17,12 @@ import FeedbackModal from './components/FeedbackModal';
 import AdminScreen from './components/AdminScreen';
 
 // ── Account Screen ───────────────────────────────────────────
-function AccountScreen({ session, onClose, onUpgrade, onSignOut, remainingSeconds }: {
+function AccountScreen({ session, onClose, onUpgrade, onSignOut, onDeleteAccount, remainingSeconds }: {
   session: Session;
   onClose: () => void;
   onUpgrade: () => void;
   onSignOut: () => void;
+  onDeleteAccount: () => void;
   remainingSeconds: number;
 }) {
   const isPremium = getSubscription().isPremium;
@@ -90,6 +91,12 @@ function AccountScreen({ session, onClose, onUpgrade, onSignOut, remainingSecond
         >
           Đăng xuất
         </button>
+        <button
+          onClick={onDeleteAccount}
+          className="w-full py-3 text-[13px] text-[#b0b0b0] hover:text-red-500 transition-colors"
+        >
+          Xóa tài khoản
+        </button>
       </div>
     </motion.div>
   );
@@ -102,6 +109,7 @@ import CommandPalette from './components/CommandPalette';
 import PaywallScreen from './components/PaywallScreen';
 import PricingScreen from './components/PricingScreen';
 import { checkCanStartSession, incrementSessionCount, setPremium, getSubscription, isPremiumVoice, isPremiumMode } from './lib/subscription';
+import { initRevenueCat, identifyUser, logOutRevenueCat, purchasePremium, restorePurchases } from './lib/revenuecat';
 import { getRemainingSecondsSync, addUsageSeconds, canStartFreeSession, FREE_SECONDS } from './lib/usage';
 import PronunciationHint from './components/PronunciationHint';
 import UsageBanner from './components/UsageBanner';
@@ -1167,6 +1175,12 @@ function TutorApp({ session }: { session: Session }) {
   const [showAdmin, setShowAdmin] = useState(false);
   const isAdmin = session.user.email === 'henrypham0310@gmail.com';
 
+  // Initialize RevenueCat on mount
+  useEffect(() => {
+    initRevenueCat(session.user.id);
+    identifyUser(session.user.id);
+  }, [session.user.id]);
+
   // Refresh remaining time every 10s
   useEffect(() => {
     const timer = setInterval(() => {
@@ -1694,7 +1708,7 @@ function TutorApp({ session }: { session: Session }) {
         onSetMode={(m) => { setMode(m); saveMode(m); setShowMenu(false); }}
         onShowProgress={() => { setPhase('progress'); setShowMenu(false); }}
         onEndSession={() => { endSession(); setShowMenu(false); }}
-        onSignOut={() => supabase.auth.signOut()}
+        onSignOut={() => { logOutRevenueCat(); supabase.auth.signOut(); }}
         onShowAccount={() => { setShowAccount(true); setShowMenu(false); }}
         onFeedback={() => { setShowFeedback(true); setShowMenu(false); }}
         onShowAdmin={isAdmin ? () => { setShowAdmin(true); setShowMenu(false); } : undefined}
@@ -1707,7 +1721,7 @@ function TutorApp({ session }: { session: Session }) {
         {showPaywall && (
           <PaywallScreen
             onViewPlans={() => setShowPricingScreen(true)}
-            onRestore={async () => { await setPremium(true); setShowPaywall(false); setRemainingSeconds(getRemainingSecondsSync()); }}
+            onRestore={async () => { const ok = await restorePurchases(); if (ok) { setShowPaywall(false); setRemainingSeconds(getRemainingSecondsSync()); } }}
             onClose={() => setShowPaywall(false)}
           />
         )}
@@ -1716,8 +1730,8 @@ function TutorApp({ session }: { session: Session }) {
       <AnimatePresence>
         {showPricingScreen && (
           <PricingScreen
-            onSubscribe={async (_plan) => { await setPremium(true); setShowPricingScreen(false); setShowPaywall(false); setRemainingSeconds(getRemainingSecondsSync()); }}
-            onRestore={async () => { await setPremium(true); setShowPricingScreen(false); setShowPaywall(false); setRemainingSeconds(getRemainingSecondsSync()); }}
+            onSubscribe={async (_plan) => { const ok = await purchasePremium(); if (ok) { setShowPricingScreen(false); setShowPaywall(false); setRemainingSeconds(getRemainingSecondsSync()); } }}
+            onRestore={async () => { const ok = await restorePurchases(); if (ok) { setShowPricingScreen(false); setShowPaywall(false); setRemainingSeconds(getRemainingSecondsSync()); } }}
             onClose={() => setShowPricingScreen(false)}
           />
         )}
@@ -1729,7 +1743,15 @@ function TutorApp({ session }: { session: Session }) {
             session={session}
             onClose={() => setShowAccount(false)}
             onUpgrade={() => { setShowPaywall(true); setShowAccount(false); }}
-            onSignOut={() => supabase.auth.signOut()}
+            onSignOut={() => { logOutRevenueCat(); supabase.auth.signOut(); }}
+            onDeleteAccount={async () => {
+              if (!confirm('Bạn chắc chắn muốn xóa tài khoản? Tất cả dữ liệu sẽ bị mất.')) return;
+              try {
+                localStorage.clear();
+                await logOutRevenueCat();
+                await supabase.auth.signOut();
+              } catch (e) { console.error('Delete account failed:', e); }
+            }}
             remainingSeconds={remainingSeconds}
           />
         )}

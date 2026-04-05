@@ -142,16 +142,22 @@ export default function PricingScreen({ onSubscribe, onRestore, onClose }: Prici
           Khôi phục giao dịch
         </motion.button>
 
-        {/* Disclaimer */}
-        <motion.p
-          className="mt-3 text-[#b0b0b0] text-xs text-center leading-relaxed"
+        {/* Disclaimer — Apple required auto-renewal terms */}
+        <motion.div
+          className="mt-3 text-[#b0b0b0] text-[10px] text-center leading-relaxed space-y-1"
           variants={item}
           initial="hidden"
           animate="visible"
           transition={reduced ? { duration: 0 } : { duration: 0.5, delay: 0.55, ease }}
         >
-          Thanh toán qua App Store. Hủy bất cứ lúc nào.
-        </motion.p>
+          <p>Thanh toán qua tài khoản iTunes. Gói tự động gia hạn trừ khi bạn tắt tự động gia hạn ít nhất 24 giờ trước khi hết hạn.</p>
+          <p>Quản lý gói trong Cài đặt {'>'} Apple ID {'>'} Đăng ký.</p>
+          <p>
+            <a href="/privacy.html" target="_blank" className="underline">Chính sách bảo mật</a>
+            {' · '}
+            <a href="https://www.apple.com/legal/internet-services/itunes/dev/stdeula/" target="_blank" rel="noopener noreferrer" className="underline">Điều khoản sử dụng</a>
+          </p>
+        </motion.div>
       </div>
     </motion.div>
   );
